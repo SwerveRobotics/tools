@@ -5,6 +5,8 @@ VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlueBotBugService", "BlueBotBugService\BlueBotBugService.csproj", "{98E84E5D-BA98-470B-AA07-A5506267FF78}"
 EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Setup", "Setup\Setup.vdproj", "{07F56415-F04A-49FE-939C-98E7D66A48C1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,8 @@ Global
 		{98E84E5D-BA98-470B-AA07-A5506267FF78}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{98E84E5D-BA98-470B-AA07-A5506267FF78}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{98E84E5D-BA98-470B-AA07-A5506267FF78}.Release|Any CPU.Build.0 = Release|Any CPU
+		{07F56415-F04A-49FE-939C-98E7D66A48C1}.Debug|Any CPU.ActiveCfg = Debug
+		{07F56415-F04A-49FE-939C-98E7D66A48C1}.Release|Any CPU.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

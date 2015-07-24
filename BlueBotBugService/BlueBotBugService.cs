@@ -12,16 +12,40 @@ namespace BlueBotBugService
     {
     public partial class BlueBotBugService : ServiceBase
         {
+        //------------------------------------------------------------------------------------------
+        // State
+        //------------------------------------------------------------------------------------------
+        
+        //------------------------------------------------------------------------------------------
+        // Construction
+        //------------------------------------------------------------------------------------------
+
         public BlueBotBugService()
             {
             InitializeComponent();
             }
+
+        //------------------------------------------------------------------------------------------
+        // Notifications
+        //------------------------------------------------------------------------------------------
 
         protected override void OnStart(string[] args)
             {
             }
 
         protected override void OnStop()
+            {
+            }
+
+        protected override void OnContinue()
+            {
+            }
+
+        protected override void OnPause()
+            {
+            }
+
+        protected override void OnShutdown()
             {
             }
         }
