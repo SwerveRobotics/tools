@@ -7,7 +7,7 @@ using System.Linq;
 using System.ServiceProcess;
 using System.Text;
 using System.Threading.Tasks;
-using Org.SwerveRobotics.BlueBotBug;
+using Org.SwerveRobotics.Tools.Library;
 
 namespace Org.SwerveRobotics.BlueBotBug.Service
     {
@@ -22,7 +22,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
         private const string eventLogSourceName = "fred";
         private const string eventLogName = "barney";
 
-        private Library.Main library = null;
+        private BlueBotBug library = null;
 
         //------------------------------------------------------------------------------------------
         // Construction
@@ -48,7 +48,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
         protected override void OnStart(string[] args)
             {
             this.eventLog.WriteEntry("starting");
-            this.library = new Library.Main();
+            this.library = new BlueBotBug();
             this.library.Start();
             }
 

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Org.SwerveRobotics.BlueBotBug;
+using Org.SwerveRobotics.Tools.Library;
 
 namespace Org.SwerveRobotics.BlueBotBug.Console
     {
@@ -11,7 +11,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Console
         {
         static void Main(string[] args)
             {
-            Library.Main library = new Library.Main();
+            BlueBotBug library = new BlueBotBug();
             //
             library.Start();
             //

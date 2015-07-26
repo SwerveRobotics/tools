@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlueBotBugService", "BlueBo
 EndProject
 Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Setup", "Setup\Setup.vdproj", "{07F56415-F04A-49FE-939C-98E7D66A48C1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlueBotBugLibrary", "BlueBotBugLibrary\BlueBotBugLibrary.csproj", "{51A902E2-443A-40C5-92E1-914DABD57668}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToolsLibrary", "BlueBotBugLibrary\ToolsLibrary.csproj", "{51A902E2-443A-40C5-92E1-914DABD57668}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlueBotBugConsole", "BlueBotBugConsole\BlueBotBugConsole.csproj", "{6E28783F-F874-4794-81B3-299DC63FC6CE}"
 EndProject

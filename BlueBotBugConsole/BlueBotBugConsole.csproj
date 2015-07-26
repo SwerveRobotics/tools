@@ -49,9 +49,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\BlueBotBugLibrary\BlueBotBugLibrary.csproj">
+    <ProjectReference Include="..\BlueBotBugLibrary\ToolsLibrary.csproj">
       <Project>{51a902e2-443a-40c5-92e1-914dabd57668}</Project>
-      <Name>BlueBotBugLibrary</Name>
+      <Name>ToolsLibrary</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

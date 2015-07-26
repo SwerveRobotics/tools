@@ -7,8 +7,8 @@
     <ProjectGuid>{51A902E2-443A-40C5-92E1-914DABD57668}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Org.SwerveRobotics.BlueBotBug.Library</RootNamespace>
-    <AssemblyName>BlueBotBugLibrary</AssemblyName>
+    <RootNamespace>Org.SwerveRobotics.Tools.Library</RootNamespace>
+    <AssemblyName>ToolsLibrary</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -40,7 +40,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Main.cs" />
+    <Compile Include="BlueBotBug.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
