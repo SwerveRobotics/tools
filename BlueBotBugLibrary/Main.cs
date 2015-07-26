@@ -8,5 +8,14 @@ namespace Org.SwerveRobotics.BlueBotBug.Library
     {
     public class Main
         {
+        public void Start()
+            {
+
+            }
+
+        public void Stop()
+            {
+
+            }
         }
     }
