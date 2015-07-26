@@ -44,9 +44,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BlueBotBug.cs" />
+    <Compile Include="Connection.cs" />
     <Compile Include="DirectInput.cs" />
     <Compile Include="JoystickController.cs" />
+    <Compile Include="JoystickMessage.cs" />
+    <Compile Include="NXTMessage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TelemetryRecord.cs" />
+    <Compile Include="Util.cs" />
     <Compile Include="WIN32.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
