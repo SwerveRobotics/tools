@@ -11,9 +11,9 @@ namespace Org.SwerveRobotics.BlueBotBug.Console
         {
         static void Main(string[] args)
             {
-            BlueBotBug library = new BlueBotBug();
+            Tools.Library.BlueBotBug bluebotbug = new Tools.Library.BlueBotBug();
             //
-            library.Start();
+            bluebotbug.Start();
             //
             System.Console.WriteLine("Press any key to stop...");
             while (!System.Console.KeyAvailable)
@@ -21,7 +21,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Console
                 System.Threading.Thread.Yield();
                 }
             //
-            library.Stop();
+            bluebotbug.Stop();
             }
         }
     }

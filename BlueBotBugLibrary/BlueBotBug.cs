@@ -10,7 +10,6 @@ namespace Org.SwerveRobotics.Tools.Library
         {
         public void Start()
             {
-
             }
 
         public void Stop()
