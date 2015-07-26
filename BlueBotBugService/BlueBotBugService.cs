@@ -8,7 +8,7 @@ using System.ServiceProcess;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BlueBotBugService
+namespace Org.SwerveRobotics.BlueBotBug.Service
     {
     public partial class BlueBotBugService : ServiceBase
         {
@@ -16,6 +16,11 @@ namespace BlueBotBugService
         // State
         //------------------------------------------------------------------------------------------
         
+        private System.Diagnostics.EventLog eventLog;
+
+        private const string eventLogSourceName = "fred";
+        private const string eventLogName = "barney";
+
         //------------------------------------------------------------------------------------------
         // Construction
         //------------------------------------------------------------------------------------------
@@ -23,6 +28,14 @@ namespace BlueBotBugService
         public BlueBotBugService()
             {
             InitializeComponent();
+
+            this.eventLog = new EventLog();
+            if (!EventLog.SourceExists(eventLogSourceName))
+                {
+                EventLog.CreateEventSource(eventLogSourceName, eventLogName);
+                }
+            eventLog.Source = eventLogSourceName;
+            eventLog.Log    = eventLogName;
             }
 
         //------------------------------------------------------------------------------------------
@@ -31,22 +44,27 @@ namespace BlueBotBugService
 
         protected override void OnStart(string[] args)
             {
+            this.eventLog.WriteEntry("starting");
             }
 
         protected override void OnStop()
             {
+            this.eventLog.WriteEntry("stopping");
             }
 
         protected override void OnContinue()
             {
+            this.eventLog.WriteEntry("continuing");
             }
 
         protected override void OnPause()
             {
+            this.eventLog.WriteEntry("pausing");
             }
 
         protected override void OnShutdown()
             {
+            this.eventLog.WriteEntry("shutting down");
             }
         }
     }

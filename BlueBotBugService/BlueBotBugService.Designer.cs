@@ -1,4 +1,4 @@
-﻿namespace BlueBotBugService
+﻿namespace Org.SwerveRobotics.BlueBotBug.Service
     {
     partial class BlueBotBugService
         {

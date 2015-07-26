@@ -5,7 +5,7 @@ using System.ServiceProcess;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BlueBotBugService
+namespace Org.SwerveRobotics.BlueBotBug.Service
     {
     static class Program
         {
