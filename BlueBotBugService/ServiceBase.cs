@@ -1,41 +1,36 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Globalization;
+using System.Reflection;
+using System.Runtime;
+using System.Runtime.InteropServices;
+using System.Security.Permissions;
+using System.Threading;
+using System.ServiceProcess;
+using Org.SwerveRobotics.Tools.Library;
 
 namespace Org.SwerveRobotics.BlueBotBug.Service
     {
-    using System;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Reflection;
-    using System.Runtime;
-    using System.Runtime.CompilerServices;
-    using System.Runtime.InteropServices;
-    using System.Security.Permissions;
-    using System.Threading;
-
     [InstallerType(typeof(ServiceProcessInstaller))]
     public class ServiceBase : Component
         {
         private int acceptedCommands = 1;
         private bool autoLog;
-        private System.ServiceProcess.NativeMethods.ServiceControlCallback commandCallback;
-        private System.ServiceProcess.NativeMethods.ServiceControlCallbackEx commandCallbackEx;
+        private WIN32.ServiceControlCallback commandCallback;
+        private WIN32.ServiceControlCallbackEx commandCallbackEx;
         private bool commandPropsFrozen;
         private bool disposed;
         private System.Diagnostics.EventLog eventLog;
         private IntPtr handleName;
         private bool initialized;
         private bool isServiceHosted;
-        private System.ServiceProcess.NativeMethods.ServiceMainCallback mainCallback;
+        private WIN32.ServiceMainCallback mainCallback;
         public const int MaxNameLength = 80;
         private bool nameFrozen;
         private string serviceName;
         private ManualResetEvent startCompletedSignal;
-        private System.ServiceProcess.NativeMethods.SERVICE_STATUS status = new System.ServiceProcess.NativeMethods.SERVICE_STATUS();
+        private WIN32.SERVICE_STATUS status = new WIN32.SERVICE_STATUS();
         private IntPtr statusHandle;
 
         public ServiceBase()
@@ -46,7 +41,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
 
         private unsafe void DeferredContinue()
             {
-            fixed (System.ServiceProcess.NativeMethods.SERVICE_STATUS* service_statusRef = &this.status)
+            fixed (WIN32.SERVICE_STATUS* service_statusRef = &this.status)
                 {
                 try
                     {
@@ -62,7 +57,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                     }
                 finally
                     {
-                    System.ServiceProcess.NativeMethods.SetServiceStatus(this.statusHandle, service_statusRef);
+                    WIN32.SetServiceStatus(this.statusHandle, service_statusRef);
                     }
                 }
             }
@@ -83,7 +78,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
 
         private unsafe void DeferredPause()
             {
-            fixed (System.ServiceProcess.NativeMethods.SERVICE_STATUS* service_statusRef = &this.status)
+            fixed (WIN32.SERVICE_STATUS* service_statusRef = &this.status)
                 {
                 try
                     {
@@ -99,7 +94,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                     }
                 finally
                     {
-                    System.ServiceProcess.NativeMethods.SetServiceStatus(this.statusHandle, service_statusRef);
+                    WIN32.SetServiceStatus(this.statusHandle, service_statusRef);
                     }
                 }
             }
@@ -123,7 +118,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             {
             try
                 {
-                this.OnSessionChange(new SessionChangeDescription((SessionChangeReason)eventType, sessionId));
+                this.OnSessionChange((SessionChangeReason)eventType, sessionId);
                 }
             catch (Exception exception)
                 {
@@ -140,12 +135,12 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                 this.WriteEventLogEntry(Res.GetString("ShutdownOK"));
                 if ((this.status.currentState == 7) || (this.status.currentState == 4))
                     {
-                    fixed (System.ServiceProcess.NativeMethods.SERVICE_STATUS* service_statusRef = &this.status)
+                    fixed (WIN32.SERVICE_STATUS* service_statusRef = &this.status)
                         {
                         this.status.checkPoint = 0;
                         this.status.waitHint = 0;
                         this.status.currentState = 1;
-                        System.ServiceProcess.NativeMethods.SetServiceStatus(this.statusHandle, service_statusRef);
+                        WIN32.SetServiceStatus(this.statusHandle, service_statusRef);
                         if (this.isServiceHosted)
                             {
                             try
@@ -169,19 +164,19 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
 
         private unsafe void DeferredStop()
             {
-            fixed (System.ServiceProcess.NativeMethods.SERVICE_STATUS* service_statusRef = &this.status)
+            fixed (WIN32.SERVICE_STATUS* service_statusRef = &this.status)
                 {
                 int currentState = this.status.currentState;
                 this.status.checkPoint = 0;
                 this.status.waitHint = 0;
                 this.status.currentState = 3;
-                System.ServiceProcess.NativeMethods.SetServiceStatus(this.statusHandle, service_statusRef);
+                WIN32.SetServiceStatus(this.statusHandle, service_statusRef);
                 try
                     {
                     this.OnStop();
                     this.WriteEventLogEntry(Res.GetString("StopSuccessful"));
                     this.status.currentState = 1;
-                    System.ServiceProcess.NativeMethods.SetServiceStatus(this.statusHandle, service_statusRef);
+                    WIN32.SetServiceStatus(this.statusHandle, service_statusRef);
                     if (this.isServiceHosted)
                         {
                         try
@@ -197,7 +192,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                 catch (Exception exception2)
                     {
                     this.status.currentState = currentState;
-                    System.ServiceProcess.NativeMethods.SetServiceStatus(this.statusHandle, service_statusRef);
+                    WIN32.SetServiceStatus(this.statusHandle, service_statusRef);
                     this.WriteEventLogEntry(Res.GetString("StopFailed", new object[] { exception2.ToString() }), EventLogEntryType.Error);
                     throw;
                     }
@@ -217,9 +212,9 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             base.Dispose(disposing);
             }
 
-        private System.ServiceProcess.NativeMethods.SERVICE_TABLE_ENTRY GetEntry()
+        private WIN32.SERVICE_TABLE_ENTRY GetEntry()
             {
-            System.ServiceProcess.NativeMethods.SERVICE_TABLE_ENTRY service_table_entry = new System.ServiceProcess.NativeMethods.SERVICE_TABLE_ENTRY();
+            WIN32.SERVICE_TABLE_ENTRY service_table_entry = new WIN32.SERVICE_TABLE_ENTRY();
             this.nameFrozen = true;
             service_table_entry.callback = this.mainCallback;
             service_table_entry.name = this.handleName;
@@ -248,9 +243,9 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                 this.status.serviceSpecificExitCode = 0;
                 this.status.checkPoint = 0;
                 this.status.waitHint = 0;
-                this.mainCallback = new System.ServiceProcess.NativeMethods.ServiceMainCallback(this.ServiceMainCallback);
-                this.commandCallback = new System.ServiceProcess.NativeMethods.ServiceControlCallback(this.ServiceCommandCallback);
-                this.commandCallbackEx = new System.ServiceProcess.NativeMethods.ServiceControlCallbackEx(this.ServiceCommandCallbackEx);
+                this.mainCallback = new WIN32.ServiceMainCallback(this.ServiceMainCallback);
+                this.commandCallback = new WIN32.ServiceControlCallback(this.ServiceCommandCallback);
+                this.commandCallbackEx = new WIN32.ServiceControlCallbackEx(this.ServiceCommandCallbackEx);
                 this.handleName = Marshal.StringToHGlobalUni(this.ServiceName);
                 this.initialized = true;
                 }
@@ -288,7 +283,8 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             return true;
             }
 
-        protected virtual void OnSessionChange(SessionChangeDescription changeDescription)
+        // protected virtual void OnSessionChange(SessionChangeDescription changeDescription)
+        protected virtual void OnSessionChange(SessionChangeReason reason, int sessionId)
             {
             }
 
@@ -307,7 +303,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
         [ComVisible(false)]
         public unsafe void RequestAdditionalTime(int milliseconds)
             {
-            fixed (System.ServiceProcess.NativeMethods.SERVICE_STATUS* service_statusRef = &this.status)
+            fixed (WIN32.SERVICE_STATUS* service_statusRef = &this.status)
                 {
                 if (((this.status.currentState != 5) && (this.status.currentState != 2)) && ((this.status.currentState != 3) && (this.status.currentState != 6)))
                     {
@@ -315,7 +311,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                     }
                 this.status.waitHint = milliseconds;
                 this.status.checkPoint++;
-                System.ServiceProcess.NativeMethods.SetServiceStatus(this.statusHandle, service_statusRef);
+                WIN32.SetServiceStatus(this.statusHandle, service_statusRef);
                 }
             }
 
@@ -333,25 +329,25 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                 }
             else
                 {
-                IntPtr entry = Marshal.AllocHGlobal((IntPtr)((services.Length + 1) * Marshal.SizeOf(typeof(System.ServiceProcess.NativeMethods.SERVICE_TABLE_ENTRY))));
-                System.ServiceProcess.NativeMethods.SERVICE_TABLE_ENTRY[] service_table_entryArray = new System.ServiceProcess.NativeMethods.SERVICE_TABLE_ENTRY[services.Length];
+                IntPtr entry = Marshal.AllocHGlobal((IntPtr)((services.Length + 1) * Marshal.SizeOf(typeof(WIN32.SERVICE_TABLE_ENTRY))));
+                WIN32.SERVICE_TABLE_ENTRY[] service_table_entryArray = new WIN32.SERVICE_TABLE_ENTRY[services.Length];
                 bool multipleServices = services.Length > 1;
                 IntPtr zero = IntPtr.Zero;
                 for (int i = 0; i < services.Length; i++)
                     {
                     services[i].Initialize(multipleServices);
                     service_table_entryArray[i] = services[i].GetEntry();
-                    zero = (IntPtr)(((long)entry) + (Marshal.SizeOf(typeof(System.ServiceProcess.NativeMethods.SERVICE_TABLE_ENTRY)) * i));
+                    zero = (IntPtr)(((long)entry) + (Marshal.SizeOf(typeof(WIN32.SERVICE_TABLE_ENTRY)) * i));
                     Marshal.StructureToPtr(service_table_entryArray[i], zero, true);
                     }
-                System.ServiceProcess.NativeMethods.SERVICE_TABLE_ENTRY structure = new System.ServiceProcess.NativeMethods.SERVICE_TABLE_ENTRY
+                WIN32.SERVICE_TABLE_ENTRY structure = new WIN32.SERVICE_TABLE_ENTRY
                     {
                     callback = null,
                     name = IntPtr.Zero
                     };
-                zero = (IntPtr)(((long)entry) + (Marshal.SizeOf(typeof(System.ServiceProcess.NativeMethods.SERVICE_TABLE_ENTRY)) * services.Length));
+                zero = (IntPtr)(((long)entry) + (Marshal.SizeOf(typeof(WIN32.SERVICE_TABLE_ENTRY)) * services.Length));
                 Marshal.StructureToPtr(structure, zero, true);
-                bool flag2 = System.ServiceProcess.NativeMethods.StartServiceCtrlDispatcher(entry);
+                bool flag2 = WIN32.StartServiceCtrlDispatcher(entry);
                 string str3 = "";
                 if (!flag2)
                     {
@@ -389,11 +385,11 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
 
         private unsafe void ServiceCommandCallback(int command)
             {
-            fixed (System.ServiceProcess.NativeMethods.SERVICE_STATUS* service_statusRef = &this.status)
+            fixed (WIN32.SERVICE_STATUS* service_statusRef = &this.status)
                 {
                 if (command == 4)
                     {
-                    System.ServiceProcess.NativeMethods.SetServiceStatus(this.statusHandle, service_statusRef);
+                    WIN32.SetServiceStatus(this.statusHandle, service_statusRef);
                     }
                 else if (((this.status.currentState != 5) && (this.status.currentState != 2)) && ((this.status.currentState != 3) && (this.status.currentState != 6)))
                     {
@@ -405,7 +401,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                             if ((this.status.currentState == 7) || (this.status.currentState == 4))
                                 {
                                 this.status.currentState = 3;
-                                System.ServiceProcess.NativeMethods.SetServiceStatus(this.statusHandle, service_statusRef);
+                                WIN32.SetServiceStatus(this.statusHandle, service_statusRef);
                                 this.status.currentState = currentState;
                                 new DeferredHandlerDelegate(this.DeferredStop).BeginInvoke(null, null);
                                 }
@@ -415,7 +411,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                         if (this.status.currentState == 4)
                             {
                             this.status.currentState = 6;
-                            System.ServiceProcess.NativeMethods.SetServiceStatus(this.statusHandle, service_statusRef);
+                            WIN32.SetServiceStatus(this.statusHandle, service_statusRef);
                             new DeferredHandlerDelegate(this.DeferredPause).BeginInvoke(null, null);
                             }
                         goto Label_01AE;
@@ -424,7 +420,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                         if (this.status.currentState == 7)
                             {
                             this.status.currentState = 5;
-                            System.ServiceProcess.NativeMethods.SetServiceStatus(this.statusHandle, service_statusRef);
+                            WIN32.SetServiceStatus(this.statusHandle, service_statusRef);
                             new DeferredHandlerDelegate(this.DeferredContinue).BeginInvoke(null, null);
                             }
                         goto Label_01AE;
@@ -451,7 +447,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             case 14:
                     {
                     DeferredHandlerDelegateAdvancedSession session = new DeferredHandlerDelegateAdvancedSession(this.DeferredSessionChange);
-                    System.ServiceProcess.NativeMethods.WTSSESSION_NOTIFICATION structure = new System.ServiceProcess.NativeMethods.WTSSESSION_NOTIFICATION();
+                    WIN32.WTSSESSION_NOTIFICATION structure = new WIN32.WTSSESSION_NOTIFICATION();
                     Marshal.PtrToStructure(eventData, structure);
                     session.BeginInvoke(eventType, structure.sessionId, null, null);
                     return num;
@@ -464,7 +460,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
         [EditorBrowsable(EditorBrowsableState.Never), ComVisible(false)]
         public unsafe void ServiceMainCallback(int argCount, IntPtr argPointer)
             {
-            fixed (System.ServiceProcess.NativeMethods.SERVICE_STATUS* service_statusRef = &this.status)
+            fixed (WIN32.SERVICE_STATUS* service_statusRef = &this.status)
                 {
                 string[] state = null;
                 if (argCount > 0)
@@ -484,11 +480,11 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                     }
                 if (Environment.OSVersion.Version.Major >= 5)
                     {
-                    this.statusHandle = System.ServiceProcess.NativeMethods.RegisterServiceCtrlHandlerEx(this.ServiceName, this.commandCallbackEx, IntPtr.Zero);
+                    this.statusHandle = WIN32.RegisterServiceCtrlHandlerEx(this.ServiceName, this.commandCallbackEx, IntPtr.Zero);
                     }
                 else
                     {
-                    this.statusHandle = System.ServiceProcess.NativeMethods.RegisterServiceCtrlHandler(this.ServiceName, this.commandCallback);
+                    this.statusHandle = WIN32.RegisterServiceCtrlHandler(this.ServiceName, this.commandCallback);
                     }
                 this.nameFrozen = true;
                 if (this.statusHandle == IntPtr.Zero)
@@ -507,16 +503,16 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                     this.status.controlsAccepted &= -65;
                     }
                 this.status.currentState = 2;
-                if (System.ServiceProcess.NativeMethods.SetServiceStatus(this.statusHandle, service_statusRef))
+                if (WIN32.SetServiceStatus(this.statusHandle, service_statusRef))
                     {
                     this.startCompletedSignal = new ManualResetEvent(false);
                     ThreadPool.QueueUserWorkItem(new WaitCallback(this.ServiceQueuedMainCallback), state);
                     this.startCompletedSignal.WaitOne();
-                    if (!System.ServiceProcess.NativeMethods.SetServiceStatus(this.statusHandle, service_statusRef))
+                    if (!WIN32.SetServiceStatus(this.statusHandle, service_statusRef))
                         {
                         this.WriteEventLogEntry(Res.GetString("StartFailed", new object[] { new Win32Exception().Message }), EventLogEntryType.Error);
                         this.status.currentState = 1;
-                        System.ServiceProcess.NativeMethods.SetServiceStatus(this.statusHandle, service_statusRef);
+                        WIN32.SetServiceStatus(this.statusHandle, service_statusRef);
                         }
                     }
                 }
@@ -794,13 +790,35 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                     {
                     throw new InvalidOperationException(Res.GetString("CannotChangeName"));
                     }
-                if ((value != "") && !ServiceController.ValidServiceName(value))
+                if ((value != "") && !ValidServiceName(value))
                     {
                     object[] args = new object[] { value, 80.ToString(CultureInfo.CurrentCulture) };
                     throw new ArgumentException(Res.GetString("ServiceName", args));
                     }
                 this.serviceName = value;
                 }
+            }
+
+        internal static bool ValidServiceName(string serviceName)
+            {
+            if (serviceName == null)
+                {
+                return false;
+                }
+            if ((serviceName.Length > 80) || (serviceName.Length == 0))
+                {
+                return false;
+                }
+            foreach (char ch in serviceName.ToCharArray())
+                {
+                switch (ch)
+                    {
+                case '\\':
+                case '/':
+                    return false;
+                    }
+                }
+            return true;
             }
 
         private delegate void DeferredHandlerDelegate();
@@ -811,4 +829,32 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
 
         private delegate void DeferredHandlerDelegateCommand(int command);
         }
+
+    internal class Res
+        {
+        public static string GetString(string name)
+            {
+            return name;    // could do better
+            }
+
+        public static string GetString(string name, params object[] args)
+            {
+            string format = name;
+            if ((args == null) || (args.Length == 0))
+                {
+                return format;
+                }
+            for (int i = 0; i < args.Length; i++)
+                {
+                string str2 = args[i] as string;
+                if ((str2 != null) && (str2.Length > 0x400))
+                    {
+                    args[i] = str2.Substring(0, 0x3fd) + "...";
+                    }
+                }
+            return string.Format(CultureInfo.CurrentCulture, format, args);
+            }
+
+        }
+
     }

@@ -61,5 +61,16 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                 library = null;
                 }
             }
+
+        protected override void OnCustomCommand(int command)
+            {
+            switch (command)
+                {
+            case Tools.Library.WIN32.SERVICE_CONTROL_DEVICEEVENT:
+                this.eventLog.WriteEntry("device event");
+                break;
+                }
+            }
+
         }
     }
