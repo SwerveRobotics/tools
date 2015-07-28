@@ -13,7 +13,7 @@ using Org.SwerveRobotics.Tools.Library;
 namespace Org.SwerveRobotics.BlueBotBug.Service
     {
     [InstallerType(typeof(ServiceProcessInstaller))]
-    public class ServiceBase : Component
+    public class DecompiledServiceBase : Component
         {
         private int acceptedCommands = 1;
         private bool autoLog;
@@ -33,7 +33,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
         private WIN32.SERVICE_STATUS status = new WIN32.SERVICE_STATUS();
         private IntPtr statusHandle;
 
-        public ServiceBase()
+        public DecompiledServiceBase()
             {
             this.AutoLog = true;
             this.ServiceName = "";
@@ -315,7 +315,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                 }
             }
 
-        public static void Run(ServiceBase[] services)
+        public static void Run(DecompiledServiceBase[] services)
             {
             if ((services == null) || (services.Length == 0))
                 {
@@ -363,7 +363,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                         Console.WriteLine(str4);
                         }
                     }
-                foreach (ServiceBase base2 in services)
+                foreach (DecompiledServiceBase base2 in services)
                     {
                     base2.Dispose();
                     if (!flag2 && (base2.EventLog.Source.Length != 0))
@@ -374,13 +374,13 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                 }
             }
 
-        public static void Run(ServiceBase service)
+        public static void Run(DecompiledServiceBase service)
             {
             if (service == null)
                 {
                 throw new ArgumentException(Res.GetString("NoServices"));
                 }
-            Run(new ServiceBase[] { service });
+            Run(new DecompiledServiceBase[] { service });
             }
 
         private unsafe void ServiceCommandCallback(int command)

@@ -16,12 +16,12 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
         /// </summary>
         static void Main(string[] args)
             {
-            ServiceBase[] ServicesToRun;
-            ServicesToRun = new ServiceBase[] 
+            DecompiledServiceBase[] ServicesToRun;
+            ServicesToRun = new DecompiledServiceBase[] 
                 { 
                 new BlueBotBugService() 
                 };
-            ServiceBase.Run(ServicesToRun);
+            DecompiledServiceBase.Run(ServicesToRun);
             }
         }
     }

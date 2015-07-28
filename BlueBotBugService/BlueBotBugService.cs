@@ -11,7 +11,7 @@ using Org.SwerveRobotics.Tools.Library;
 
 namespace Org.SwerveRobotics.BlueBotBug.Service
     {
-    public partial class BlueBotBugService : ServiceBase
+    public partial class BlueBotBugService : DecompiledServiceBase
         {
         //------------------------------------------------------------------------------------------
         // State
