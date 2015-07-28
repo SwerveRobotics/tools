@@ -274,6 +274,10 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             {
             }
 
+        protected virtual void OnCustomCommand()
+            { 
+            }
+
         protected virtual void OnPause()
             {
             }
@@ -387,7 +391,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             {
             fixed (WIN32.SERVICE_STATUS* service_statusRef = &this.status)
                 {
-                if (command == 4)
+                if (command == WIN32.SERVICE_CONTROL_INTERROGATE)
                     {
                     WIN32.SetServiceStatus(this.statusHandle, service_statusRef);
                     }
@@ -395,7 +399,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                     {
                     switch (command)
                         {
-                    case 1:
+                    case WIN32.SERVICE_CONTROL_STOP:
                             {
                             int currentState = this.status.currentState;
                             if ((this.status.currentState == 7) || (this.status.currentState == 4))
@@ -405,34 +409,35 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                                 this.status.currentState = currentState;
                                 new DeferredHandlerDelegate(this.DeferredStop).BeginInvoke(null, null);
                                 }
-                            goto Label_01AE;
+                            goto ServiceCommandCallbackReturn;
                             }
-                    case 2:
+                    case WIN32.SERVICE_CONTROL_PAUSE:
                         if (this.status.currentState == 4)
                             {
                             this.status.currentState = 6;
                             WIN32.SetServiceStatus(this.statusHandle, service_statusRef);
                             new DeferredHandlerDelegate(this.DeferredPause).BeginInvoke(null, null);
                             }
-                        goto Label_01AE;
+                        goto ServiceCommandCallbackReturn;
 
-                    case 3:
+                    case WIN32.SERVICE_CONTROL_CONTINUE:
                         if (this.status.currentState == 7)
                             {
                             this.status.currentState = 5;
                             WIN32.SetServiceStatus(this.statusHandle, service_statusRef);
                             new DeferredHandlerDelegate(this.DeferredContinue).BeginInvoke(null, null);
                             }
-                        goto Label_01AE;
+                        goto ServiceCommandCallbackReturn;
 
-                    case 5:
+                    case WIN32.SERVICE_CONTROL_SHUTDOWN:
                         new DeferredHandlerDelegate(this.DeferredShutdown).BeginInvoke(null, null);
-                        goto Label_01AE;
+                        goto ServiceCommandCallbackReturn;
                         }
                     new DeferredHandlerDelegateCommand(this.DeferredCustomCommand).BeginInvoke(command, null, null);
                     }
                 }
-            Label_01AE:;
+            ServiceCommandCallbackReturn:
+                /* empty statement */;
             }
 
         private int ServiceCommandCallbackEx(int command, int eventType, IntPtr eventData, IntPtr eventContext)
@@ -440,11 +445,11 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             int num = 0;
             switch (command)
                 {
-            case 13:
+            case WIN32.SERVICE_CONTROL_POWEREVENT:
                 new DeferredHandlerDelegateAdvanced(this.DeferredPowerEvent).BeginInvoke(eventType, eventData, null, null);
                 return num;
 
-            case 14:
+            case WIN32.SERVICE_CONTROL_SESSIONCHANGE:
                     {
                     DeferredHandlerDelegateAdvancedSession session = new DeferredHandlerDelegateAdvancedSession(this.DeferredSessionChange);
                     WIN32.WTSSESSION_NOTIFICATION structure = new WIN32.WTSSESSION_NOTIFICATION();

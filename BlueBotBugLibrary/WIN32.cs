@@ -330,8 +330,25 @@ namespace Org.SwerveRobotics.Tools.Library
         public const int WM_DEVICECHANGE                    = 0X219;
 
 		public const int SERVICE_CONTROL_STOP               = 1;
-		public const int SERVICE_CONTROL_DEVICEEVENT        = 11;
+        public const int SERVICE_CONTROL_PAUSE              = 2;
+        public const int SERVICE_CONTROL_CONTINUE           = 3;
+        public const int SERVICE_CONTROL_INTERROGATE        = 4;
 		public const int SERVICE_CONTROL_SHUTDOWN           = 5;
+        public const int SERVICE_CONTROL_PARAMCHANGE        = 6;
+        public const int SERVICE_CONTROL_NETBINDADD         = 7;
+        public const int SERVICE_CONTROL_NETBINDREMOVE      = 8;
+        public const int SERVICE_CONTROL_NETBINDENABLE      = 9;
+        public const int SERVICE_CONTROL_NETBINDDISABLE     = 10;
+		public const int SERVICE_CONTROL_DEVICEEVENT        = 11;
+        public const int SERVICE_CONTROL_HARDWAREPROFILECHANGE = 12;
+        public const int SERVICE_CONTROL_POWEREVENT         = 13;
+        public const int SERVICE_CONTROL_SESSIONCHANGE      = 14;
+        public const int SERVICE_CONTROL_PRESHUTDOWN        = 15;
+        public const int SERVICE_CONTROL_TIMECHANGE         = 0x10;
+        public const int SERVICE_CONTROL_TRIGGEREVENT       = 0x20;
+        public const int SERVICE_CONTROL_USERMODEREBOOT     = 0x40;
+        public const int SERVICE_CONTROL_USERCODEFIRST      = 128;
+        public const int SERVICE_CONTROL_USERCODELAST       = 255;
 
         //------------------------------------------------------------------------------
         // Enums
