@@ -83,7 +83,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
-    <Compile Include="ServiceBase.cs">
+    <Compile Include="DecompiledServiceBase.cs">
       <SubType>Component</SubType>
     </Compile>
   </ItemGroup>
