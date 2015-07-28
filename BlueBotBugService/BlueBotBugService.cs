@@ -20,7 +20,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
         private System.Diagnostics.EventLog eventLog;
 
         private const string eventLogSourceName = "BlueBotBug";
-        private const string eventLogName       = "BlueBotBug Events";
+        private const string eventLogName       = "Application";
 
         private Tools.Library.BlueBotBug library = null;
 
