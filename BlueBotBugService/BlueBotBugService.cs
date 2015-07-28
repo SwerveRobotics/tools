@@ -22,7 +22,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
         private const string eventLogSourceName = "BlueBotBug";
         private const string eventLogName       = "BlueBotBug Events";
 
-        private Tools.Library.BlueBotBug bluebotbug = null;
+        private Tools.Library.BlueBotBug library = null;
 
         //------------------------------------------------------------------------------------------
         // Construction
@@ -48,33 +48,18 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
         protected override void OnStart(string[] args)
             {
             this.eventLog.WriteEntry("starting");
-            this.bluebotbug = new Tools.Library.BlueBotBug();
-            this.bluebotbug.Start();
+            this.library = new Tools.Library.BlueBotBug();
+            this.library.Start();
             }
 
         protected override void OnStop()
             {
             this.eventLog.WriteEntry("stopping");
-            if (this.bluebotbug != null)
+            if (this.library != null)
                 { 
-                bluebotbug.Stop();
-                bluebotbug = null;
+                library.Stop();
+                library = null;
                 }
-            }
-
-        protected override void OnContinue()
-            {
-            this.eventLog.WriteEntry("continuing");
-            }
-
-        protected override void OnPause()
-            {
-            this.eventLog.WriteEntry("pausing");
-            }
-
-        protected override void OnShutdown()
-            {
-            this.eventLog.WriteEntry("shutting down");
             }
         }
     }

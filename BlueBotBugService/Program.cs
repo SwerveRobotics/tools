@@ -5,6 +5,8 @@ using System.ServiceProcess;
 using System.Text;
 using System.Threading.Tasks;
 
+// https://msdn.microsoft.com/en-us/library/zt39148a(v=vs.110).aspx
+
 namespace Org.SwerveRobotics.BlueBotBug.Service
     {
     static class Program
@@ -12,7 +14,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
-        static void Main()
+        static void Main(string[] args)
             {
             ServiceBase[] ServicesToRun;
             ServicesToRun = new ServiceBase[] 

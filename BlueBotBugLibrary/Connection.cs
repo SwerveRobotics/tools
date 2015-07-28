@@ -3,6 +3,11 @@
 //
 // Infrastructure for connecting to NXT's in various ways: Bluetooth, USB, and Samantha.
 //
+// http://www.ftdichip.com/Support/Documents/AppNotes/AN_152_Detecting_USB_%20Device_Insertion_and_Removal.pdf
+// https://support.microsoft.com/en-us/kb/171890
+// https://social.msdn.microsoft.com/Forums/vstudio/en-US/6a355e69-16d4-4588-90dc-fbe0736aaa53/equivalent-of-wndproc-in-c-windows-service?forum=csharpgeneral
+// http://www.bing.com/search?q=wndproc+service&FORM=AWRE
+//
 using System;
 using System.Collections.Generic;
 using System.Linq;
