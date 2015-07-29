@@ -1,4 +1,15 @@
-﻿using System;
+﻿//
+// DecompiledServiceBase.cs
+//
+// We HATE this.
+//
+// This is a file dervied from a decompilation of the system's ServiceBase.cs, then 
+// modified, ever so slightly, by adding OnCustomCommandEx.
+//
+// We were forced into this as this appeared to be the only way to get to see
+// the event data for WM_DEVICECHANGE notifications. Ugh. 'Had no choice. Ugh.
+
+using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
@@ -67,6 +78,20 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             try
                 {
                 this.OnCustomCommand(command);
+                this.WriteEventLogEntry(Res.GetString("CommandSuccessful"));
+                }
+            catch (Exception exception)
+                {
+                this.WriteEventLogEntry(Res.GetString("CommandFailed", new object[] { exception.ToString() }), EventLogEntryType.Error);
+                throw;
+                }
+            }
+
+        private void DeferredCustomCommandEx(int command, int eventType, IntPtr eventData, IntPtr eventContext)
+            {
+            try
+                {
+                this.OnCustomCommandEx(command, eventType, eventData, eventContext);
                 this.WriteEventLogEntry(Res.GetString("CommandSuccessful"));
                 }
             catch (Exception exception)
@@ -274,7 +299,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             {
             }
 
-        protected virtual void OnCustomCommand()
+        protected virtual void OnCustomCommandEx(int command, int eventType, IntPtr eventData, IntPtr eventContext)
             { 
             }
 
@@ -387,13 +412,15 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             Run(new DecompiledServiceBase[] { service });
             }
 
-        private unsafe void ServiceCommandCallback(int command)
-            {
+        private unsafe bool HandleCommandCallback(int command)
+        // Return true if handled
+            { 
             fixed (WIN32.SERVICE_STATUS* service_statusRef = &this.status)
                 {
                 if (command == WIN32.SERVICE_CONTROL_INTERROGATE)
                     {
                     WIN32.SetServiceStatus(this.statusHandle, service_statusRef);
+                    return true;
                     }
                 else if (((this.status.currentState != 5) && (this.status.currentState != 2)) && ((this.status.currentState != 3) && (this.status.currentState != 6)))
                     {
@@ -409,7 +436,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                                 this.status.currentState = currentState;
                                 new DeferredHandlerDelegate(this.DeferredStop).BeginInvoke(null, null);
                                 }
-                            goto ServiceCommandCallbackReturn;
+                            return true;
                             }
                     case WIN32.SERVICE_CONTROL_PAUSE:
                         if (this.status.currentState == 4)
@@ -418,7 +445,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                             WIN32.SetServiceStatus(this.statusHandle, service_statusRef);
                             new DeferredHandlerDelegate(this.DeferredPause).BeginInvoke(null, null);
                             }
-                        goto ServiceCommandCallbackReturn;
+                        return true;
 
                     case WIN32.SERVICE_CONTROL_CONTINUE:
                         if (this.status.currentState == 7)
@@ -427,39 +454,53 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                             WIN32.SetServiceStatus(this.statusHandle, service_statusRef);
                             new DeferredHandlerDelegate(this.DeferredContinue).BeginInvoke(null, null);
                             }
-                        goto ServiceCommandCallbackReturn;
+                        return true;
 
                     case WIN32.SERVICE_CONTROL_SHUTDOWN:
                         new DeferredHandlerDelegate(this.DeferredShutdown).BeginInvoke(null, null);
-                        goto ServiceCommandCallbackReturn;
+                        return true;
                         }
-                    new DeferredHandlerDelegateCommand(this.DeferredCustomCommand).BeginInvoke(command, null, null);
                     }
                 }
-            ServiceCommandCallbackReturn:
-                /* empty statement */;
+
+            return false;
             }
 
-        private int ServiceCommandCallbackEx(int command, int eventType, IntPtr eventData, IntPtr eventContext)
-            {
-            int num = 0;
-            switch (command)
-                {
-            case WIN32.SERVICE_CONTROL_POWEREVENT:
-                new DeferredHandlerDelegateAdvanced(this.DeferredPowerEvent).BeginInvoke(eventType, eventData, null, null);
-                return num;
 
-            case WIN32.SERVICE_CONTROL_SESSIONCHANGE:
-                    {
-                    DeferredHandlerDelegateAdvancedSession session = new DeferredHandlerDelegateAdvancedSession(this.DeferredSessionChange);
-                    WIN32.WTSSESSION_NOTIFICATION structure = new WIN32.WTSSESSION_NOTIFICATION();
-                    Marshal.PtrToStructure(eventData, structure);
-                    session.BeginInvoke(eventType, structure.sessionId, null, null);
-                    return num;
-                    }
+        private unsafe void ServiceCommandCallback(int command)
+            {
+            if (!this.HandleCommandCallback(command))
+                {
+                new DeferredHandlerDelegateCommand(this.DeferredCustomCommand).BeginInvoke(command, null, null);
                 }
-            this.ServiceCommandCallback(command);
-            return num;
+            }
+
+        private unsafe int ServiceCommandCallbackEx(int command, int eventType, IntPtr eventData, IntPtr eventContext)
+            {
+            int result = 0;
+            if (!this.HandleCommandCallback(command))
+                {
+                switch (command)
+                    {
+                case WIN32.SERVICE_CONTROL_POWEREVENT:
+                        {
+                        new DeferredHandlerDelegateAdvanced(this.DeferredPowerEvent).BeginInvoke(eventType, eventData, null, null);
+                        return result;
+                        }
+
+                case WIN32.SERVICE_CONTROL_SESSIONCHANGE:
+                        {
+                        DeferredHandlerDelegateAdvancedSession session = new DeferredHandlerDelegateAdvancedSession(this.DeferredSessionChange);
+                        WIN32.WTSSESSION_NOTIFICATION structure = new WIN32.WTSSESSION_NOTIFICATION();
+                        Marshal.PtrToStructure(eventData, structure);
+                        session.BeginInvoke(eventType, structure.sessionId, null, null);
+                        return result;
+                        }
+                    }
+
+                new DeferredHandlerDelegateCommandEx(this.DeferredCustomCommandEx).BeginInvoke(command, eventType, eventData, eventContext, null, null);
+                }
+            return result;
             }
 
         [EditorBrowsable(EditorBrowsableState.Never), ComVisible(false)]
@@ -833,6 +874,8 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
         private delegate void DeferredHandlerDelegateAdvancedSession(int eventType, int sessionId);
 
         private delegate void DeferredHandlerDelegateCommand(int command);
+
+        private delegate void DeferredHandlerDelegateCommandEx(int command, int eventType, IntPtr eventData, IntPtr eventContext);
         }
 
     internal class Res

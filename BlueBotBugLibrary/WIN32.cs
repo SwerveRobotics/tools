@@ -185,14 +185,6 @@ namespace Org.SwerveRobotics.Tools.Library
             public string   dbcc_name;
             }
 
-        [StructLayout(LayoutKind.Sequential, CharSet=CharSet.Unicode)]
-        public class DEV_BROADCAST_HDR
-            {
-            public int dbch_size;
-            public int dbch_devicetype;
-            public int dbch_reserved;
-            }
-
         [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Unicode)]
         public struct SP_DEVICE_INTERFACE_DATA
             {
@@ -291,6 +283,449 @@ namespace Org.SwerveRobotics.Tools.Library
 
 
         //------------------------------------------------------------------------------
+        // Dbt.h
+        //------------------------------------------------------------------------------
+
+        /*
+         * BroadcastSpecialMessage constants.
+         */
+        public const int WM_DEVICECHANGE = 0x0219;
+  
+        /*
+         * Broadcast message and receipient flags.
+         *
+         * Note that there is a third "flag". If the wParam has:
+         *
+         * bit 15 on:   lparam is a pointer and bit 14 is meaningfull.
+         * bit 15 off:  lparam is just a UNLONG data type.
+         *
+         * bit 14 on:   lparam is a pointer to an ASCIIZ string.
+         * bit 14 off:  lparam is a pointer to a binary struture starting with
+         *              a dword describing the length of the structure.
+         */
+        public const int BSF_QUERY = 0x00000001;
+        public const int BSF_IGNORECURRENTTASK = 0x00000002;    /* Meaningless for VxDs */
+        public const int BSF_FLUSHDISK = 0x00000004;            /* Shouldn't be used by VxDs */
+        public const int BSF_NOHANG = 0x00000008;
+        public const int BSF_POSTMESSAGE = 0x00000010;
+        public const int BSF_FORCEIFHUNG = 0x00000020;
+        public const int BSF_NOTIMEOUTIFNOTHUNG = 0x00000040;
+        public const uint BSF_MSGSRV32ISOK = 0x80000000;        /* Called synchronously from PM API */
+        public const int BSF_MSGSRV32ISOK_BIT = 31;             /* Called synchronously from PM API */
+
+        public const int BSM_ALLCOMPONENTS = 0x00000000;
+        public const int BSM_VXDS = 0x00000001;
+        public const int BSM_NETDRIVER = 0x00000002;
+        public const int BSM_INSTALLABLEDRIVERS = 0x00000004;
+        public const int BSM_APPLICATIONS = 0x00000008;
+
+        /*
+         * Message = WM_DEVICECHANGE
+         * wParam  = DBT_APPYBEGIN
+         * lParam  = (not used)
+         *
+         *      'Appy-time is now available.  This message is itself sent
+         *      at 'Appy-time.
+         *
+         * Message = WM_DEVICECHANGE
+         * wParam  = DBT_APPYEND
+         * lParam  = (not used)
+         *
+         *      'Appy-time is no longer available.  This message is *NOT* sent
+         *      at 'Appy-time.  (It cannot be, because 'Appy-time is gone.)
+         *
+         * NOTE!  It is possible for DBT_APPYBEGIN and DBT_APPYEND to be sent
+         * multiple times during a single Windows session.  Each appearance of
+         * 'Appy-time is bracketed by these two messages, but 'Appy-time may
+         * momentarily become unavailable during otherwise normal Windows
+         * processing.  The current status of 'Appy-time availability can always
+         * be obtained from a call to _SHELL_QueryAppyTimeAvailable.
+         */
+        public const int DBT_APPYBEGIN = 0x0000;
+        public const int DBT_APPYEND = 0x0001;
+
+        /*
+         * Message = WM_DEVICECHANGE
+         * wParam  = DBT_DEVNODES_CHANGED
+         * lParam  = 0
+         *
+         *      send when configmg finished a process tree batch. Some devnodes
+         *      may have been added or removed. This is used by ring3 people which
+         *      need to be refreshed whenever any devnode changed occur (like
+         *      device manager). People specific to certain devices should use
+         *      DBT_DEVICE* instead.
+         */
+
+        public const int DBT_DEVNODES_CHANGED = 0x0007;
+
+        /*
+         * Message = WM_DEVICECHANGE
+         * wParam  = DBT_QUERYCHANGECONFIG
+         * lParam  = 0
+         *
+         *      sent to ask if a config change is allowed
+         */
+
+        public const int DBT_QUERYCHANGECONFIG = 0x0017;
+
+        /*
+         * Message = WM_DEVICECHANGE
+         * wParam  = DBT_CONFIGCHANGED
+         * lParam  = 0
+         *
+         *      sent when a config has changed
+         */
+
+        public const int DBT_CONFIGCHANGED = 0x0018;
+
+        /*
+         * Message = WM_DEVICECHANGE
+         * wParam  = DBT_CONFIGCHANGECANCELED
+         * lParam  = 0
+         *
+         *      someone cancelled the config change
+         */
+
+        public const int DBT_CONFIGCHANGECANCELED = 0x0019;
+
+        /*
+         * Message = WM_DEVICECHANGE
+         * wParam  = DBT_MONITORCHANGE
+         * lParam  = new resolution to use (LOWORD=x, HIWORD=y)
+         *           if 0, use the default res for current config
+         *
+         *      this message is sent when the display monitor has changed
+         *      and the system should change the display mode to match it.
+         */
+
+        public const int DBT_MONITORCHANGE = 0x001B;
+
+        /*
+         * Message = WM_DEVICECHANGE
+         * wParam  = DBT_SHELLLOGGEDON
+         * lParam  = 0
+         *
+         *      The shell has finished login on: VxD can now do Shell_EXEC.
+         */
+
+        public const int DBT_SHELLLOGGEDON = 0x0020;
+
+        /*
+         * Message = WM_DEVICECHANGE
+         * wParam  = DBT_CONFIGMGAPI
+         * lParam  = CONFIGMG API Packet
+         *
+         *      CONFIGMG ring 3 call.
+         */
+        public const int DBT_CONFIGMGAPI32 = 0x0022;
+
+        /*
+         * Message = WM_DEVICECHANGE
+         * wParam  = DBT_VXDINITCOMPLETE
+         * lParam  = 0
+         *
+         *      CONFIGMG ring 3 call.
+         */
+        public const int DBT_VXDINITCOMPLETE = 0x0023;
+
+        /*
+         * Message = WM_DEVICECHANGE
+         * wParam  = DBT_VOLLOCK*
+         * lParam  = pointer to VolLockBroadcast structure described below
+         *
+         *      Messages issued by IFSMGR for volume locking purposes on WM_DEVICECHANGE.
+         *      All these messages pass a pointer to a struct which has no pointers.
+         */
+
+        public const int DBT_VOLLOCKQUERYLOCK = 0x8041;
+        public const int DBT_VOLLOCKLOCKTAKEN = 0x8042;
+        public const int DBT_VOLLOCKLOCKFAILED = 0x8043;
+        public const int DBT_VOLLOCKQUERYUNLOCK = 0x8044;
+        public const int DBT_VOLLOCKLOCKRELEASED = 0x8045;
+        public const int DBT_VOLLOCKUNLOCKFAILED = 0x8046;
+
+        /*
+         * Device broadcast header
+         */
+
+        [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Unicode)]
+        public struct DEV_BROADCAST_HDR 
+            {     /* */
+            public int  dbch_size;
+            public int  dbch_devicetype;
+            public int  dbch_reserved;
+            };
+
+        /*
+         * Structure for volume lock broadcast
+         */
+
+        [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Unicode)]
+        public struct VolLockBroadcast
+                {
+                public DEV_BROADCAST_HDR vlb_dbh;
+                public int     vlb_owner;              // thread on which lock request is being issued
+                public byte    vlb_perms;              // lock permission flags defined below
+                public byte    vlb_lockType;           // type of lock
+                public byte    vlb_drive;              // drive on which lock is issued
+                public byte    vlb_flags;              // miscellaneous flags
+                };
+
+        /*
+         * Values for vlb_perms
+         */
+        public const int LOCKP_ALLOW_WRITES = 0x01;    // Bit 0 set - allow writes
+        public const int LOCKP_FAIL_WRITES = 0x00;    // Bit 0 clear - fail writes
+        public const int LOCKP_FAIL_MEM_MAPPING = 0x02;    // Bit 1 set - fail memory mappings
+        public const int LOCKP_ALLOW_MEM_MAPPING = 0x00;    // Bit 1 clear - allow memory mappings
+        public const int LOCKP_USER_MASK = 0x03;    // Mask for user lock flags
+        public const int LOCKP_LOCK_FOR_FORMAT = 0x04;    // Level 0 lock for format
+
+        /*
+         * Values for vlb_flags
+         */
+        public const int LOCKF_LOGICAL_LOCK = 0x00;    // Bit 0 clear - logical lock
+        public const int LOCKF_PHYSICAL_LOCK = 0x01;    // Bit 0 set - physical lock
+
+        /*
+         * Message = WM_DEVICECHANGE
+         * wParam  = DBT_NODISKSPACE
+         * lParam  = drive number of drive that is out of disk space (1-based)
+         *
+         * Message issued by IFS manager when it detects that a drive is run out of
+         * free space.
+         */
+
+        public const int DBT_NO_DISK_SPACE = 0x0047;
+
+        /*
+         * Message = WM_DEVICECHANGE
+         * wParam  = DBT_LOW_DISK_SPACE
+         * lParam  = drive number of drive that is low on disk space (1-based)
+         *
+         * Message issued by VFAT when it detects that a drive it has mounted
+         * has the remaning free space below a threshold specified by the
+         * registry or by a disk space management application.
+         * The broadcast is issued by VFAT ONLY when space is either allocated
+         * or freed by VFAT.
+         */
+
+        public const int DBT_LOW_DISK_SPACE = 0x0048;
+
+        public const int DBT_CONFIGMGPRIVATE = 0x7FFF;
+
+        /*
+         * The following messages are for WM_DEVICECHANGE. The immediate list
+         * is for the wParam. ALL THESE MESSAGES PASS A POINTER TO A STRUCT
+         * STARTING WITH A DWORD SIZE AND HAVING NO POINTER IN THE STRUCT.
+         *
+         */
+        public const int DBT_DEVICEARRIVAL = 0x8000;                // system detected a new device
+        public const int DBT_DEVICEQUERYREMOVE = 0x8001;            // wants to remove, may fail
+        public const int DBT_DEVICEQUERYREMOVEFAILED = 0x8002;      // removal aborted
+        public const int DBT_DEVICEREMOVEPENDING = 0x8003;          // about to remove, still avail.
+        public const int DBT_DEVICEREMOVECOMPLETE = 0x8004;         // device is gone
+        public const int DBT_DEVICETYPESPECIFIC = 0x8005;           // type specific event
+
+        public const int DBT_CUSTOMEVENT = 0x8006;                  // user-defined event
+
+        public const int DBT_DEVTYP_OEM = 0x00000000;               // oem-defined device type
+        public const int DBT_DEVTYP_DEVNODE = 0x00000001;           // devnode number
+        public const int DBT_DEVTYP_VOLUME = 0x00000002;            // logical volume
+        public const int DBT_DEVTYP_PORT = 0x00000003;              // serial, parallel
+        public const int DBT_DEVTYP_NET = 0x00000004;               // network resource
+
+        public const int DBT_DEVTYP_DEVICEINTERFACE = 0x00000005;   // device interface class
+        public const int DBT_DEVTYP_HANDLE = 0x00000006;            // file system handle
+
+
+        [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Unicode)]
+        public struct _DEV_BROADCAST_HEADER 
+            {
+            public int       dbcd_size;
+            public int       dbcd_devicetype;
+            public int       dbcd_reserved;
+            };
+
+        [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Unicode)]
+        public struct DEV_BROADCAST_OEM 
+            {
+            public int       dbco_size;
+            public int       dbco_devicetype;
+            public int       dbco_reserved;
+            public int       dbco_identifier;
+            public int       dbco_suppfunc;
+            };
+
+        [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Unicode)]
+        public struct DEV_BROADCAST_DEVNODE 
+            {
+            public int       dbcd_size;
+            public int       dbcd_devicetype;
+            public int       dbcd_reserved;
+            public int       dbcd_devnode;
+            };
+
+        [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Unicode)]
+        public struct DEV_BROADCAST_VOLUME 
+            {
+            public int       dbcv_size;
+            public int       dbcv_devicetype;
+            public int       dbcv_reserved;
+            public int       dbcv_unitmask;
+            public short     dbcv_flags;
+            };
+
+        public const int DBTF_MEDIA = 0x0001;          // media comings and goings
+        public const int DBTF_NET = 0x0002;          // network volume
+
+        // TODO: Define accessor method for the name
+        [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Ansi)]
+        public unsafe struct DEV_BROADCAST_PORT_A 
+            {
+            public int       dbcp_size;
+            public int       dbcp_devicetype;
+            public int       dbcp_reserved;
+        //  char             dbcp_name[1];
+            };
+
+        // TODO: Define accessor method for the name
+        [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Unicode)]
+        public unsafe struct DEV_BROADCAST_PORT_W 
+            {
+            public int       dbcp_size;
+            public int       dbcp_devicetype;
+            public int       dbcp_reserved;
+        //  wchar_t          dbcp_name[1];
+            };
+
+        [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Unicode)]
+        public struct DEV_BROADCAST_NET 
+            {
+            public int       dbcn_size;
+            public int       dbcn_devicetype;
+            public int       dbcn_reserved;
+            public int       dbcn_resource;
+            public int       dbcn_flags;
+            };
+
+        // TODO: Define accessor method for the name
+        [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Ansi)]
+        public struct DEV_BROADCAST_DEVICEINTERFACE_A 
+            {
+            public int          dbcc_size;
+            public int          dbcc_devicetype;
+            public int          dbcc_reserved;
+            public System.Guid  dbcc_classguid;
+        //  char                dbcc_name[1];
+            };
+
+        // TODO: Define accessor method for the name
+        [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Unicode)]
+        public struct DEV_BROADCAST_DEVICEINTERFACE_W 
+            {
+            public int          dbcc_size;
+            public int          dbcc_devicetype;
+            public int          dbcc_reserved;
+            public System.Guid  dbcc_classguid;
+        //  wchar_t             dbcc_name[1];
+            };
+
+        // TODO: Define accessor method for data
+        [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Unicode)]
+        public struct DEV_BROADCAST_HANDLE 
+            {
+            public int       dbch_size;
+            public int       dbch_devicetype;
+            public int       dbch_reserved;
+            public IntPtr    dbch_handle;     // file handle used in call to RegisterDeviceNotification
+            public IntPtr    dbch_hdevnotify; // returned from RegisterDeviceNotification
+            //
+            // The following 3 fields are only valid if wParam is DBT_CUSTOMEVENT.
+            //
+            public System.Guid  dbch_eventguid;
+            public int          dbch_nameoffset; // offset (bytes) of variable-length string buffer (-1 if none)
+        //  BYTE                dbch_data[1];    // variable-sized buffer, potentially containing binary and/or text data
+            };
+
+
+        //
+        // Define 32-bit and 64-bit versions of the DEV_BROADCAST_HANDLE structure
+        // for WOW64.  These must be kept in sync with the above structure.
+        //
+
+        // TODO: Define accessor method for data
+        [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Unicode)]
+        public struct DEV_BROADCAST_HANDLE32 
+            {
+            public int          dbch_size;
+            public int          dbch_devicetype;
+            public int          dbch_reserved;
+            public uint         dbch_handle;
+            public uint         dbch_hdevnotify;
+            public System.Guid  dbch_eventguid;
+            public int          dbch_nameoffset;
+        //  BYTE                dbch_data[1];
+            };
+
+        // TODO: Define accessor method for data
+        [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Unicode)]
+        public struct DEV_BROADCAST_HANDLE64 
+            {
+            public int          dbch_size;
+            public int          dbch_devicetype;
+            public int          dbch_reserved;
+            public ulong        dbch_handle;
+            public ulong        dbch_hdevnotify;
+            public System.Guid  dbch_eventguid;
+            public int          dbch_nameoffset;
+        //  BYTE                dbch_data[1];
+            };
+
+
+        public const int DBTF_RESOURCE = 0x00000001;    // network resource
+        public const int DBTF_XPORT = 0x00000002;       // new transport coming or going
+        public const int DBTF_SLOWNET = 0x00000004;     // new incoming transport is slow
+                                                        // (dbcn_resource undefined for now)
+
+        public const int DBT_VPOWERDAPI = 0x8100;          // VPOWERD API for Win95
+
+        /*
+         *  User-defined message types all use wParam = 0xFFFF with the
+         *  lParam a pointer to the structure below.
+         *
+         *  dbud_dbh - DEV_BROADCAST_HEADER must be filled in as usual.
+         *
+         *  dbud_szName contains a case-sensitive ASCIIZ name which names the
+         *  message.  The message name consists of the vendor name, a backslash,
+         *  then arbitrary user-defined ASCIIZ text.  For example:
+         *
+         *      "WidgetWare\QueryScannerShutdown"
+         *      "WidgetWare\Video Q39S\AdapterReady"
+         *
+         *  After the ASCIIZ name, arbitrary information may be provided.
+         *  Make sure that dbud_dbh.dbch_size is big enough to encompass
+         *  all the data.  And remember that nothing in the structure may
+         *  contain pointers.
+         */
+
+        public const int DBT_USERDEFINED = 0xFFFF;
+
+        // TODO: Define accessor methods
+        [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Ansi)]
+        public struct DEV_BROADCAST_USERDEFINED 
+            {
+            public  DEV_BROADCAST_HDR dbud_dbh;
+        //  char        dbud_szName[1];     /* ASCIIZ name */
+        /*  BYTE        dbud_rgbUserDefined[];*/ /* User-defined contents */
+            };
+
+          
+
+
+
+
+        //------------------------------------------------------------------------------
         // Constants
         //------------------------------------------------------------------------------
 
@@ -306,10 +741,7 @@ namespace Org.SwerveRobotics.Tools.Library
         public const int DIGCF_PRESENT                       = 2;
         public const int DIGCF_DEVICEINTERFACE               = 0X10;
 
-        public const int DBT_DEVICEARRIVAL                   = 0X8000;
-        public const int DBT_DEVICEREMOVECOMPLETE            = 0X8004;
-        public const int DBT_DEVTYP_DEVICEINTERFACE          = 5;
-        public const int DBT_DEVTYP_HANDLE                   = 6;
+
         public const int DEVICE_NOTIFY_ALL_INTERFACE_CLASSES = 4;
         public const int DEVICE_NOTIFY_SERVICE_HANDLE        = 1;
         public const int DEVICE_NOTIFY_WINDOW_HANDLE         = 0;
@@ -327,19 +759,17 @@ namespace Org.SwerveRobotics.Tools.Library
         public const uint DEVICE_SPEED                = ((uint)(1));
         public const byte USB_ENDPOINT_DIRECTION_MASK = ((byte)(0X80));
 
-        public const int WM_DEVICECHANGE                    = 0X219;
-
-		public const int SERVICE_CONTROL_STOP               = 1;
+  public const int SERVICE_CONTROL_STOP               = 1;
         public const int SERVICE_CONTROL_PAUSE              = 2;
         public const int SERVICE_CONTROL_CONTINUE           = 3;
         public const int SERVICE_CONTROL_INTERROGATE        = 4;
-		public const int SERVICE_CONTROL_SHUTDOWN           = 5;
+  public const int SERVICE_CONTROL_SHUTDOWN           = 5;
         public const int SERVICE_CONTROL_PARAMCHANGE        = 6;
         public const int SERVICE_CONTROL_NETBINDADD         = 7;
         public const int SERVICE_CONTROL_NETBINDREMOVE      = 8;
         public const int SERVICE_CONTROL_NETBINDENABLE      = 9;
         public const int SERVICE_CONTROL_NETBINDDISABLE     = 10;
-		public const int SERVICE_CONTROL_DEVICEEVENT        = 11;
+  public const int SERVICE_CONTROL_DEVICEEVENT        = 11;
         public const int SERVICE_CONTROL_HARDWAREPROFILECHANGE = 12;
         public const int SERVICE_CONTROL_POWEREVENT         = 13;
         public const int SERVICE_CONTROL_SESSIONCHANGE      = 14;

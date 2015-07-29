@@ -62,12 +62,20 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                 }
             }
 
-        protected override void OnCustomCommand(int command)
+        protected override void OnCustomCommandEx(int command, int eventType, IntPtr eventData, IntPtr eventContext)
             {
             switch (command)
                 {
             case Tools.Library.WIN32.SERVICE_CONTROL_DEVICEEVENT:
-                this.eventLog.WriteEntry("device event");
+                switch (eventType)
+                    {
+                case WIN32.DBT_DEVICEARRIVAL:
+                    // https://msdn.microsoft.com/en-us/library/windows/desktop/aa363205(v=vs.85).aspx
+                    break;
+
+                case WIN32.DBT_DEVICEREMOVECOMPLETE:
+                    break;
+                    }
                 break;
                 }
             }
