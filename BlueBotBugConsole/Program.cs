@@ -7,11 +7,11 @@ using Org.SwerveRobotics.Tools.Library;
 
 namespace Org.SwerveRobotics.BlueBotBug.Console
     {
-    class Program
+    class Program : ITracer
         {
-        static void Main(string[] args)
+        void DoMain(string[] args)
             {
-            Tools.Library.BlueBotBug bluebotbug = new Tools.Library.BlueBotBug();
+            Tools.Library.BlueBotBug bluebotbug = new Tools.Library.BlueBotBug(this);
             //
             bluebotbug.Start();
             //
@@ -22,6 +22,20 @@ namespace Org.SwerveRobotics.BlueBotBug.Console
                 }
             //
             bluebotbug.Stop();
+            }
+
+        static void Main(string[] args)
+            {
+            (new Program()).DoMain(args);
+            }
+
+        //------------------------------------------------------------------------------------------
+        // Tracing
+        //------------------------------------------------------------------------------------------
+
+        void ITracer.Trace(string format, params object[] args)
+            {
+            Util.TraceDebug("BlueBotBug console", format, args);
             }
         }
     }

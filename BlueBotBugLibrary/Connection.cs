@@ -367,10 +367,10 @@ namespace Org.SwerveRobotics.Tools.Library
             bool fResult = false;
             sNxtName = "(unknown NXT)";
 
-            Util.Trace("opening {0}...", this);
+            Util.TraceDebug("opening {0}...", this);
             if (this.Open(false))
                 {
-                Util.Trace("...opened {0}", this);
+                Util.TraceDebug("...opened {0}", this);
                 //
                 try {
                     GetDeviceInfoNxtMessage msg = new GetDeviceInfoNxtMessage();
@@ -383,7 +383,7 @@ namespace Org.SwerveRobotics.Tools.Library
                             }
                         else
                             {
-                            Util.Trace("...no reply");
+                            Util.TraceDebug("...no reply");
                             }
                         }
                     }
@@ -395,7 +395,7 @@ namespace Org.SwerveRobotics.Tools.Library
                 }
             else
                 {
-                Util.Trace("...failed to open {0}", this);
+                Util.TraceDebug("...failed to open {0}", this);
                 }
 
             return fResult;
@@ -864,7 +864,7 @@ namespace Org.SwerveRobotics.Tools.Library
 
                 default:
                     // Other direct commands ignored
-                    Util.Trace("unknown direct command: {0}", bCommand);
+                    Util.TraceDebug("unknown direct command: {0}", bCommand);
                     break;
                     }
                 }
@@ -882,14 +882,14 @@ namespace Org.SwerveRobotics.Tools.Library
                     }
                 else
                     {
-                    Util.Trace("reply with no matching request");
+                    Util.TraceDebug("reply with no matching request");
                     }
                 }
                 break;
 
             default:
                 // It's a command type we don't know how to process. Just skip the message and hope for the best.
-                Util.Trace("unknown command type: {0}", bCommandType);
+                Util.TraceDebug("unknown command type: {0}", bCommandType);
                 break;
                 }
             }
@@ -967,7 +967,7 @@ namespace Org.SwerveRobotics.Tools.Library
         //
         // Useful impl notes: http://www.microchip.com/forums/m475301-print.aspx
             {
-            Util.Trace("GetAvailableSamanthaConnectedNXTs");
+            Util.TraceDebug("GetAvailableSamanthaConnectedNXTs");
 
             List<KnownNXT> result = new List<KnownNXT>();
 
@@ -1000,7 +1000,7 @@ namespace Org.SwerveRobotics.Tools.Library
                 {
                 disc.fCanceled = true;
                 udpClient.Close();
-                Util.Trace("udpClient closed");
+                Util.TraceDebug("udpClient closed");
                 }
             
             return result;
@@ -1032,7 +1032,7 @@ namespace Org.SwerveRobotics.Tools.Library
                         if (rgbSent.IsEqualTo(rgbReceived))
                             {
                             // It's just us 
-                            Util.Trace("samantha: saw our packet");
+                            Util.TraceDebug("samantha: saw our packet");
                             }
                         else
                             {
@@ -1047,7 +1047,7 @@ namespace Org.SwerveRobotics.Tools.Library
                             // Update: we actually want to dig the name string out and parse it. May as well, just 
                             // in case the ProbeForNXT doesn't find anything.
                             //
-                            Util.Trace("samantha: saw {0}", epSender.Address.ToString());
+                            Util.TraceDebug("samantha: saw {0}", epSender.Address.ToString());
 
                             string sReceived = (new System.Text.ASCIIEncoding()).GetString(rgbReceived);
                             string[] lines   = sReceived.Lines(StringSplitOptions.RemoveEmptyEntries);
@@ -1117,7 +1117,7 @@ namespace Org.SwerveRobotics.Tools.Library
                 {
                 this.fHaveExclusive = true;
                 fResult = true;
-                Util.Trace("exclusive use of {0} acquired", this.epSamanthaTCP);
+                Util.TraceDebug("exclusive use of {0} acquired", this.epSamanthaTCP);
                 }
             else
                 {
@@ -1200,7 +1200,7 @@ namespace Org.SwerveRobotics.Tools.Library
                         this.socket = new Socket(this.epSamanthaTCP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                         this.socket.SendTimeout = 1000;
                         this.socket.Connect(this.epSamanthaTCP);
-                        Util.Trace("IP: opened: {0}", this.epSamanthaTCP);
+                        Util.TraceDebug("IP: opened: {0}", this.epSamanthaTCP);
                         });
 
                     this.readThread = new ThreadContext((ctx) => ReadThread((ThreadContext)ctx));
@@ -1236,7 +1236,7 @@ namespace Org.SwerveRobotics.Tools.Library
                     {
                     this.socket.Close();
                     this.socket = null;
-                    Util.Trace("socket {0} closed", this.epSamanthaTCP);
+                    Util.TraceDebug("socket {0} closed", this.epSamanthaTCP);
                     }
                 });
 
@@ -1244,7 +1244,7 @@ namespace Org.SwerveRobotics.Tools.Library
                 {
                 SendWebRequest(this.epHTTP, "/samantha/exclusiveUse.cgi?release");
                 this.fHaveExclusive = false;
-                Util.Trace("exclusive use of {0} released", this.epSamanthaTCP);
+                Util.TraceDebug("exclusive use of {0} released", this.epSamanthaTCP);
                 }
             }
 
@@ -1277,7 +1277,7 @@ namespace Org.SwerveRobotics.Tools.Library
                         {
                         // Remove the msg if we have issues
                         //
-                        Util.Trace("IPConnection.Send({0}): exception thrown: {1}", this.epSamanthaTCP, e);
+                        Util.TraceDebug("IPConnection.Send({0}): exception thrown: {1}", this.epSamanthaTCP, e);
                         lock (this.msgReplyTargets)
                             {
                             for (int imsg = 0; imsg < this.msgReplyTargets.Count; imsg++)
@@ -1374,7 +1374,7 @@ namespace Org.SwerveRobotics.Tools.Library
                                 }
                             else
                                 {
-                                Util.Trace("IP Read: unexpected async result: cb={0} err={1}", socketAsyncEventArgs.BytesTransferred, socketAsyncEventArgs.SocketError);
+                                Util.TraceDebug("IP Read: unexpected async result: cb={0} err={1}", socketAsyncEventArgs.BytesTransferred, socketAsyncEventArgs.SocketError);
                                 fStop = true;
                                 }
                             }
@@ -1801,7 +1801,7 @@ namespace Org.SwerveRobotics.Tools.Library
                         int err = Marshal.GetLastWin32Error();
                         if (err != ERROR_IO_PENDING)
                             {
-                            Util.Trace("USB Read: WinUsb_ReadPipe=={0}", err);
+                            Util.TraceDebug("USB Read: WinUsb_ReadPipe=={0}", err);
                             fStop = true;
                             continue;
                             }
@@ -1823,7 +1823,7 @@ namespace Org.SwerveRobotics.Tools.Library
                         else
                             {
                             int err = Marshal.GetLastWin32Error();
-                            Util.Trace("USB Read: WinUsb_GetOverlappedResult=={0}", err);
+                            Util.TraceDebug("USB Read: WinUsb_GetOverlappedResult=={0}", err);
                             fStop = true;
                             }
                         //

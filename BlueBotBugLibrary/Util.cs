@@ -364,14 +364,26 @@ namespace Org.SwerveRobotics.Tools.Library
         // Errors and tracing
         //--------------------------------------------------------------------------------------------
 
-        public static void Trace(string sFormat, params object[] data)
+        public static void TraceStdOut(string tag, string sFormat, params object[] data)
+            {
+            String payload = String.Format(sFormat, data);
+            System.Console.WriteLine("{0}: {1}", tag, payload);
+            }
+
+        public static void TraceDebug(string tag, string sFormat, params object[] data)
+            {
+            String payload = String.Format(sFormat, data);
+            System.Diagnostics.Debug.WriteLine("{0}: {1}", tag, payload);
+            }
+
+        public static void TraceDebug(string sFormat, params object[] data)
             {
             System.Diagnostics.Debug.WriteLine(sFormat, data);
             }
 
         public static void ReportError(string sFormat, params object[] data)
             {
-            Trace(sFormat, data);
+            TraceDebug(sFormat, data);
             }
 
         public static RET_T Fail<RET_T>()

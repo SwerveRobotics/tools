@@ -11,13 +11,14 @@ using Org.SwerveRobotics.Tools.Library;
 
 namespace Org.SwerveRobotics.BlueBotBug.Service
     {
-    public partial class BlueBotBugService : DecompiledServiceBase
+    public partial class BlueBotBugService : DecompiledServiceBase, ITracer
         {
         //------------------------------------------------------------------------------------------
         // State
         //------------------------------------------------------------------------------------------
         
-        private System.Diagnostics.EventLog eventLog;
+        System.Diagnostics.EventLog eventLog       = null;
+        IntPtr                      hDeviceNotify  = IntPtr.Zero;
 
         private const string eventLogSourceName = "BlueBotBug";
         private const string eventLogName       = "Application";
@@ -45,21 +46,74 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
         // Notifications
         //------------------------------------------------------------------------------------------
 
+        public static bool RunAsConsoleApp()
+            {
+            return Environment.UserInteractive;
+            }
+
+        internal void TestAsConsoleApp(string[] args)
+        // Debugging hook per https://msdn.microsoft.com/en-us/library/7a50syb3(v=vs.110).aspx
+        // We don't actually use this, as we still won't get 
+            {
+            this.OnStart(args);
+            //
+            // TODO: Put in message pump, convert device notification messages
+            //
+            System.Console.WriteLine("Press any key to stop...");
+            while (!System.Console.KeyAvailable)
+                {
+                System.Threading.Thread.Yield();
+                }
+            //
+            this.OnStop();
+            }
+
         protected override void OnStart(string[] args)
             {
-            this.eventLog.WriteEntry("starting");
-            this.library = new Tools.Library.BlueBotBug();
+            this.Trace("starting");
+            //
+            if (RunAsConsoleApp())
+                {
+                }
+            else
+                {
+                WIN32.DEV_BROADCAST_DEVICEINTERFACE filter = new WIN32.DEV_BROADCAST_DEVICEINTERFACE();
+                filter.Initialize(System.Guid.Empty);
+
+                this.hDeviceNotify = WIN32.RegisterDeviceNotification(this.ServiceHandle, filter, 
+                    WIN32.DEVICE_NOTIFY_SERVICE_HANDLE | WIN32.DEVICE_NOTIFY_ALL_INTERFACE_CLASSES);
+                WIN32.ThrowIfFail(this.hDeviceNotify);
+                }
+            //
+            this.library = new Tools.Library.BlueBotBug(this);
             this.library.Start();
+            //
+            this.Trace("started");
             }
 
         protected override void OnStop()
             {
-            this.eventLog.WriteEntry("stopping");
+            this.Trace("stopping");
+            //
             if (this.library != null)
                 { 
                 library.Stop();
                 library = null;
                 }
+            //
+            if (RunAsConsoleApp())
+                {
+                }
+            else
+                {
+                if (this.hDeviceNotify != IntPtr.Zero)
+                    {
+                    WIN32.UnregisterDeviceNotification(this.hDeviceNotify);
+                    this.hDeviceNotify = IntPtr.Zero;
+                    }
+                }
+            //
+            this.Trace("stopped");
             }
 
         protected unsafe override bool ShouldDeferCustomCommandEx(int command, int eventType, IntPtr eventData, IntPtr eventContext)
@@ -89,12 +143,29 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             }
 
         //------------------------------------------------------------------------------------------
-        // Tracing
+        // Tracing and exceptions
         //------------------------------------------------------------------------------------------
+
+        void ITracer.Trace(string format, params object[] args)
+            {
+            this.Trace(format, args);
+            }
 
         void Trace(string format, params object[] args)
             {
-            Util.Trace(format, args);
+            Util.TraceDebug("BlueBotBug", format, args);
+            if (RunAsConsoleApp())
+                {
+                Util.TraceStdOut("BlueBotBug", format, args);
+                }
+            }
+
+        void Log(string format, params object[] args)
+            {
+            string message = String.Format(format, args);
+            this.eventLog.WriteEntry(message);
+            //
+            this.Trace(format, args);
             }
         }
     }

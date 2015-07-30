@@ -288,7 +288,7 @@ namespace Org.SwerveRobotics.Tools.Library
             byte bLocalInbox = rgbCommandStatusPayload[3];   // just an echo of what we passed in our 'send': so we know where to put the msg
             byte cbMessage   = rgbCommandStatusPayload[4];
 
-            Util.Trace("msg read: cmd={0} stat={1} inbox={2} cb={3}", bCommand, ((ERROR_CODE)bStatus).ToString(), bLocalInbox, cbMessage);
+            Util.TraceDebug("msg read: cmd={0} stat={1} inbox={2} cb={3}", bCommand, ((ERROR_CODE)bStatus).ToString(), bLocalInbox, cbMessage);
             }
         }
     //=======================================================================================================
@@ -329,7 +329,7 @@ namespace Org.SwerveRobotics.Tools.Library
                     }
                 this.NxtName = s.ToString();
                 //
-                Util.Trace("GetDeviceInfoNxtMessage: reply received: {0}", this.NxtName);
+                Util.TraceDebug("GetDeviceInfoNxtMessage: reply received: {0}", this.NxtName);
                 }
             }
 
@@ -367,7 +367,7 @@ namespace Org.SwerveRobotics.Tools.Library
                 //
                 this.CbAvailable = cb;
                 //
-                Util.Trace("poll len: cmd={0} buf={1} stat={2} cb={3} ", bCommand, bBuffer, ((ERROR_CODE)bStatus).ToString(), cb);
+                Util.TraceDebug("poll len: cmd={0} buf={1} stat={2} cb={3} ", bCommand, bBuffer, ((ERROR_CODE)bStatus).ToString(), cb);
                 }
             }
         }
@@ -429,7 +429,7 @@ namespace Org.SwerveRobotics.Tools.Library
                 }
             else
                 {
-                Util.Trace("poll: illegal return buffer size");
+                Util.TraceDebug("poll: illegal return buffer size");
                 }
             }
         }   
@@ -445,7 +445,7 @@ namespace Org.SwerveRobotics.Tools.Library
         public override void ProcessReply(byte[] rgbCommandStatusPayload, Connection connection)
             {
             base.ProcessReply(rgbCommandStatusPayload, connection);
-            Util.Trace("DeleteUserFlashNxtMessage: reply received: {0}", this.bReplyStatus);
+            Util.TraceDebug("DeleteUserFlashNxtMessage: reply received: {0}", this.bReplyStatus);
             }
 
         public override System.TimeSpan MaximumDuration

@@ -7,18 +7,29 @@ using System.ComponentModel;
 
 namespace Org.SwerveRobotics.Tools.Library
     {
+    public interface ITracer
+        { 
+        void Trace(string format, params Object[] args);
+        }
+
     public class BlueBotBug : IDisposable
         {
         //-----------------------------------------------------------------------------------------
         // State
         //-----------------------------------------------------------------------------------------
 
-        private bool oleInitialized = false;
-        private bool disposed       = false;
+        private bool    oleInitialized = false;
+        private bool    disposed       = false;
+        private ITracer tracer         = null;
 
         //-----------------------------------------------------------------------------------------
         // Construction
         //-----------------------------------------------------------------------------------------
+
+        public BlueBotBug(ITracer tracer)
+            { 
+            this.tracer = tracer;
+            }
 
         ~BlueBotBug()
             {
@@ -76,7 +87,7 @@ namespace Org.SwerveRobotics.Tools.Library
 
         void Trace(string format, params object[] args)
             {
-            Util.Trace(format, args);
+            this.tracer.Trace(format, args);
             }
 
         //-----------------------------------------------------------------------------------------
@@ -172,57 +183,61 @@ namespace Org.SwerveRobotics.Tools.Library
                 {
             // pHeader is non-NULL
             case WIN32.DBT_DEVICEARRIVAL: 
-                Trace("arrived: {0}", pHeader->dbch_devicetype);   
+                Trace("device arrived: {0}", pHeader->dbch_devicetype);   
                 RaiseDeviceEvent(DeviceArrived, pHeader);
                 break;
             case WIN32.DBT_DEVICEQUERYREMOVE: 
-                Trace("query remove: {0}", pHeader->dbch_devicetype);   
+                Trace("query device remove: {0}", pHeader->dbch_devicetype);   
                 cancel = RaiseDeviceEvent(DeviceQueryRemove, pHeader);
                 result = cancel ? WIN32.BROADCAST_QUERY_DENY : WIN32.TRUE;
                 break;
             case WIN32.DBT_DEVICEQUERYREMOVEFAILED: 
-                Trace("query remove failed: {0}", pHeader->dbch_devicetype);   
+                Trace("query device remove failed: {0}", pHeader->dbch_devicetype);   
                 RaiseDeviceEvent(DeviceQueryRemoveFailed, pHeader);
                 break;
             case WIN32.DBT_DEVICEREMOVEPENDING: 
-                Trace("remove pending: {0}", pHeader->dbch_devicetype);   
+                Trace("device remove pending: {0}", pHeader->dbch_devicetype);   
                 RaiseDeviceEvent(DeviceRemovePending, pHeader);
                 break;
             case WIN32.DBT_DEVICEREMOVECOMPLETE: 
-                Trace("remove complete: {0}", pHeader->dbch_devicetype);   
+                Trace("device remove complete: {0}", pHeader->dbch_devicetype);   
                 RaiseDeviceEvent(DeviceRemoveComplete, pHeader);
                 break;
 
             case WIN32.DBT_DEVICETYPESPECIFIC: 
-                Trace("type specific: {0}", pHeader->dbch_devicetype);   
+                Trace("device type specific: {0}", pHeader->dbch_devicetype);   
                 RaiseDeviceEvent(DeviceTypeSpecific, pHeader);
                 break;
             case WIN32.DBT_CUSTOMEVENT:
-                Trace("custom: {0}", pHeader->dbch_devicetype);   
+                Trace("device custom: {0}", pHeader->dbch_devicetype);   
                 RaiseDeviceEvent(DeviceCustomEvent, pHeader);
                 break;
             case WIN32.DBT_USERDEFINED:
-                Trace("custom: {0}", pHeader->dbch_devicetype);   
+                Trace("device user defined: {0}", pHeader->dbch_devicetype);   
                 RaiseDeviceEvent(DeviceUserDefined, pHeader);
                 break;
 
             // pHeader is NULL
             case WIN32.DBT_QUERYCHANGECONFIG:
-                Trace("query change config: {0}", pHeader->dbch_devicetype);   
+                Trace("device query change config: {0}", pHeader->dbch_devicetype);   
                 cancel = RaiseDeviceEvent(DeviceQueryChangeConfig);
                 result = cancel ? WIN32.BROADCAST_QUERY_DENY : WIN32.TRUE;
                 break;
             case WIN32.DBT_CONFIGCHANGED:
-                Trace("config changed: {0}", pHeader->dbch_devicetype);   
+                Trace("device config changed: {0}", pHeader->dbch_devicetype);   
                 RaiseDeviceEvent(DeviceConfigChanged);
                 break;
             case WIN32.DBT_CONFIGCHANGECANCELED:
-                Trace("config change cancelled: {0}", pHeader->dbch_devicetype);   
+                Trace("device config change cancelled: {0}", pHeader->dbch_devicetype);   
                 RaiseDeviceEvent(DeviceConfigChangeCancelled);
                 break;
             case WIN32.DBT_DEVNODES_CHANGED:
-                Trace("devnodes changed: {0}", pHeader->dbch_devicetype);   
+                Trace("device devnodes changed: {0}", pHeader->dbch_devicetype);   
                 RaiseDeviceEvent(DeviceDevNodesChanged);
+                break;
+
+            default: 
+                Trace("unknown device event: {0}", eventType);
                 break;
                 }
 

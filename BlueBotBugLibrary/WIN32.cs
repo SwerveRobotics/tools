@@ -183,6 +183,15 @@ namespace Org.SwerveRobotics.Tools.Library
             public Guid     dbcc_classguid;
             [MarshalAs(UnmanagedType.ByValTStr, SizeConst=MAX_PATH)]
             public string   dbcc_name;
+
+            public void Initialize(Guid classGuid)
+                {
+                this.dbcc_size       = Marshal.SizeOf(this.GetType());
+                this.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
+                this.dbcc_reserved   = 0;
+                this.dbcc_classguid  = classGuid;
+                this.dbcc_name       = "";
+                }
             }
 
         [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Unicode)]
@@ -1087,6 +1096,13 @@ namespace Org.SwerveRobotics.Tools.Library
 
         //-------------------------------------------------------------------------
 
+        public static void ThrowIfFail(IntPtr ptr)
+            {
+            if (IntPtr.Zero == ptr)
+                {
+                ThrowWin32Error();
+                }
+            }
         public static void ThrowIfFail(int fSuccess)
             {
             if (fSuccess==0)
