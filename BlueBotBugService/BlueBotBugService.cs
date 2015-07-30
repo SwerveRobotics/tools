@@ -62,23 +62,39 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                 }
             }
 
-        protected override void OnCustomCommandEx(int command, int eventType, IntPtr eventData, IntPtr eventContext)
+        protected unsafe override bool ShouldDeferCustomCommandEx(int command, int eventType, IntPtr eventData, IntPtr eventContext)
             {
+            bool result = true;
             switch (command)
                 {
-            case Tools.Library.WIN32.SERVICE_CONTROL_DEVICEEVENT:
-                switch (eventType)
-                    {
-                case WIN32.DBT_DEVICEARRIVAL:
-                    // https://msdn.microsoft.com/en-us/library/windows/desktop/aa363205(v=vs.85).aspx
-                    break;
-
-                case WIN32.DBT_DEVICEREMOVECOMPLETE:
-                    break;
-                    }
+            case WIN32.SERVICE_CONTROL_DEVICEEVENT:
+                WIN32.DEV_BROADCAST_HDR* pHeader = (WIN32.DEV_BROADCAST_HDR*)eventData;
+                result = this.library.ShouldDeferDeviceEvent(eventType, pHeader);
                 break;
                 }
+            return result;
             }
 
+        protected unsafe override int OnCustomCommandEx(int command, int eventType, IntPtr eventData, IntPtr eventContext)
+            {
+            int result = WIN32.NO_ERROR;
+            switch (command)
+                {
+            case WIN32.SERVICE_CONTROL_DEVICEEVENT:
+                WIN32.DEV_BROADCAST_HDR* pHeader = (WIN32.DEV_BROADCAST_HDR*)eventData;
+                result = this.library.OnDeviceEvent(eventType, pHeader);
+                break;
+                }
+            return result;
+            }
+
+        //------------------------------------------------------------------------------------------
+        // Tracing
+        //------------------------------------------------------------------------------------------
+
+        void Trace(string format, params object[] args)
+            {
+            Util.Trace(format, args);
+            }
         }
     }

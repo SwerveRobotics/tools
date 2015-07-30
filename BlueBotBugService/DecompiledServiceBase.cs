@@ -58,11 +58,11 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                     {
                     this.OnContinue();
                     this.WriteEventLogEntry(Res.GetString("ContinueSuccessful"));
-                    this.status.currentState = 4;
+                    this.status.currentState = WIN32.SERVICE_RUNNING;
                     }
                 catch (Exception exception)
                     {
-                    this.status.currentState = 7;
+                    this.status.currentState = WIN32.SERVICE_PAUSED;
                     this.WriteEventLogEntry(Res.GetString("ContinueFailed", new object[] { exception.ToString() }), EventLogEntryType.Error);
                     throw;
                     }
@@ -109,11 +109,11 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                     {
                     this.OnPause();
                     this.WriteEventLogEntry(Res.GetString("PauseSuccessful"));
-                    this.status.currentState = 7;
+                    this.status.currentState = WIN32.SERVICE_PAUSED;
                     }
                 catch (Exception exception)
                     {
-                    this.status.currentState = 4;
+                    this.status.currentState = WIN32.SERVICE_RUNNING;
                     this.WriteEventLogEntry(Res.GetString("PauseFailed", new object[] { exception.ToString() }), EventLogEntryType.Error);
                     throw;
                     }
@@ -158,13 +158,13 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                 {
                 this.OnShutdown();
                 this.WriteEventLogEntry(Res.GetString("ShutdownOK"));
-                if ((this.status.currentState == 7) || (this.status.currentState == 4))
+                if ((this.status.currentState == WIN32.SERVICE_PAUSED) || (this.status.currentState == WIN32.SERVICE_RUNNING))
                     {
                     fixed (WIN32.SERVICE_STATUS* service_statusRef = &this.status)
                         {
-                        this.status.checkPoint = 0;
-                        this.status.waitHint = 0;
-                        this.status.currentState = 1;
+                        this.status.checkPoint   = 0;
+                        this.status.waitHint     = 0;
+                        this.status.currentState = WIN32.SERVICE_STOPPED;
                         WIN32.SetServiceStatus(this.statusHandle, service_statusRef);
                         if (this.isServiceHosted)
                             {
@@ -192,15 +192,15 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             fixed (WIN32.SERVICE_STATUS* service_statusRef = &this.status)
                 {
                 int currentState = this.status.currentState;
-                this.status.checkPoint = 0;
-                this.status.waitHint = 0;
-                this.status.currentState = 3;
+                this.status.checkPoint   = 0;
+                this.status.waitHint     = 0;
+                this.status.currentState = WIN32.SERVICE_STOP_PENDING;
                 WIN32.SetServiceStatus(this.statusHandle, service_statusRef);
                 try
                     {
                     this.OnStop();
                     this.WriteEventLogEntry(Res.GetString("StopSuccessful"));
-                    this.status.currentState = 1;
+                    this.status.currentState = WIN32.SERVICE_STOPPED;
                     WIN32.SetServiceStatus(this.statusHandle, service_statusRef);
                     if (this.isServiceHosted)
                         {
@@ -299,8 +299,14 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             {
             }
 
-        protected virtual void OnCustomCommandEx(int command, int eventType, IntPtr eventData, IntPtr eventContext)
+        protected virtual bool ShouldDeferCustomCommandEx(int command, int eventType, IntPtr eventData, IntPtr eventContext)
             { 
+            return true;
+            }
+
+        protected virtual int OnCustomCommandEx(int command, int eventType, IntPtr eventData, IntPtr eventContext)
+            { 
+            return WIN32.NO_ERROR;
             }
 
         protected virtual void OnPause()
@@ -477,7 +483,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
 
         private unsafe int ServiceCommandCallbackEx(int command, int eventType, IntPtr eventData, IntPtr eventContext)
             {
-            int result = 0;
+            int result = WIN32.NO_ERROR;
             if (!this.HandleCommandCallback(command))
                 {
                 switch (command)
@@ -498,7 +504,22 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                         }
                     }
 
-                new DeferredHandlerDelegateCommandEx(this.DeferredCustomCommandEx).BeginInvoke(command, eventType, eventData, eventContext, null, null);
+                // Not a command that we internally process. Allow subclasses a crack at it.
+                try {
+                    if (this.ShouldDeferCustomCommandEx(command, eventType, eventData, eventContext))
+                        {
+                        new DeferredHandlerDelegateCommandEx(this.DeferredCustomCommandEx).BeginInvoke(command, eventType, eventData, eventContext, null, null);
+                        }
+                    else
+                        {
+                        result = this.OnCustomCommandEx(command, eventType, eventData, eventContext);
+                        }
+                    }
+                catch (Exception exception)
+                    {
+                    this.WriteEventLogEntry(Res.GetString("CommandFailed", new object[] { exception.ToString() }), EventLogEntryType.Error);
+                    throw;
+                    }
                 }
             return result;
             }

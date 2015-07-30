@@ -716,6 +716,15 @@ namespace Org.SwerveRobotics.Tools.Library
         public struct DEV_BROADCAST_USERDEFINED 
             {
             public  DEV_BROADCAST_HDR dbud_dbh;
+
+            public unsafe string Name { get
+                { 
+                fixed (DEV_BROADCAST_USERDEFINED* pThis = &this)
+                    {
+                    return Marshal.PtrToStringAuto((IntPtr) ((byte*)&pThis->dbud_dbh + sizeof(DEV_BROADCAST_HDR)));
+                    }
+                }}
+
         //  char        dbud_szName[1];     /* ASCIIZ name */
         /*  BYTE        dbud_rgbUserDefined[];*/ /* User-defined contents */
             };
@@ -758,27 +767,6 @@ namespace Org.SwerveRobotics.Tools.Library
 
         public const uint DEVICE_SPEED                = ((uint)(1));
         public const byte USB_ENDPOINT_DIRECTION_MASK = ((byte)(0X80));
-
-  public const int SERVICE_CONTROL_STOP               = 1;
-        public const int SERVICE_CONTROL_PAUSE              = 2;
-        public const int SERVICE_CONTROL_CONTINUE           = 3;
-        public const int SERVICE_CONTROL_INTERROGATE        = 4;
-  public const int SERVICE_CONTROL_SHUTDOWN           = 5;
-        public const int SERVICE_CONTROL_PARAMCHANGE        = 6;
-        public const int SERVICE_CONTROL_NETBINDADD         = 7;
-        public const int SERVICE_CONTROL_NETBINDREMOVE      = 8;
-        public const int SERVICE_CONTROL_NETBINDENABLE      = 9;
-        public const int SERVICE_CONTROL_NETBINDDISABLE     = 10;
-  public const int SERVICE_CONTROL_DEVICEEVENT        = 11;
-        public const int SERVICE_CONTROL_HARDWAREPROFILECHANGE = 12;
-        public const int SERVICE_CONTROL_POWEREVENT         = 13;
-        public const int SERVICE_CONTROL_SESSIONCHANGE      = 14;
-        public const int SERVICE_CONTROL_PRESHUTDOWN        = 15;
-        public const int SERVICE_CONTROL_TIMECHANGE         = 0x10;
-        public const int SERVICE_CONTROL_TRIGGEREVENT       = 0x20;
-        public const int SERVICE_CONTROL_USERMODEREBOOT     = 0x40;
-        public const int SERVICE_CONTROL_USERCODEFIRST      = 128;
-        public const int SERVICE_CONTROL_USERCODELAST       = 255;
 
         //------------------------------------------------------------------------------
         // Enums
@@ -1390,6 +1378,13 @@ namespace Org.SwerveRobotics.Tools.Library
             }
 
         //----------------------------------------------------------------------------------------------------------
+        // Misc
+        //----------------------------------------------------------------------------------------------------------
+
+        public const int TRUE = 1;
+        public const int FALSE = 0;
+
+        //----------------------------------------------------------------------------------------------------------
         // Service related stuff
         //----------------------------------------------------------------------------------------------------------
 
@@ -1493,28 +1488,6 @@ namespace Org.SwerveRobotics.Tools.Library
         public const int POLICY_VIEW_LOCAL_INFORMATION = 1;
         public const int SC_ENUM_PROCESS_INFO = 0;
         public const int SC_MANAGER_ALL = 0xf003f;
-        public const int SC_MANAGER_CONNECT = 1;
-        public const int SC_MANAGER_CREATE_SERVICE = 2;
-        public const int SC_MANAGER_ENUMERATE_SERVICE = 4;
-        public const int SC_MANAGER_LOCK = 8;
-        public const int SC_MANAGER_MODIFY_BOOT_CONFIG = 0x20;
-        public const int SC_MANAGER_QUERY_LOCK_STATUS = 0x10;
-        public const int SERVICE_ACTIVE = 1;
-        public const int SERVICE_ALL_ACCESS = 0xf01ff;
-        public const int SERVICE_CHANGE_CONFIG = 2;
-        public const int SERVICE_CONFIG_DELAYED_AUTO_START_INFO = 3;
-        public const int SERVICE_CONFIG_DESCRIPTION = 1;
-        public const int SERVICE_CONFIG_FAILURE_ACTIONS = 2;
-        public const int SERVICE_ENUMERATE_DEPENDENTS = 8;
-        public const int SERVICE_INACTIVE = 2;
-        public const int SERVICE_INTERROGATE = 0x80;
-        public const int SERVICE_NO_CHANGE = -1;
-        public const int SERVICE_PAUSE_CONTINUE = 0x40;
-        public const int SERVICE_QUERY_CONFIG = 1;
-        public const int SERVICE_QUERY_STATUS = 4;
-        public const int SERVICE_START = 0x10;
-        public const int SERVICE_STATE_ALL = 3;
-        public const int SERVICE_STOP = 0x20;
         public const int SERVICE_TYPE_ADAPTER = 4;
         public const int SERVICE_TYPE_ALL = 0x13f;
         public const int SERVICE_TYPE_DRIVER = 11;
@@ -1525,7 +1498,6 @@ namespace Org.SwerveRobotics.Tools.Library
         public const int SERVICE_TYPE_WIN32 = 0x30;
         public const int SERVICE_TYPE_WIN32_OWN_PROCESS = 0x10;
         public const int SERVICE_TYPE_WIN32_SHARE_PROCESS = 0x20;
-        public const int SERVICE_USER_DEFINED_CONTROL = 0x100;
         public const int STANDARD_RIGHTS_DELETE = 0x10000;
         public const int STANDARD_RIGHTS_REQUIRED = 0xf0000;
         public const int START_TYPE_AUTO = 2;
@@ -1725,6 +1697,272 @@ namespace Org.SwerveRobotics.Tools.Library
             public int size;
             public int sessionId;
             }
+
+        //----------------------------------------------------------------------------------------------------------
+        // WinSvc.h (incomplete)
+        //----------------------------------------------------------------------------------------------------------
+
+        //
+        // Value to indicate no change to an optional parameter
+        //
+        public const int SERVICE_NO_CHANGE = -1;
+
+        //
+        // Service State -- for Enum Requests (Bit Mask)
+        //
+        public const int SERVICE_ACTIVE = 0x00000001;
+        public const int SERVICE_INACTIVE = 0x00000002;
+        public const int SERVICE_STATE_ALL = (SERVICE_ACTIVE   |  SERVICE_INACTIVE);
+
+        //
+        // Controls
+        //
+        public const int SERVICE_CONTROL_STOP = 0x00000001;
+        public const int SERVICE_CONTROL_PAUSE = 0x00000002;
+        public const int SERVICE_CONTROL_CONTINUE = 0x00000003;
+        public const int SERVICE_CONTROL_INTERROGATE = 0x00000004;
+        public const int SERVICE_CONTROL_SHUTDOWN = 0x00000005;
+        public const int SERVICE_CONTROL_PARAMCHANGE = 0x00000006;
+        public const int SERVICE_CONTROL_NETBINDADD = 0x00000007;
+        public const int SERVICE_CONTROL_NETBINDREMOVE = 0x00000008;
+        public const int SERVICE_CONTROL_NETBINDENABLE = 0x00000009;
+        public const int SERVICE_CONTROL_NETBINDDISABLE = 0x0000000A;
+        public const int SERVICE_CONTROL_DEVICEEVENT = 0x0000000B;
+        public const int SERVICE_CONTROL_HARDWAREPROFILECHANGE = 0x0000000C;
+        public const int SERVICE_CONTROL_POWEREVENT = 0x0000000D;
+        public const int SERVICE_CONTROL_SESSIONCHANGE = 0x0000000E;
+        public const int SERVICE_CONTROL_PRESHUTDOWN = 0x0000000F;
+        public const int SERVICE_CONTROL_TIMECHANGE = 0x00000010;
+        public const int SERVICE_CONTROL_TRIGGEREVENT = 0x00000020;
+        public const int SERVICE_CONTROL_USERMODEREBOOT     = 0x40;
+        public const int SERVICE_CONTROL_USERCODEFIRST      = 128;
+        public const int SERVICE_CONTROL_USERCODELAST       = 255;
+
+        //
+        // Service State -- for CurrentState
+        //
+        public const int SERVICE_STOPPED = 0x00000001;
+        public const int SERVICE_START_PENDING = 0x00000002;
+        public const int SERVICE_STOP_PENDING = 0x00000003;
+        public const int SERVICE_RUNNING = 0x00000004;
+        public const int SERVICE_CONTINUE_PENDING = 0x00000005;
+        public const int SERVICE_PAUSE_PENDING = 0x00000006;
+        public const int SERVICE_PAUSED = 0x00000007;
+
+        //
+        // Controls Accepted  (Bit Mask)
+        //
+        public const int SERVICE_ACCEPT_STOP = 0x00000001;
+        public const int SERVICE_ACCEPT_PAUSE_CONTINUE = 0x00000002;
+        public const int SERVICE_ACCEPT_SHUTDOWN = 0x00000004;
+        public const int SERVICE_ACCEPT_PARAMCHANGE = 0x00000008;
+        public const int SERVICE_ACCEPT_NETBINDCHANGE = 0x00000010;
+        public const int SERVICE_ACCEPT_HARDWAREPROFILECHANGE = 0x00000020;
+        public const int SERVICE_ACCEPT_POWEREVENT = 0x00000040;
+        public const int SERVICE_ACCEPT_SESSIONCHANGE = 0x00000080;
+        public const int SERVICE_ACCEPT_PRESHUTDOWN = 0x00000100;
+        public const int SERVICE_ACCEPT_TIMECHANGE = 0x00000200;
+        public const int SERVICE_ACCEPT_TRIGGEREVENT = 0x00000400;
+
+        //
+        // Service Control Manager object specific access types
+        //
+        public const int SC_MANAGER_CONNECT = 0x0001;
+        public const int SC_MANAGER_CREATE_SERVICE = 0x0002;
+        public const int SC_MANAGER_ENUMERATE_SERVICE = 0x0004;
+        public const int SC_MANAGER_LOCK = 0x0008;
+        public const int SC_MANAGER_QUERY_LOCK_STATUS = 0x0010;
+        public const int SC_MANAGER_MODIFY_BOOT_CONFIG = 0x0020;
+
+        public const int SC_MANAGER_ALL_ACCESS = (STANDARD_RIGHTS_REQUIRED      | 
+                                                    SC_MANAGER_CONNECT            | 
+                                                    SC_MANAGER_CREATE_SERVICE     | 
+                                                    SC_MANAGER_ENUMERATE_SERVICE  | 
+                                                    SC_MANAGER_LOCK               | 
+                                                    SC_MANAGER_QUERY_LOCK_STATUS  | 
+                                                    SC_MANAGER_MODIFY_BOOT_CONFIG);
+        //
+        // Service object specific access type
+        //
+        public const int SERVICE_QUERY_CONFIG = 0x0001;
+        public const int SERVICE_CHANGE_CONFIG = 0x0002;
+        public const int SERVICE_QUERY_STATUS = 0x0004;
+        public const int SERVICE_ENUMERATE_DEPENDENTS = 0x0008;
+        public const int SERVICE_START = 0x0010;
+        public const int SERVICE_STOP = 0x0020;
+        public const int SERVICE_PAUSE_CONTINUE = 0x0040;
+        public const int SERVICE_INTERROGATE = 0x0080;
+        public const int SERVICE_USER_DEFINED_CONTROL = 0x0100;
+
+        public const int SERVICE_ALL_ACCESS =  (STANDARD_RIGHTS_REQUIRED     | 
+                                                SERVICE_QUERY_CONFIG         | 
+                                                SERVICE_CHANGE_CONFIG        | 
+                                                SERVICE_QUERY_STATUS         | 
+                                                SERVICE_ENUMERATE_DEPENDENTS | 
+                                                SERVICE_START                | 
+                                                SERVICE_STOP                 | 
+                                                SERVICE_PAUSE_CONTINUE       | 
+                                                SERVICE_INTERROGATE          | 
+                                                SERVICE_USER_DEFINED_CONTROL);
+
+        //
+        // Service flags for QueryServiceStatusEx
+        //
+        public const int SERVICE_RUNS_IN_SYSTEM_PROCESS = 0x00000001;
+
+        //
+        // Info levels for ChangeServiceConfig2 and QueryServiceConfig2
+        //
+        public const int SERVICE_CONFIG_DESCRIPTION = 1;
+        public const int SERVICE_CONFIG_FAILURE_ACTIONS = 2;
+        public const int SERVICE_CONFIG_DELAYED_AUTO_START_INFO = 3;
+        public const int SERVICE_CONFIG_FAILURE_ACTIONS_FLAG = 4;
+        public const int SERVICE_CONFIG_SERVICE_SID_INFO = 5;
+        public const int SERVICE_CONFIG_REQUIRED_PRIVILEGES_INFO = 6;
+        public const int SERVICE_CONFIG_PRESHUTDOWN_INFO = 7;
+        public const int SERVICE_CONFIG_TRIGGER_INFO = 8;
+        public const int SERVICE_CONFIG_PREFERRED_NODE = 9;
+        // reserved                                     10
+        // reserved                                     11
+        public const int SERVICE_CONFIG_LAUNCH_PROTECTED = 12;
+
+        //
+        // Info levels for NotifyServiceStatusChange
+        //
+        public const int SERVICE_NOTIFY_STATUS_CHANGE_1 = 1;
+        public const int SERVICE_NOTIFY_STATUS_CHANGE_2 = 2;
+
+        public const int SERVICE_NOTIFY_STATUS_CHANGE = SERVICE_NOTIFY_STATUS_CHANGE_2;
+
+        //
+        // Service notification masks
+        //
+        public const int SERVICE_NOTIFY_STOPPED = 0x00000001;
+        public const int SERVICE_NOTIFY_START_PENDING = 0x00000002;
+        public const int SERVICE_NOTIFY_STOP_PENDING = 0x00000004;
+        public const int SERVICE_NOTIFY_RUNNING = 0x00000008;
+        public const int SERVICE_NOTIFY_CONTINUE_PENDING = 0x00000010;
+        public const int SERVICE_NOTIFY_PAUSE_PENDING = 0x00000020;
+        public const int SERVICE_NOTIFY_PAUSED = 0x00000040;
+        public const int SERVICE_NOTIFY_CREATED = 0x00000080;
+        public const int SERVICE_NOTIFY_DELETED = 0x00000100;
+        public const int SERVICE_NOTIFY_DELETE_PENDING = 0x00000200;
+
+        //
+        // The following defines are for service stop reason codes
+        //
+
+        //
+        // Stop reason flags. Update SERVICE_STOP_REASON_FLAG_MAX when
+        // new flags are added.
+        //
+        public const int SERVICE_STOP_REASON_FLAG_MIN = 0x00000000;
+        public const int SERVICE_STOP_REASON_FLAG_UNPLANNED = 0x10000000;
+        public const int SERVICE_STOP_REASON_FLAG_CUSTOM = 0x20000000;
+        public const int SERVICE_STOP_REASON_FLAG_PLANNED = 0x40000000;
+        public const uint SERVICE_STOP_REASON_FLAG_MAX = 0x80000000;
+
+        //
+        // Microsoft major reasons. Update SERVICE_STOP_REASON_MAJOR_MAX when
+        // new codes are added.
+        //
+        public const int SERVICE_STOP_REASON_MAJOR_MIN = 0x00000000;
+        public const int SERVICE_STOP_REASON_MAJOR_OTHER = 0x00010000;
+        public const int SERVICE_STOP_REASON_MAJOR_HARDWARE = 0x00020000;
+        public const int SERVICE_STOP_REASON_MAJOR_OPERATINGSYSTEM = 0x00030000;
+        public const int SERVICE_STOP_REASON_MAJOR_SOFTWARE = 0x00040000;
+        public const int SERVICE_STOP_REASON_MAJOR_APPLICATION = 0x00050000;
+        public const int SERVICE_STOP_REASON_MAJOR_NONE = 0x00060000;
+        public const int SERVICE_STOP_REASON_MAJOR_MAX = 0x00070000;
+        public const int SERVICE_STOP_REASON_MAJOR_MIN_CUSTOM = 0x00400000;
+        public const int SERVICE_STOP_REASON_MAJOR_MAX_CUSTOM = 0x00ff0000;
+
+        //
+        // Microsoft minor reasons. Update SERVICE_STOP_REASON_MINOR_MAX when
+        // new codes are added.
+        //
+        public const int SERVICE_STOP_REASON_MINOR_MIN = 0x00000000;
+        public const int SERVICE_STOP_REASON_MINOR_OTHER = 0x00000001;
+        public const int SERVICE_STOP_REASON_MINOR_MAINTENANCE = 0x00000002;
+        public const int SERVICE_STOP_REASON_MINOR_INSTALLATION = 0x00000003;
+        public const int SERVICE_STOP_REASON_MINOR_UPGRADE = 0x00000004;
+        public const int SERVICE_STOP_REASON_MINOR_RECONFIG = 0x00000005;
+        public const int SERVICE_STOP_REASON_MINOR_HUNG = 0x00000006;
+        public const int SERVICE_STOP_REASON_MINOR_UNSTABLE = 0x00000007;
+        public const int SERVICE_STOP_REASON_MINOR_DISK = 0x00000008;
+        public const int SERVICE_STOP_REASON_MINOR_NETWORKCARD = 0x00000009;
+        public const int SERVICE_STOP_REASON_MINOR_ENVIRONMENT = 0x0000000a;
+        public const int SERVICE_STOP_REASON_MINOR_HARDWARE_DRIVER = 0x0000000b;
+        public const int SERVICE_STOP_REASON_MINOR_OTHERDRIVER = 0x0000000c;
+        public const int SERVICE_STOP_REASON_MINOR_SERVICEPACK = 0x0000000d;
+        public const int SERVICE_STOP_REASON_MINOR_SOFTWARE_UPDATE = 0x0000000e;
+        public const int SERVICE_STOP_REASON_MINOR_SECURITYFIX = 0x0000000f;
+        public const int SERVICE_STOP_REASON_MINOR_SECURITY = 0x00000010;
+        public const int SERVICE_STOP_REASON_MINOR_NETWORK_CONNECTIVITY = 0x00000011;
+        public const int SERVICE_STOP_REASON_MINOR_WMI = 0x00000012;
+        public const int SERVICE_STOP_REASON_MINOR_SERVICEPACK_UNINSTALL = 0x00000013;
+        public const int SERVICE_STOP_REASON_MINOR_SOFTWARE_UPDATE_UNINSTALL = 0x00000014;
+        public const int SERVICE_STOP_REASON_MINOR_SECURITYFIX_UNINSTALL = 0x00000015;
+        public const int SERVICE_STOP_REASON_MINOR_MMC = 0x00000016;
+        public const int SERVICE_STOP_REASON_MINOR_NONE = 0x00000017;
+        public const int SERVICE_STOP_REASON_MINOR_MAX = 0x00000018;
+        public const int SERVICE_STOP_REASON_MINOR_MIN_CUSTOM = 0x00000100;
+        public const int SERVICE_STOP_REASON_MINOR_MAX_CUSTOM = 0x0000FFFF;
+
+        //
+        // Info levels for ControlServiceEx
+        //
+        public const int SERVICE_CONTROL_STATUS_REASON_INFO = 1;
+
+        //
+        // Service SID types supported
+        //
+        public const int SERVICE_SID_TYPE_NONE = 0x00000000;
+        public const int SERVICE_SID_TYPE_UNRESTRICTED = 0x00000001;
+        public const int SERVICE_SID_TYPE_RESTRICTED = ( 0x00000002 | SERVICE_SID_TYPE_UNRESTRICTED );
+
+        //
+        // Service trigger types
+        //
+        public const int SERVICE_TRIGGER_TYPE_DEVICE_INTERFACE_ARRIVAL = 1;
+        public const int SERVICE_TRIGGER_TYPE_IP_ADDRESS_AVAILABILITY = 2;
+        public const int SERVICE_TRIGGER_TYPE_DOMAIN_JOIN = 3;
+        public const int SERVICE_TRIGGER_TYPE_FIREWALL_PORT_EVENT = 4;
+        public const int SERVICE_TRIGGER_TYPE_GROUP_POLICY = 5;
+        public const int SERVICE_TRIGGER_TYPE_NETWORK_ENDPOINT = 6;
+        public const int SERVICE_TRIGGER_TYPE_CUSTOM_SYSTEM_STATE_CHANGE = 7;
+        public const int SERVICE_TRIGGER_TYPE_CUSTOM = 20;
+
+        //
+        // Service trigger data types
+        //
+        public const int SERVICE_TRIGGER_DATA_TYPE_BINARY = 1;
+        public const int SERVICE_TRIGGER_DATA_TYPE_STRING = 2;
+        public const int SERVICE_TRIGGER_DATA_TYPE_LEVEL = 3;
+        public const int SERVICE_TRIGGER_DATA_TYPE_KEYWORD_ANY = 4;
+        public const int SERVICE_TRIGGER_DATA_TYPE_KEYWORD_ALL = 5;
+
+        //
+        //  Service start reason
+        //
+        public const int SERVICE_START_REASON_DEMAND = 0x00000001;
+        public const int SERVICE_START_REASON_AUTO = 0x00000002;
+        public const int SERVICE_START_REASON_TRIGGER = 0x00000004;
+        public const int SERVICE_START_REASON_RESTART_ON_FAILURE = 0x00000008;
+        public const int SERVICE_START_REASON_DELAYEDAUTO = 0x00000010;
+
+        //
+        //  Service dynamic information levels
+        //
+        public const int SERVICE_DYNAMIC_INFORMATION_LEVEL_START_REASON = 1;
+
+        //
+        // Service LaunchProtected types supported
+        //
+        public const int SERVICE_LAUNCH_PROTECTED_NONE = 0;
+        public const int SERVICE_LAUNCH_PROTECTED_WINDOWS = 1;
+        public const int SERVICE_LAUNCH_PROTECTED_WINDOWS_LIGHT = 2;
+        public const int SERVICE_LAUNCH_PROTECTED_ANTIMALWARE_LIGHT = 3;
 
         }
 
