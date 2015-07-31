@@ -270,6 +270,15 @@ namespace Org.SwerveRobotics.Tools.Library
             public ushort Length;
             }
 
+        //------------------------------------------------------------------------------
+        // USBIODef.h
+        //------------------------------------------------------------------------------
+
+        public static Guid GUID_DEVINTERFACE_USB_HUB                = new Guid("f18a0e88-c30c-11d0-8815-00a0c906bed8");
+        public static Guid GUID_DEVINTERFACE_USB_DEVICE             = new Guid("A5DCBF10-6530-11D2-901F-00C04FB951ED");
+        public static Guid GUID_DEVINTERFACE_USB_HOST_CONTROLLER    = new Guid("3ABF6F2D-71C4-462a-8A92-1E6861E6AF27");
+        public static Guid GUID_USB_WMI_STD_DATA                    = new Guid("4E623B20-CB14-11D1-B331-00A0C959BBD2");
+        public static Guid GUID_USB_WMI_STD_NOTIFICATION            = new Guid("4E623B20-CB14-11D1-B331-00A0C959BBD2");
 
         //------------------------------------------------------------------------------
         // Dbt.h

@@ -85,6 +85,7 @@ namespace Org.SwerveRobotics.Tools.Library
 
             // TODO: Generalize this so that we find other devices as well
             FindDevices(AndroidADBDeviceInterface);
+            FindDevices(WIN32.GUID_DEVINTERFACE_USB_DEVICE);
             }
 
         public void Stop()
@@ -209,7 +210,7 @@ namespace Org.SwerveRobotics.Tools.Library
             if (args.pHeader->dbch_devicetype == WIN32.DBT_DEVTYP_DEVICEINTERFACE)
                 {
                 WIN32.DEV_BROADCAST_DEVICEINTERFACE_W* pintf = (WIN32.DEV_BROADCAST_DEVICEINTERFACE_W*)args.pHeader;
-                Trace(pintf);
+                // Trace(pintf);
                 this.AddDeviceIfNecessary(new USBDevice(pintf));
                 }
             }
@@ -219,7 +220,7 @@ namespace Org.SwerveRobotics.Tools.Library
             if (args.pHeader->dbch_devicetype == WIN32.DBT_DEVTYP_DEVICEINTERFACE)
                 {
                 WIN32.DEV_BROADCAST_DEVICEINTERFACE_W* pintf = (WIN32.DEV_BROADCAST_DEVICEINTERFACE_W*)args.pHeader;
-                Trace(pintf);
+                // Trace(pintf);
                 this.RemoveDeviceIfNecessary(new USBDevice(pintf));
                 }
             }
