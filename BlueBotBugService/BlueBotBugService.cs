@@ -137,7 +137,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             }
 
         //-----------------------------------------------------------------------------------------
-        // Events
+        // Device Events
         //-----------------------------------------------------------------------------------------
 
         public event EventHandler<DeviceEventArgs>       DeviceArrived;
