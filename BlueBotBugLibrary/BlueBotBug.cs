@@ -168,17 +168,10 @@ namespace Org.SwerveRobotics.Tools.Library
 
         public unsafe bool ShouldDeferDeviceEvent(int eventType, WIN32.DEV_BROADCAST_HDR* pHeader)
             {
-            bool result = true;
-            //
-            switch (eventType)
-                {
-            case WIN32.DBT_QUERYCHANGECONFIG:
-            case WIN32.DBT_DEVICEQUERYREMOVE: 
-                result = false;
-                break;
-                }
-            //
-            return result;
+            // We basically can't defer any of these events, as the data pointed
+            // to by pHeader will be invalid by the time we return, and so will be
+            // junk in a deferred invocation.
+            return false;
             }
 
         public unsafe int OnDeviceEvent(int eventType, WIN32.DEV_BROADCAST_HDR* pHeader)

@@ -816,13 +816,19 @@ namespace Org.SwerveRobotics.Tools.Library
         public const int BLUETOOTH_MAX_SERVICE_NAME_SIZE     = (256);
         public const int BLUETOOTH_DEVICE_NAME_SIZE          = (256);
 
-        public const int DIGCF_PRESENT                       = 2;
-        public const int DIGCF_DEVICEINTERFACE               = 0X10;
+        //
+        // Flags controlling what is included in the device information set built
+        // by SetupDiGetClassDevs
+        //
+        public const int DIGCF_DEFAULT           = 0x00000001;  // only valid with DIGCF_DEVICEINTERFACE
+        public const int DIGCF_PRESENT           = 0x00000002;
+        public const int DIGCF_ALLCLASSES        = 0x00000004;
+        public const int DIGCF_PROFILE           = 0x00000008;
+        public const int DIGCF_DEVICEINTERFACE   = 0x00000010;
 
-
-        public const int DEVICE_NOTIFY_ALL_INTERFACE_CLASSES = 4;
-        public const int DEVICE_NOTIFY_SERVICE_HANDLE        = 1;
-        public const int DEVICE_NOTIFY_WINDOW_HANDLE         = 0;
+        public const int DEVICE_NOTIFY_WINDOW_HANDLE         = 0x00000000;
+        public const int DEVICE_NOTIFY_SERVICE_HANDLE        = 0x00000001;
+        public const int DEVICE_NOTIFY_ALL_INTERFACE_CLASSES = 0x00000004;
 
         public const int  MAX_PATH = 260;
 
@@ -1078,7 +1084,13 @@ namespace Org.SwerveRobotics.Tools.Library
         bool SetupDiDestroyDeviceInfoList(IntPtr hDeviceInfoSet);
 
         [DllImport("setupapi.dll", SetLastError = true)] public static extern 
+        bool SetupDiEnumDeviceInterfaces(IntPtr hDeviceInfoSet, IntPtr DeviceInfoData, IntPtr InterfaceClassGuid, int MemberIndex, out SP_DEVICE_INTERFACE_DATA DeviceInterfaceData);
+
+        [DllImport("setupapi.dll", SetLastError = true)] public static extern 
         bool SetupDiEnumDeviceInterfaces(IntPtr hDeviceInfoSet, IntPtr DeviceInfoData, ref System.Guid InterfaceClassGuid, int MemberIndex, out SP_DEVICE_INTERFACE_DATA DeviceInterfaceData);
+
+        [DllImport("setupapi.dll", SetLastError = true, CharSet = CharSet.Auto)] public static extern 
+        IntPtr SetupDiGetClassDevs(IntPtr pClassGuid, IntPtr Enumerator, IntPtr hwndParent, int Flags);
 
         [DllImport("setupapi.dll", SetLastError = true, CharSet = CharSet.Auto)] public static extern 
         IntPtr SetupDiGetClassDevs(ref System.Guid ClassGuid, IntPtr Enumerator, IntPtr hwndParent, int Flags);

@@ -411,6 +411,11 @@ namespace Org.SwerveRobotics.Tools.Library
         // Other
         //--------------------------------------------------------------------------------------------
 
+        public static void BreakIntoDebugger()
+            {
+            System.Diagnostics.Debugger.Launch();
+            }
+
         public static string[] Lines(this string str, StringSplitOptions options = StringSplitOptions.None)
         // Split the string into its various lines, being careful about the various forms of 
         // line endings that exist in the world.
