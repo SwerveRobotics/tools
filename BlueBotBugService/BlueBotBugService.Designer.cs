@@ -22,7 +22,7 @@
                     }
                 }
 
-            // Called from finalizers. Avoid referencing other objects
+            // Called from finalizers (and user code). Avoid referencing other objects
             this.OleUninitialize();
 
             base.Dispose(fromUserCode);

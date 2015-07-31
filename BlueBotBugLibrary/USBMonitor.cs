@@ -65,7 +65,7 @@ namespace Org.SwerveRobotics.Tools.Library
         }
 
 
-    public class USBMonitor
+    public class USBMonitor : IDisposable
         {
         //-----------------------------------------------------------------------------------------
         // State
@@ -73,23 +73,40 @@ namespace Org.SwerveRobotics.Tools.Library
 
         IDeviceEvents   eventRaiser = null;
         ITracer         tracer      = null;
+        bool            started     = false;
+        IntPtr          notificationHandle;
+        bool            notificationHandleIsService;
 
-        object      theLock = new object();
-        object      traceLock = new object();
+        object                                              traceLock = new object();
+
+        object                                              theLock = new object();
         IDictionary<Guid, IDictionary<String, USBDevice>>   mpGuidDevices = null;
         IDictionary<String, USBDevice>                      mpNameDevice  = null;
-
-        List<Guid>  deviceInterfacesOfInterest = null;
+        List<Guid>                                          deviceInterfacesOfInterest = null;
+        List<IntPtr>                                        deviceNotificationHandles = null;
 
         //-----------------------------------------------------------------------------------------
         // Construction
         //-----------------------------------------------------------------------------------------
 
-        public USBMonitor(IDeviceEvents eventRaiser, ITracer tracer)
+        public USBMonitor(IDeviceEvents eventRaiser, ITracer tracer, IntPtr notificationHandle, bool notificationHandleIsService)
             {
             this.eventRaiser = eventRaiser;
             this.tracer = tracer;
+            this.notificationHandle = notificationHandle;
+            this.notificationHandleIsService = notificationHandleIsService;
             this.Initialize();
+            }
+
+        ~USBMonitor()
+            {
+            this.Dispose(false);
+            }
+
+        void IDisposable.Dispose()
+            {
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
             }
 
         void Initialize()
@@ -99,7 +116,9 @@ namespace Org.SwerveRobotics.Tools.Library
                 this.mpGuidDevices = new Dictionary<Guid, IDictionary<String, USBDevice>>();
                 this.mpNameDevice  = this.NewMapStringToDevice();
                 this.deviceInterfacesOfInterest = new List<Guid>();
+                this.deviceNotificationHandles = new List<IntPtr>();
                 }
+            this.started = false;
             }
 
         IDictionary<String, USBDevice> NewMapStringToDevice()
@@ -107,32 +126,90 @@ namespace Org.SwerveRobotics.Tools.Library
             return new Dictionary<String, USBDevice>(StringComparer.InvariantCultureIgnoreCase);
             }
 
+        public virtual void Dispose(bool fromUserCode)
+            {
+            if (fromUserCode)
+                {
+                // Called from user's code. Can / should cleanup managed objects
+                }
+
+            // Called from finalizers (and user code). Avoid referencing other objects
+            this.ReleaseDeviceNotificationHandles();
+            }
+
+        //-----------------------------------------------------------------------------------------
+        // Device notification management
+        //-----------------------------------------------------------------------------------------
+
         public void AddDeviceInterfaceOfInterest(Guid guid)
             {
             lock (theLock)
                 {
                 this.deviceInterfacesOfInterest.Add(guid);
                 }
+
+            if (this.started)
+                {
+                GetDeviceNotificationsFor(guid);
+                FindExistingDevices(guid);
+                }
+            }
+
+        void GetDeviceNotificationsFor(Guid guidDevInterface)
+            {
+            lock (theLock)
+                {
+                WIN32.DEV_BROADCAST_DEVICEINTERFACE_MANAGED filter = new WIN32.DEV_BROADCAST_DEVICEINTERFACE_MANAGED();
+                filter.Initialize(guidDevInterface);
+
+                IntPtr hDeviceNotify = WIN32.RegisterDeviceNotification(this.notificationHandle, filter, this.notificationHandleIsService ? WIN32.DEVICE_NOTIFY_SERVICE_HANDLE : WIN32.DEVICE_NOTIFY_WINDOW_HANDLE);
+                WIN32.ThrowIfFail(hDeviceNotify);
+
+                this.deviceNotificationHandles.Add(hDeviceNotify);
+                }
+            }
+
+        void ReleaseDeviceNotificationHandles()
+            {
+            lock (theLock)
+                {
+                foreach (IntPtr hDeviceNotify in this.deviceNotificationHandles)
+                    {
+                    WIN32.UnregisterDeviceNotification(hDeviceNotify);
+                    }
+                this.deviceNotificationHandles = new List<IntPtr>();
+                }
             }
 
         public void Start()
             {
-            this.eventRaiser.DeviceArrived        += OnDeviceArrived;
-            this.eventRaiser.DeviceRemoveComplete += OnDeviceRemoveComplete;
+            try
+                {
+                this.eventRaiser.DeviceArrived        += OnDeviceArrived;
+                this.eventRaiser.DeviceRemoveComplete += OnDeviceRemoveComplete;
 
-            List<Guid> intfs;
-            lock (theLock)
-                {
-                intfs = new List<Guid>(this.deviceInterfacesOfInterest);
+                foreach (Guid guid in this.deviceInterfacesOfInterest)
+                    {
+                    GetDeviceNotificationsFor(guid);
+                    FindExistingDevices(guid);
+                    }
+                
+                this.started = true;
                 }
-            foreach (Guid guid in intfs)
+            catch (Exception)
                 {
-                FindDevices(guid);
+                Stop();
+                throw;
                 }
+
             }
 
         public void Stop()
             {
+            this.started = false;
+
+            this.ReleaseDeviceNotificationHandles();
+
             this.eventRaiser.DeviceArrived        -= OnDeviceArrived;
             this.eventRaiser.DeviceRemoveComplete -= OnDeviceRemoveComplete;
             }
@@ -190,7 +267,7 @@ namespace Org.SwerveRobotics.Tools.Library
         // Scanning
         //-----------------------------------------------------------------------------------------
 
-        void FindDevices(Guid guidInterfaceClass)
+        void FindExistingDevices(Guid guidInterfaceClass)
             {
             IntPtr hDeviceInfoSet = WIN32.INVALID_HANDLE_VALUE;
             try 

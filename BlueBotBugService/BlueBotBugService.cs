@@ -18,7 +18,6 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
         //------------------------------------------------------------------------------------------
         
         System.Diagnostics.EventLog eventLog       = null;
-        IntPtr                      hDeviceNotify  = IntPtr.Zero;
 
         private const string eventLogSourceName = "BlueBotBug";
         private const string eventLogName       = "Application";
@@ -68,7 +67,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
 
         internal void TestAsConsoleApp(string[] args)
         // Debugging hook per https://msdn.microsoft.com/en-us/library/7a50syb3(v=vs.110).aspx
-        // We don't actually use this, as we still won't get 
+        // We don't actually use this; we're getting along fine with debugging the service directly.
             {
             this.OnStart(args);
             //
@@ -87,24 +86,10 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             {
             this.Trace("starting");
             //
-            if (RunAsConsoleApp())
-                {
-                // TODO
-                }
-            else
-                {
-                // TODO: Put in a filter here. No point in seeing what we don't need to or want.
-                WIN32.DEV_BROADCAST_DEVICEINTERFACE_MANAGED filter = new WIN32.DEV_BROADCAST_DEVICEINTERFACE_MANAGED();
-                filter.Initialize(System.Guid.Empty);
-
-                this.hDeviceNotify = WIN32.RegisterDeviceNotification(this.ServiceHandle, filter, WIN32.DEVICE_NOTIFY_SERVICE_HANDLE | WIN32.DEVICE_NOTIFY_ALL_INTERFACE_CLASSES);
-                WIN32.ThrowIfFail(this.hDeviceNotify);
-                }
-            //
             WIN32.OleInitialize(IntPtr.Zero);
             this.oleInitialized = true;
             //
-            this.usbMonitor = new USBMonitor(this, this);
+            this.usbMonitor = new USBMonitor(this, this, this.ServiceHandle, true);
             this.usbMonitor.AddDeviceInterfaceOfInterest(AndroidADBDeviceInterface);
             this.usbMonitor.Start();
             //
@@ -121,19 +106,6 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                 this.usbMonitor = null;
                 }
             this.OleUninitialize();
-            //
-            if (RunAsConsoleApp())
-                {
-                // TODO
-                }
-            else
-                {
-                if (this.hDeviceNotify != IntPtr.Zero)
-                    {
-                    WIN32.UnregisterDeviceNotification(this.hDeviceNotify);
-                    this.hDeviceNotify = IntPtr.Zero;
-                    }
-                }
             //
             this.Trace("stopped");
             }
