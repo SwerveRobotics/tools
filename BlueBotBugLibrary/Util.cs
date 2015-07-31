@@ -19,12 +19,26 @@ namespace Org.SwerveRobotics.Tools.Library
         // String
         //--------------------------------------------------------------------------------------------
 
-        public unsafe static String ToString(char* pZeroTerminatedString)
+        public unsafe static String ToStringUni(void* psz, long cbMax = Int64.MaxValue)
             { 
+            long cchMax = cbMax / sizeof(char);
+            char *pch = (char*) psz;
             StringBuilder result = new StringBuilder();
-            while (*pZeroTerminatedString != '\0')
+            while (*pch != '\0' && result.Length < cchMax)
                 {
-                result.Append(*pZeroTerminatedString++);
+                result.Append(*pch++);
+                }
+            return result.ToString();
+            }
+
+        public unsafe static String ToStringAnsi(void* psz, long cbMax = Int64.MaxValue)
+            { 
+            long cchMax = cbMax;
+            byte *pch = (byte*) psz;
+            StringBuilder result = new StringBuilder();
+            while (*pch != '\0' && result.Length < cchMax)
+                {
+                result.Append(*pch++);
                 }
             return result.ToString();
             }

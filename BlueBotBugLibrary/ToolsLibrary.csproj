@@ -51,6 +51,7 @@
     <Compile Include="NXTMessage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TelemetryRecord.cs" />
+    <Compile Include="USBMonitor.cs" />
     <Compile Include="Util.cs" />
     <Compile Include="WIN32.cs" />
   </ItemGroup>

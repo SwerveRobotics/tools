@@ -1605,7 +1605,7 @@ namespace Org.SwerveRobotics.Tools.Library
 
         private void RegisterForDeviceNotifications()
             {
-            DEV_BROADCAST_DEVICEINTERFACE devBDI = new DEV_BROADCAST_DEVICEINTERFACE();
+            DEV_BROADCAST_DEVICEINTERFACE_MANAGED devBDI = new DEV_BROADCAST_DEVICEINTERFACE_MANAGED();
             devBDI.dbcc_size        = Marshal.SizeOf(devBDI);
             devBDI.dbcc_devicetype  = DBT_DEVTYP_DEVICEINTERFACE;
             devBDI.dbcc_reserved    = 0;
@@ -1651,7 +1651,7 @@ namespace Org.SwerveRobotics.Tools.Library
             //
             if ((devBroadcastHeader.dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE))
                 {
-                DEV_BROADCAST_DEVICEINTERFACE devBroadcastDeviceInterface = new DEV_BROADCAST_DEVICEINTERFACE();
+                DEV_BROADCAST_DEVICEINTERFACE_MANAGED devBroadcastDeviceInterface = new DEV_BROADCAST_DEVICEINTERFACE_MANAGED();
                 Marshal.PtrToStructure(m.LParam, devBroadcastDeviceInterface);
 
                 return String.Compare(devBroadcastDeviceInterface.dbcc_name, mydevicePathName, true) == 0;

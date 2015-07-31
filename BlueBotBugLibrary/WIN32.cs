@@ -174,26 +174,6 @@ namespace Org.SwerveRobotics.Tools.Library
                 }
             }
 
-        [StructLayout(LayoutKind.Sequential, CharSet=CharSet.Unicode)]
-        public class DEV_BROADCAST_DEVICEINTERFACE
-            {
-            public int      dbcc_size;
-            public int      dbcc_devicetype;
-            public int      dbcc_reserved;
-            public Guid     dbcc_classguid;
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst=MAX_PATH)]
-            public string   dbcc_name;
-
-            public void Initialize(Guid classGuid)
-                {
-                this.dbcc_size       = Marshal.SizeOf(this.GetType());
-                this.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
-                this.dbcc_reserved   = 0;
-                this.dbcc_classguid  = classGuid;
-                this.dbcc_name       = "";
-                }
-            }
-
         [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Unicode)]
         public struct SP_DEVICE_INTERFACE_DATA
             {
@@ -463,6 +443,20 @@ namespace Org.SwerveRobotics.Tools.Library
             public int  dbch_size;
             public int  dbch_devicetype;
             public int  dbch_reserved;
+
+            public string DeviceTypeName { get {
+                switch (this.dbch_devicetype)
+                    {
+                case DBT_DEVTYP_OEM:             return "DBT_DEVTYP_OEM";
+                case DBT_DEVTYP_DEVNODE:         return "DBT_DEVTYP_DEVNODE";
+                case DBT_DEVTYP_VOLUME:          return "DBT_DEVTYP_VOLUME";
+                case DBT_DEVTYP_PORT:            return "DBT_DEVTYP_PORT";
+                case DBT_DEVTYP_NET:             return "DBT_DEVTYP_NET";
+                case DBT_DEVTYP_DEVICEINTERFACE: return "DBT_DEVTYP_DEVICEINTERFACE";
+                case DBT_DEVTYP_HANDLE:          return "DBT_DEVTYP_HANDLE";
+                    }
+                return String.Format("unknownType({0})", this.dbch_devicetype);
+                } }
             };
 
         /*
@@ -543,7 +537,6 @@ namespace Org.SwerveRobotics.Tools.Library
         public const int DBT_DEVTYP_VOLUME = 0x00000002;            // logical volume
         public const int DBT_DEVTYP_PORT = 0x00000003;              // serial, parallel
         public const int DBT_DEVTYP_NET = 0x00000004;               // network resource
-
         public const int DBT_DEVTYP_DEVICEINTERFACE = 0x00000005;   // device interface class
         public const int DBT_DEVTYP_HANDLE = 0x00000006;            // file system handle
 
@@ -618,18 +611,51 @@ namespace Org.SwerveRobotics.Tools.Library
             public int       dbcn_flags;
             };
 
-        // TODO: Define accessor method for the name
+        [StructLayout(LayoutKind.Sequential, CharSet=CharSet.Unicode)]
+        public class DEV_BROADCAST_DEVICEINTERFACE_MANAGED
+        // Use this one for structures initialized in managed code; we *marshal* to get to non managed
+            {
+            public int      dbcc_size;
+            public int      dbcc_devicetype;
+            public int      dbcc_reserved;
+            public Guid     dbcc_classguid;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst=MAX_PATH)]
+            public string   dbcc_name;
+
+            public void Initialize(Guid classGuid)
+                {
+                this.dbcc_size       = Marshal.SizeOf(this.GetType());
+                this.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
+                this.dbcc_reserved   = 0;
+                this.dbcc_classguid  = classGuid;
+                this.dbcc_name       = "";
+                }
+            }
+
         [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Ansi)]
-        public struct DEV_BROADCAST_DEVICEINTERFACE_A 
+        public struct DEV_BROADCAST_DEVICEINTERFACE_A
             {
             public int          dbcc_size;
             public int          dbcc_devicetype;
             public int          dbcc_reserved;
             public System.Guid  dbcc_classguid;
         //  char                dbcc_name[1];
+
+            public unsafe String dbcc_name { get 
+                { 
+                return Util.ToStringAnsi(this.PbVariablePart, this.PbMax - this.PbVariablePart);
+                } }
+
+            public unsafe byte* PbVariablePart { get { fixed(DEV_BROADCAST_DEVICEINTERFACE_A* pThis = &this) 
+                { 
+                return (byte*)(&pThis->dbcc_classguid) + sizeof(System.Guid); 
+                } } }
+            public unsafe byte* PbMax { get { fixed(DEV_BROADCAST_DEVICEINTERFACE_A* pThis = &this) 
+                {
+                return (byte*)pThis + pThis->dbcc_size;
+                } } }
             };
 
-        // TODO: Define accessor method for the name
         [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Unicode)]
         public struct DEV_BROADCAST_DEVICEINTERFACE_W 
             {
@@ -638,6 +664,21 @@ namespace Org.SwerveRobotics.Tools.Library
             public int          dbcc_reserved;
             public System.Guid  dbcc_classguid;
         //  wchar_t             dbcc_name[1];
+
+            public unsafe String dbcc_name { get 
+                { 
+                return Util.ToStringUni(this.PbVariablePart, this.PbMax - this.PbVariablePart);
+                } }
+
+            public unsafe byte* PbVariablePart { get { fixed(DEV_BROADCAST_DEVICEINTERFACE_W* pThis = &this) 
+                { 
+                return (byte*)(&pThis->dbcc_classguid) + sizeof(System.Guid); 
+                } } }
+            public unsafe byte* PbMax { get { fixed(DEV_BROADCAST_DEVICEINTERFACE_W* pThis = &this) 
+                {
+                return (byte*)pThis + pThis->dbcc_size;
+                } } }
+            public unsafe long CbVariablePart { get { return this.PbMax - this.PbVariablePart; } }
             };
 
         // TODO: Define accessor method for data
@@ -720,27 +761,46 @@ namespace Org.SwerveRobotics.Tools.Library
 
         public const int DBT_USERDEFINED = 0xFFFF;
 
-        // TODO: Define accessor methods
         [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Ansi)]
         public struct DEV_BROADCAST_USERDEFINED 
             {
-            public  DEV_BROADCAST_HDR dbud_dbh;
-
-            public unsafe string Name { get
-                { 
-                fixed (DEV_BROADCAST_USERDEFINED* pThis = &this)
-                    {
-                    return Marshal.PtrToStringAuto((IntPtr) ((byte*)&pThis->dbud_dbh + sizeof(DEV_BROADCAST_HDR)));
-                    }
-                }}
-
+            public DEV_BROADCAST_HDR dbud_dbh;
         //  char        dbud_szName[1];     /* ASCIIZ name */
         /*  BYTE        dbud_rgbUserDefined[];*/ /* User-defined contents */
+
+            public unsafe string dbud_szName { get
+                { 
+                return Marshal.PtrToStringAnsi(new IntPtr(this.PbVariablePart));
+                }}
+
+            public unsafe byte* PbUserDefined { get { fixed(DEV_BROADCAST_USERDEFINED* pThis = &this) 
+                {
+                return this.PbVariablePart + (this.dbud_szName.Length+1) * sizeof(byte);     // +1 for terminating null 
+                } } }
+
+            public unsafe int CbUserDefined { get { fixed(DEV_BROADCAST_USERDEFINED* pThis = &this) 
+                {  
+                return (int)(pThis->dbud_dbh.dbch_size - (this.PbUserDefined - (byte*)pThis));
+                } } }
+
+            public unsafe byte[] dbud_rgbUserDefined { get 
+                {
+                int cb = this.CbUserDefined;
+                byte[] result = new byte[cb];
+                Marshal.Copy(new IntPtr(this.PbUserDefined), result, 0, cb);
+                return result;
+                } }
+
+            public unsafe byte* PbVariablePart { get { fixed(DEV_BROADCAST_USERDEFINED* pThis = &this) 
+                { 
+                return (byte*)(&pThis->dbud_dbh) + sizeof(DEV_BROADCAST_HDR); 
+                } } }
+            public unsafe byte* PbMax { get { fixed(DEV_BROADCAST_USERDEFINED* pThis = &this) 
+                {
+                return (byte*)pThis + pThis->dbud_dbh.dbch_size;
+                } } }
+
             };
-
-          
-
-
 
 
         //------------------------------------------------------------------------------
@@ -1002,7 +1062,7 @@ namespace Org.SwerveRobotics.Tools.Library
         IntPtr RegisterDeviceNotification(IntPtr hRecipient, ref DEV_BROADCAST_HDR filter, int Flags);
 
         [DllImport("user32.dll", CharSet=CharSet.Unicode, SetLastError = true, EntryPoint="RegisterDeviceNotificationW")] public static extern 
-        IntPtr RegisterDeviceNotification(IntPtr hRecipient, DEV_BROADCAST_DEVICEINTERFACE filter, int Flags);
+        IntPtr RegisterDeviceNotification(IntPtr hRecipient, DEV_BROADCAST_DEVICEINTERFACE_MANAGED filter, int Flags);
 
         [DllImport("kernel32.dll", SetLastError=true, CharSet=CharSet.Unicode)] public static extern
         bool SetCommState(IntPtr hFile, ref DCB dcb);

@@ -77,7 +77,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                 }
             else
                 {
-                WIN32.DEV_BROADCAST_DEVICEINTERFACE filter = new WIN32.DEV_BROADCAST_DEVICEINTERFACE();
+                WIN32.DEV_BROADCAST_DEVICEINTERFACE_MANAGED filter = new WIN32.DEV_BROADCAST_DEVICEINTERFACE_MANAGED();
                 filter.Initialize(System.Guid.Empty);
 
                 this.hDeviceNotify = WIN32.RegisterDeviceNotification(this.ServiceHandle, filter, 
