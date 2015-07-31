@@ -1,12 +1,43 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Org.SwerveRobotics.Tools.Library
     {
+    public interface ITracer
+        { 
+        void Trace(string format, params Object[] args);
+        }
+
+    public unsafe class DeviceEventArgs : EventArgs
+        {
+        public WIN32.DEV_BROADCAST_HDR* pHeader;
+        }
+    public unsafe class DeviceEventArgsCancel : DeviceEventArgs
+        {
+        public bool Cancel = false;
+        }
+
+    public interface IDeviceEvents
+        {
+        event EventHandler<DeviceEventArgs>       DeviceArrived;
+        event EventHandler<DeviceEventArgsCancel> DeviceQueryRemove;
+        event EventHandler<DeviceEventArgs>       DeviceQueryRemoveFailed;
+        event EventHandler<DeviceEventArgs>       DeviceRemovePending;
+        event EventHandler<DeviceEventArgs>       DeviceRemoveComplete;
+        event EventHandler<DeviceEventArgs>       DeviceTypeSpecific;
+        event EventHandler<DeviceEventArgs>       DeviceCustomEvent;
+        event EventHandler<DeviceEventArgs>       DeviceUserDefined;
+        event EventHandler<CancelEventArgs>       DeviceQueryChangeConfig;
+        event EventHandler<EventArgs>             DeviceConfigChanged;
+        event EventHandler<EventArgs>             DeviceConfigChangeCancelled;
+        event EventHandler<EventArgs>             DeviceDevNodesChanged;
+        }
+
     public class USBDevice
         {
         //-----------------------------------------------------------------------------------------
@@ -40,8 +71,8 @@ namespace Org.SwerveRobotics.Tools.Library
         // State
         //-----------------------------------------------------------------------------------------
 
-        BlueBotBug  bug    = null;
-        ITracer     tracer = null;
+        IDeviceEvents   eventRaiser = null;
+        ITracer         tracer      = null;
 
         object      theLock = new object();
         object      traceLock = new object();
@@ -54,9 +85,9 @@ namespace Org.SwerveRobotics.Tools.Library
         // Construction
         //-----------------------------------------------------------------------------------------
 
-        public USBMonitor(BlueBotBug bug, ITracer tracer)
+        public USBMonitor(IDeviceEvents eventRaiser, ITracer tracer)
             {
-            this.bug = bug;
+            this.eventRaiser = eventRaiser;
             this.tracer = tracer;
             this.Initialize();
             }
@@ -86,8 +117,8 @@ namespace Org.SwerveRobotics.Tools.Library
 
         public void Start()
             {
-            this.bug.DeviceArrived        += OnDeviceArrived;
-            this.bug.DeviceRemoveComplete += OnDeviceRemoveComplete;
+            this.eventRaiser.DeviceArrived        += OnDeviceArrived;
+            this.eventRaiser.DeviceRemoveComplete += OnDeviceRemoveComplete;
 
             List<Guid> intfs;
             lock (theLock)
@@ -102,8 +133,8 @@ namespace Org.SwerveRobotics.Tools.Library
 
         public void Stop()
             {
-            this.bug.DeviceArrived        -= OnDeviceArrived;
-            this.bug.DeviceRemoveComplete -= OnDeviceRemoveComplete;
+            this.eventRaiser.DeviceArrived        -= OnDeviceArrived;
+            this.eventRaiser.DeviceRemoveComplete -= OnDeviceRemoveComplete;
             }
 
 
@@ -220,7 +251,7 @@ namespace Org.SwerveRobotics.Tools.Library
         // Events
         //-----------------------------------------------------------------------------------------
 
-        unsafe void OnDeviceArrived(object sender, BlueBotBug.DeviceEventArgs args)
+        unsafe void OnDeviceArrived(object sender, DeviceEventArgs args)
             {
             if (args.pHeader->dbch_devicetype == WIN32.DBT_DEVTYP_DEVICEINTERFACE)
                 {
@@ -230,7 +261,7 @@ namespace Org.SwerveRobotics.Tools.Library
                 }
             }
 
-        unsafe void OnDeviceRemoveComplete(object sender, BlueBotBug.DeviceEventArgs args)
+        unsafe void OnDeviceRemoveComplete(object sender, DeviceEventArgs args)
             {
             if (args.pHeader->dbch_devicetype == WIN32.DBT_DEVTYP_DEVICEINTERFACE)
                 {

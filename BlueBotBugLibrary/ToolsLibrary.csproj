@@ -43,7 +43,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BlueBotBug.cs" />
     <Compile Include="Connection.cs" />
     <Compile Include="DirectInput.cs" />
     <Compile Include="JoystickController.cs" />

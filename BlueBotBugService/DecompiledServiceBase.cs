@@ -50,6 +50,19 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             this.ServiceName = "";
             }
 
+        protected override void Dispose(bool disposing)
+            {
+            if (this.handleName != IntPtr.Zero)
+                {
+                Marshal.FreeHGlobal(this.handleName);
+                this.handleName = IntPtr.Zero;
+                }
+            this.nameFrozen = false;
+            this.commandPropsFrozen = false;
+            this.disposed = true;
+            base.Dispose(disposing);
+            }
+
         private unsafe void DeferredContinue()
             {
             fixed (WIN32.SERVICE_STATUS* service_statusRef = &this.status)
@@ -222,19 +235,6 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                     throw;
                     }
                 }
-            }
-
-        protected override void Dispose(bool disposing)
-            {
-            if (this.handleName != IntPtr.Zero)
-                {
-                Marshal.FreeHGlobal(this.handleName);
-                this.handleName = IntPtr.Zero;
-                }
-            this.nameFrozen = false;
-            this.commandPropsFrozen = false;
-            this.disposed = true;
-            base.Dispose(disposing);
             }
 
         private WIN32.SERVICE_TABLE_ENTRY GetEntry()

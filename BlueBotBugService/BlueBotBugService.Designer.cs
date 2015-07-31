@@ -10,14 +10,22 @@
         /// <summary>
         /// Clean up any resources being used.
         /// </summary>
-        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
-        protected override void Dispose(bool disposing)
+        /// <param name="fromUserCode">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool fromUserCode)
             {
-            if (disposing && (components != null))
+            if (fromUserCode)
                 {
-                components.Dispose();
+                // Called from user's code. Can / should cleanup managed objects
+                if (components != null)
+                    {
+                    components.Dispose();
+                    }
                 }
-            base.Dispose(disposing);
+
+            // Called from finalizers. Avoid referencing other objects
+            this.OleUninitialize();
+
+            base.Dispose(fromUserCode);
             }
 
         #region Component Designer generated code
