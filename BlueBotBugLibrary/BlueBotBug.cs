@@ -71,12 +71,18 @@ namespace Org.SwerveRobotics.Tools.Library
         // Startup and shutdown
         //-----------------------------------------------------------------------------------------
 
+        // http://binarydb.com/driver/Android-ADB-Interface-265790.html
+
+        static Guid AndroidUsbDeviceClass     = new Guid("{3f966bd9-fa04-4ec5-991c-d326973b5128}");
+        static Guid AndroidADBDeviceInterface = new Guid("{F72FE0D4-CBCB-407D-8814-9ED673D0DD6B}");
+
         public void Start()
             {
             WIN32.OleInitialize(IntPtr.Zero);
             this.oleInitialized = true;
             //
             this.usbMonitor = new USBMonitor(this, this.tracer);
+            this.usbMonitor.AddDeviceInterfaceOfInterest(AndroidADBDeviceInterface);
             this.usbMonitor.Start();
             }
 

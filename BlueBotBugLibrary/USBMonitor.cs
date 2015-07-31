@@ -48,10 +48,7 @@ namespace Org.SwerveRobotics.Tools.Library
         IDictionary<Guid, IDictionary<String, USBDevice>>   mpGuidDevices = null;
         IDictionary<String, USBDevice>                      mpNameDevice  = null;
 
-        // http://binarydb.com/driver/Android-ADB-Interface-265790.html
-
-        public static Guid AndroidUsbDeviceClass     = new Guid("{3f966bd9-fa04-4ec5-991c-d326973b5128}");
-        public static Guid AndroidADBDeviceInterface = new Guid("{F72FE0D4-CBCB-407D-8814-9ED673D0DD6B}");
+        List<Guid>  deviceInterfacesOfInterest = null;
 
         //-----------------------------------------------------------------------------------------
         // Construction
@@ -70,6 +67,7 @@ namespace Org.SwerveRobotics.Tools.Library
                 {
                 this.mpGuidDevices = new Dictionary<Guid, IDictionary<String, USBDevice>>();
                 this.mpNameDevice  = this.NewMapStringToDevice();
+                this.deviceInterfacesOfInterest = new List<Guid>();
                 }
             }
 
@@ -78,14 +76,28 @@ namespace Org.SwerveRobotics.Tools.Library
             return new Dictionary<String, USBDevice>(StringComparer.InvariantCultureIgnoreCase);
             }
 
+        public void AddDeviceInterfaceOfInterest(Guid guid)
+            {
+            lock (theLock)
+                {
+                this.deviceInterfacesOfInterest.Add(guid);
+                }
+            }
+
         public void Start()
             {
             this.bug.DeviceArrived        += OnDeviceArrived;
             this.bug.DeviceRemoveComplete += OnDeviceRemoveComplete;
 
-            // TODO: Generalize this so that we find other devices as well
-            FindDevices(AndroidADBDeviceInterface);
-            FindDevices(WIN32.GUID_DEVINTERFACE_USB_DEVICE);
+            List<Guid> intfs;
+            lock (theLock)
+                {
+                intfs = new List<Guid>(this.deviceInterfacesOfInterest);
+                }
+            foreach (Guid guid in intfs)
+                {
+                FindDevices(guid);
+                }
             }
 
         public void Stop()
@@ -113,15 +125,18 @@ namespace Org.SwerveRobotics.Tools.Library
             {
             lock (theLock)
                 {
-                if (!this.mpNameDevice.ContainsKey(device.Name))
+                if (this.deviceInterfacesOfInterest.Contains(device.GuidDeviceInterface))
                     {
-                    this.mpNameDevice[device.Name] = device;
-                    if (!this.mpGuidDevices.ContainsKey(device.GuidDeviceInterface))
+                    if (!this.mpNameDevice.ContainsKey(device.Name))
                         {
-                        this.mpGuidDevices[device.GuidDeviceInterface] = this.NewMapStringToDevice();
+                        this.mpNameDevice[device.Name] = device;
+                        if (!this.mpGuidDevices.ContainsKey(device.GuidDeviceInterface))
+                            {
+                            this.mpGuidDevices[device.GuidDeviceInterface] = this.NewMapStringToDevice();
+                            }
+                        this.mpGuidDevices[device.GuidDeviceInterface][device.Name] = device;
+                        Trace("added", device);
                         }
-                    this.mpGuidDevices[device.GuidDeviceInterface][device.Name] = device;
-                    Trace("added", device);
                     }
                 }
             }
@@ -173,7 +188,7 @@ namespace Org.SwerveRobotics.Tools.Library
                     else
                         {
                         // A device is present. Get details
-                        WIN32.SP_DEVICE_INTERFACE_DETAIL_DATA detail = new WIN32.SP_DEVICE_INTERFACE_DETAIL_DATA();
+                        WIN32.SP_DEVICE_INTERFACE_DETAIL_DATA_MANAGED detail = new WIN32.SP_DEVICE_INTERFACE_DETAIL_DATA_MANAGED();
                         detail.Initialize();
 
                         int cbRequired;

@@ -1576,7 +1576,7 @@ namespace Org.SwerveRobotics.Tools.Library
                     else
                         {
                         // A device is present. Get details
-                        SP_DEVICE_INTERFACE_DETAIL_DATA detail = new SP_DEVICE_INTERFACE_DETAIL_DATA();
+                        SP_DEVICE_INTERFACE_DETAIL_DATA_MANAGED detail = new SP_DEVICE_INTERFACE_DETAIL_DATA_MANAGED();
                         detail.Initialize();
 
                         int cbRequired;

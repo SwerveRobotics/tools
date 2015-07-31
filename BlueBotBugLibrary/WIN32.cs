@@ -189,7 +189,7 @@ namespace Org.SwerveRobotics.Tools.Library
             }
 
         [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Unicode)]
-        public struct SP_DEVICE_INTERFACE_DETAIL_DATA
+        public struct SP_DEVICE_INTERFACE_DETAIL_DATA_MANAGED
             {
             public int          cbSize;
             [MarshalAs(UnmanagedType.ByValTStr, SizeConst=MAX_PATH)]
@@ -209,6 +209,11 @@ namespace Org.SwerveRobotics.Tools.Library
             public System.Guid  ClassGuid;
             public int          DevInst;
             public int          Reserved;
+
+            public void Initialize()
+                {
+                this.cbSize = Marshal.SizeOf(this);
+                }
             }
 
         [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Unicode)]
@@ -1090,6 +1095,9 @@ namespace Org.SwerveRobotics.Tools.Library
         IntPtr SetupDiCreateDeviceInfoList(ref System.Guid ClassGuid, IntPtr hwndParent);
 
         [DllImport("setupapi.dll", SetLastError = true)] public static extern 
+        bool SetupDiEnumDeviceInfo(IntPtr hDeviceInfoSet, int MemberIndex, out SP_DEVINFO_DATA DeviceInfoData);
+
+        [DllImport("setupapi.dll", SetLastError = true)] public static extern 
         bool SetupDiDestroyDeviceInfoList(IntPtr hDeviceInfoSet);
 
         [DllImport("setupapi.dll", SetLastError = true)] public static extern 
@@ -1107,7 +1115,7 @@ namespace Org.SwerveRobotics.Tools.Library
         [DllImport("setupapi.dll", SetLastError = true, CharSet = CharSet.Auto)] public static extern 
         bool SetupDiGetDeviceInterfaceDetail(IntPtr hDeviceInfoSet, 
             ref SP_DEVICE_INTERFACE_DATA        DeviceInterfaceData, 
-            ref SP_DEVICE_INTERFACE_DETAIL_DATA DeviceInterfaceDetailData, 
+            ref SP_DEVICE_INTERFACE_DETAIL_DATA_MANAGED DeviceInterfaceDetailData, 
             int DeviceInterfaceDetailDataSize, 
             out int cbRequired, 
             IntPtr DeviceInfoData);
