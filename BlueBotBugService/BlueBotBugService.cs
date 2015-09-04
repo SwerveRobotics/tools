@@ -60,28 +60,6 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
         // Notifications
         //------------------------------------------------------------------------------------------
 
-        public static bool RunAsConsoleApp()
-            {
-            return Environment.UserInteractive;
-            }
-
-        internal void TestAsConsoleApp(string[] args)
-        // Debugging hook per https://msdn.microsoft.com/en-us/library/7a50syb3(v=vs.110).aspx
-        // We don't actually use this; we're getting along fine with debugging the service directly.
-            {
-            this.OnStart(args);
-            //
-            // TODO: Put in message pump, convert device notification messages
-            //
-            System.Console.WriteLine("Press any key to stop...");
-            while (!System.Console.KeyAvailable)
-                {
-                System.Threading.Thread.Yield();
-                }
-            //
-            this.OnStop();
-            }
-
         protected override void OnStart(string[] args)
             {
             this.Trace("starting");
@@ -286,10 +264,6 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
         void Trace(string format, params object[] args)
             {
             Util.TraceDebug("BlueBotBug", format, args);
-            if (RunAsConsoleApp())
-                {
-                Util.TraceStdOut("BlueBotBug", format, args);
-                }
             }
 
         void Log(string format, params object[] args)

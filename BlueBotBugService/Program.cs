@@ -13,19 +13,11 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
         {
         static void Main(string[] args)
             {
-            if (BlueBotBugService.RunAsConsoleApp())
-                {
-                BlueBotBugService service = new BlueBotBugService();
-                service.TestAsConsoleApp(args);
-                }
-            else
-                {
-                DecompiledServiceBase[] ServicesToRun = new DecompiledServiceBase[] 
-                    { 
-                    new BlueBotBugService() 
-                    };
-                DecompiledServiceBase.Run(ServicesToRun);
-                }
+            DecompiledServiceBase[] ServicesToRun = new DecompiledServiceBase[] 
+                { 
+                new BlueBotBugService() 
+                };
+            DecompiledServiceBase.Run(ServicesToRun);
             }
         }
     }
