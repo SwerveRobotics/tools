@@ -9,6 +9,10 @@ Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Setup", "Setup\Setup.vdproj
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToolsLibrary", "BlueBotBugLibrary\ToolsLibrary.csproj", "{51A902E2-443A-40C5-92E1-914DABD57668}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UsbEnumeration", "UsbEnumeration\UsbEnumeration.csproj", "{BF36D48F-AF8E-4F58-9322-3F120C652EAD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NativeUsbLib", "NativeUsbLib\NativeUsbLib.csproj", "{9ABE8CB9-0488-4296-809A-8DEC644E796B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,6 +30,14 @@ Global
 		{51A902E2-443A-40C5-92E1-914DABD57668}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{51A902E2-443A-40C5-92E1-914DABD57668}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{51A902E2-443A-40C5-92E1-914DABD57668}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF36D48F-AF8E-4F58-9322-3F120C652EAD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF36D48F-AF8E-4F58-9322-3F120C652EAD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF36D48F-AF8E-4F58-9322-3F120C652EAD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF36D48F-AF8E-4F58-9322-3F120C652EAD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9ABE8CB9-0488-4296-809A-8DEC644E796B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9ABE8CB9-0488-4296-809A-8DEC644E796B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9ABE8CB9-0488-4296-809A-8DEC644E796B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9ABE8CB9-0488-4296-809A-8DEC644E796B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
