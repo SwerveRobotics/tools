@@ -8,12 +8,12 @@ using System.Runtime.InteropServices;
 #endregion
 
 namespace NativeUsbLib
-{
+    {
     /// <summary>
     /// Usb controller
     /// </summary>
     public class UsbController : Device
-    {
+        {
         #region fields
 
         private Guid m_InterfaceClassGuid = Guid.Empty;
@@ -32,7 +32,7 @@ namespace NativeUsbLib
         /// <param name="index">The index.</param>
         public UsbController(Device parent, int index)
             : base(parent, null, index, null)
-        {
+            {
             IntPtr ptr = Marshal.AllocHGlobal(UsbApi.MAX_BUFFER_SIZE);
             bool success = true;
             IntPtr handel = UsbApi.SetupDiGetClassDevs(ref m_Guid, 0, IntPtr.Zero, UsbApi.DIGCF_PRESENT | UsbApi.DIGCF_DEVICEINTERFACE);
@@ -44,7 +44,7 @@ namespace NativeUsbLib
             // Start the enumeration.
             success = UsbApi.SetupDiEnumDeviceInterfaces(handel, IntPtr.Zero, ref m_Guid, index, ref deviceInterfaceData);
             if (success)
-            {
+                {
                 m_InterfaceClassGuid = deviceInterfaceData.InterfaceClassGuid;
 
                 // Build a DevInfo data structure.
@@ -59,7 +59,7 @@ namespace NativeUsbLib
                 int nRequiredSize = 0;
                 int nBytes = UsbApi.MAX_BUFFER_SIZE;
                 if (UsbApi.SetupDiGetDeviceInterfaceDetail(handel, ref deviceInterfaceData, ref deviceInterfaceDetailData, nBytes, ref nRequiredSize, ref deviceInfoData))
-                {
+                    {
                     this.m_DevicePath = deviceInterfaceDetailData.DevicePath;
 
                     // Get the device description and driver key name.
@@ -70,25 +70,25 @@ namespace NativeUsbLib
                         this.m_DeviceDescription = Marshal.PtrToStringAuto(ptr);
                     if (UsbApi.SetupDiGetDeviceRegistryProperty(handel, ref deviceInfoData, UsbApi.SPDRP_DRIVER, ref regType, ptr, UsbApi.MAX_BUFFER_SIZE, ref requiredSize))
                         this.m_DriverKey = Marshal.PtrToStringAuto(ptr);
-                }
+                    }
 
                 Marshal.FreeHGlobal(ptr);
                 UsbApi.SetupDiDestroyDeviceInfoList(handel);
 
                 try
-                {
+                    {
                     this.devices.Add(new UsbHub(this, null, this.m_DevicePath));
-                }
+                    }
                 catch (Exception ex)
-                {
+                    {
                     Console.WriteLine(ex.Message);
                     //this.m_UsbHub = null;
                     throw new Exception(ex.Message);
+                    }
                 }
-            }
             else
                 throw new Exception("No usb controller found!");
-        }
+            }
 
         #endregion
 
@@ -99,8 +99,8 @@ namespace NativeUsbLib
         /// <see cref="UsbController"/> is reclaimed by garbage collection.
         /// </summary>
         ~UsbController()
-        {
-        }
+            {
+            }
 
         #endregion
 
@@ -115,17 +115,17 @@ namespace NativeUsbLib
         /// </summary>
         /// <value>The hubs.</value>
         public System.Collections.ObjectModel.ReadOnlyCollection<UsbHub> Hubs
-        {
-            get
             {
+            get
+                {
                 UsbHub[] _hub = new UsbHub[devices.Count];
                 devices.CopyTo(_hub);
                 return new System.Collections.ObjectModel.ReadOnlyCollection<UsbHub>(_hub);
+                }
             }
+
+        #endregion
+
+        #endregion
         }
-
-        #endregion
-
-        #endregion
     }
-}

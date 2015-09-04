@@ -9,26 +9,26 @@ using System.Windows.Forms;
 #endregion
 
 namespace NativeUsbLib
-{
+    {
     /// <summary>
     /// Usb device
     /// </summary>
     public class UsbDevice : Device
-    {
+        {
         #region enum DeviceControlFlags
 
         private enum DeviceControlFlags
-        {
+            {
             Enable,
             Disable
-        }
+            }
 
         #endregion
 
         #region constructor/destructor
 
         #region constructor
-        
+
         /// <summary>
         /// Initializes a new instance of the <see cref="UsbDevice"/> class.
         /// </summary>
@@ -37,8 +37,8 @@ namespace NativeUsbLib
         /// <param name="adapterNumber">The adapter number.</param>
         public UsbDevice(Device parent, UsbApi.USB_DEVICE_DESCRIPTOR deviceDescriptor, int adapterNumber)
             : base(parent, deviceDescriptor, adapterNumber, null)
-        {
-        }
+            {
+            }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UsbDevice"/> class.
@@ -49,8 +49,8 @@ namespace NativeUsbLib
         /// <param name="devicePath">The device path.</param>
         public UsbDevice(Device parent, UsbApi.USB_DEVICE_DESCRIPTOR deviceDescriptor, int adapterNumber, string devicePath)
             : base(parent, deviceDescriptor, adapterNumber, devicePath)
-        {
-        }
+            {
+            }
 
         #endregion
 
@@ -61,9 +61,8 @@ namespace NativeUsbLib
         /// <see cref="UsbDevice"/> is reclaimed by garbage collection.
         /// </summary>
         ~UsbDevice()
-        {
-
-        }
+            {
+            }
 
         #endregion
 
@@ -74,7 +73,7 @@ namespace NativeUsbLib
         #region OpenDevice
 
         public bool OpenDevice()
-        {
+            {
             MessageBox.Show("Not implemented");
             return true;
             /*bool erg = false;
@@ -94,7 +93,7 @@ namespace NativeUsbLib
             else
                 Console.WriteLine("false");
             return true;*/
-        }
+            }
 
         #endregion
 
@@ -107,9 +106,9 @@ namespace NativeUsbLib
         /// <param name="productid">The productid.</param>
         /// <returns></returns>
         public bool Disable(ushort vendorid, ushort productid)
-        {
+            {
             return SetDevice(DeviceControlFlags.Disable, vendorid, productid);
-        }
+            }
 
         #endregion
 
@@ -122,16 +121,16 @@ namespace NativeUsbLib
         /// <param name="productid">The productid.</param>
         /// <returns></returns>
         public bool Enable(ushort vendorid, ushort productid)
-        {
+            {
             return SetDevice(DeviceControlFlags.Enable, vendorid, productid);
-        }
+            }
 
         #endregion
 
         #region methode SetDevice
 
         private bool SetDevice(DeviceControlFlags deviceControlFlag, ushort vendorid, ushort productid)
-        {
+            {
             bool res = false;
             Guid myGUID = System.Guid.Empty;
             UsbApi.SP_DEVINFO_DATA1 DeviceInfoData;
@@ -146,35 +145,33 @@ namespace NativeUsbLib
 
             //The SetupDiGetClassDevs function returns a handle to a device information set that contains requested device information elements for a local machine.
             IntPtr theDevInfo = UsbApi.SetupDiGetClassDevs(ref myGUID, 0, 0, UsbApi.DIGCF_ALLCLASSES | UsbApi.DIGCF_PRESENT | UsbApi.DIGCF_PROFILE);
-            for (; UsbApi.SetupDiEnumDeviceInfo(theDevInfo, i, DeviceInfoData); )
-            {
-
-                if (UsbApi.SetupDiGetDeviceRegistryProperty(theDevInfo, DeviceInfoData, (uint)UsbApi.SPDRP.SPDRP_HARDWAREID, 0, DeviceName, UsbApi.MAX_BUFFER_SIZE, IntPtr.Zero))
+            for (; UsbApi.SetupDiEnumDeviceInfo(theDevInfo, i, DeviceInfoData);)
                 {
-                    if (DeviceName.ToString().Contains(@"USB\Vid_") && DeviceName.ToString().Contains(vendorid.ToString("x")))
+                if (UsbApi.SetupDiGetDeviceRegistryProperty(theDevInfo, DeviceInfoData, (uint) UsbApi.SPDRP.SPDRP_HARDWAREID, 0, DeviceName, UsbApi.MAX_BUFFER_SIZE, IntPtr.Zero))
                     {
-
+                    if (DeviceName.ToString().Contains(@"USB\Vid_") && DeviceName.ToString().Contains(vendorid.ToString("x")))
+                        {
                         if (deviceControlFlag == DeviceControlFlags.Disable)
-                            res = StateChange(UsbApi.DICS_DISABLE, (int)i, theDevInfo);
+                            res = StateChange(UsbApi.DICS_DISABLE, (int) i, theDevInfo);
                         else
-                            res = StateChange(UsbApi.DICS_ENABLE, (int)i, theDevInfo);
+                            res = StateChange(UsbApi.DICS_ENABLE, (int) i, theDevInfo);
 
                         UsbApi.SetupDiDestroyDeviceInfoList(theDevInfo);
                         break;
+                        }
                     }
-                }
                 i++;
-            }
+                }
 
             return true;
-        }
+            }
 
         #endregion
 
         #region methode GetDeviceInstanceId
 
         private string GetDeviceInstanceId(IntPtr DeviceInfoSet, UsbApi.SP_DEVINFO_DATA DeviceInfoData)
-        {
+            {
             StringBuilder strId = new StringBuilder(0);
             Int32 iRequiredSize = 0;
             Int32 iSize = 0;
@@ -187,14 +184,14 @@ namespace NativeUsbLib
                 return strId.ToString();
 
             return String.Empty;
-        }
+            }
 
         #endregion
 
         #region methode StateChange
 
         private bool StateChange(int NewState, int SelectedItem, IntPtr hDevInfo)
-        {
+            {
             UsbApi.SP_PROPCHANGE_PARAMS PropChangeParams;
             UsbApi.SP_DEVINFO_DATA DeviceInfoData;
             PropChangeParams = new UsbApi.SP_PROPCHANGE_PARAMS();
@@ -217,10 +214,10 @@ namespace NativeUsbLib
                 return false;
 
             return true;
+            }
+
+        #endregion
+
+        #endregion
         }
-
-        #endregion
-
-        #endregion
     }
-}

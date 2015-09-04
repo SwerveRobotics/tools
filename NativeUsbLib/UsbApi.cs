@@ -9,7 +9,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace NativeUsbLib
 {
-    public class UsbApi
+    public static class UsbApi
     {
         #region "WinAPI"
 
