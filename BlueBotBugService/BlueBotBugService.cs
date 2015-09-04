@@ -19,16 +19,17 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
         
         System.Diagnostics.EventLog eventLog       = null;
 
-        private const string eventLogSourceName = "BlueBotBug";
-        private const string eventLogName       = "Application";
+        private const string        eventLogSourceName = "BlueBotBug";
+        private const string        eventLogName       = "Application";
 
-        private bool                oleInitialized = false;
-        private USBMonitor          usbMonitor     = null;
+        private bool                        oleInitialized = false;
+        private USBMonitor                  usbMonitor     = null;
+        private AndroidDebuggerConfigerator configurator   = null;
 
         // http://binarydb.com/driver/Android-ADB-Interface-265790.html
 
-        static Guid AndroidUsbDeviceClass     = new Guid("{3f966bd9-fa04-4ec5-991c-d326973b5128}");
-        static Guid AndroidADBDeviceInterface = new Guid("{F72FE0D4-CBCB-407D-8814-9ED673D0DD6B}");
+        readonly static Guid AndroidUsbDeviceClass     = new Guid("{3f966bd9-fa04-4ec5-991c-d326973b5128}");
+        readonly static Guid AndroidADBDeviceInterface = new Guid("{F72FE0D4-CBCB-407D-8814-9ED673D0DD6B}");
 
         //------------------------------------------------------------------------------------------
         // Construction
@@ -57,7 +58,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             }
 
         //------------------------------------------------------------------------------------------
-        // Notifications
+        // USB Notifications
         //------------------------------------------------------------------------------------------
 
         protected override void OnStart(string[] args)
@@ -67,8 +68,12 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             WIN32.OleInitialize(IntPtr.Zero);
             this.oleInitialized = true;
             //
+            this.configurator = new AndroidDebuggerConfigerator(this);
+            //
             this.usbMonitor = new USBMonitor(this, this, this.ServiceHandle, true);
             this.usbMonitor.AddDeviceInterfaceOfInterest(AndroidADBDeviceInterface);
+            this.usbMonitor.OnDeviceOfInterestArrived += this.configurator.OnAndroidDeviceArrived;
+            this.usbMonitor.OnDeviceOfInterestRemoved += this.configurator.OnAndroidDeviceRemoved;
             this.usbMonitor.Start();
             //
             this.Trace("started");
@@ -81,7 +86,13 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             if (null != this.usbMonitor)
                 {
                 this.usbMonitor.Stop();
+                this.usbMonitor.OnDeviceOfInterestArrived -= this.configurator.OnAndroidDeviceArrived;
+                this.usbMonitor.OnDeviceOfInterestRemoved -= this.configurator.OnAndroidDeviceRemoved;
                 this.usbMonitor = null;
+                }
+            if (null != this.configurator)
+                {
+                this.configurator = null;
                 }
             this.OleUninitialize();
             //
@@ -256,14 +267,14 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
         // Tracing and exceptions
         //------------------------------------------------------------------------------------------
 
-        void ITracer.Trace(string format, params object[] args)
-            {
-            this.Trace(format, args);
-            }
+        object traceLock = new object();
 
-        void Trace(string format, params object[] args)
+        public void Trace(string format, params object[] args)
             {
-            Util.TraceDebug("BlueBotBug", format, args);
+            lock (traceLock)
+                {
+                Util.TraceDebug("BlueBotBug", format, args);
+                }
             }
 
         void Log(string format, params object[] args)
@@ -273,5 +284,16 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             //
             this.Trace(format, args);
             }
+
+        public void Trace(string message, USBDevice device)
+            {
+            lock (traceLock)
+                {
+                this.Trace("{0}: ", message);
+                this.Trace("    name={0}", device.DevicePath);
+                this.Trace("    guid={0}", device.GuidDeviceInterface);
+                }
+            }
+
         }
     }

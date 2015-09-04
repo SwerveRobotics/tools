@@ -1053,6 +1053,10 @@ namespace Org.SwerveRobotics.Tools.Library
             int     dwFlagsAndAttributes, 
             IntPtr  hTemplateFile);
 
+        public enum GENERIC    : uint { READ=0x80000000, WRITE=0x40000000, EXECUTE=0x20000000, ALL=0x10000000 }
+        public enum FILE_SHARE : uint { READ=0x00000001, WRITE=0x00000002, DELETE=0x00000004 }
+        public enum DISPOSITION : int { CREATE_NEW=1, CREATE_ALWAYS=2, OPEN_EXISTING=3, OPEN_ALWAYS=4, TRUNCATE_EXISTING=5 }
+
         [DllImport("kernel32.dll", SetLastError=true, CharSet=CharSet.Unicode)] public static extern
         bool GetCommState(IntPtr hFile, ref DCB dcb);
 

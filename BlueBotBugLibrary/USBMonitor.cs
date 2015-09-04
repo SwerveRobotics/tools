@@ -11,6 +11,7 @@ namespace Org.SwerveRobotics.Tools.Library
     public interface ITracer
         { 
         void Trace(string format, params Object[] args);
+        void Trace(string message, USBDevice device);
         }
 
     public unsafe class DeviceEventArgs : EventArgs
@@ -38,29 +39,48 @@ namespace Org.SwerveRobotics.Tools.Library
         event EventHandler<EventArgs>             DeviceDevNodesChanged;
         }
 
+    /// <summary>
+    /// USBDevice 
+    /// </summary>
     public class USBDevice
+    // Helpful links:
+    //      https://msdn.microsoft.com/en-us/library/windows/hardware/ff537109(v=vs.85).aspx
         {
         //-----------------------------------------------------------------------------------------
         // State
         //-----------------------------------------------------------------------------------------
 
         public Guid     GuidDeviceInterface;
-        public String   Name;
+        public String   DevicePath;
 
         //-----------------------------------------------------------------------------------------
         // Construction
         //-----------------------------------------------------------------------------------------
 
-        public unsafe USBDevice(WIN32.DEV_BROADCAST_DEVICEINTERFACE_W* pintf)
+        public unsafe USBDevice(WIN32.DEV_BROADCAST_DEVICEINTERFACE_W* pintf) : this(pintf->dbcc_classguid, pintf->dbcc_name)
             {
-            this.GuidDeviceInterface = pintf->dbcc_classguid;
-            this.Name                = pintf->dbcc_name;
             }
 
-        public unsafe USBDevice(Guid interfaceGuid, string name)
+        public unsafe USBDevice(Guid interfaceGuid, string devicePath)
             {
             this.GuidDeviceInterface = interfaceGuid;
-            this.Name                = name;
+            this.DevicePath          = devicePath;
+            ReadDetails();
+            }
+
+        void ReadDetails()
+            {
+            IntPtr hDevice = WIN32.CreateFile(this.DevicePath, WIN32.GENERIC_WRITE, WIN32.FILE_SHARE_WRITE, IntPtr.Zero, (int)WIN32.DISPOSITION.OPEN_EXISTING, 0, IntPtr.Zero);
+            try {
+                if (hDevice != WIN32.INVALID_HANDLE_VALUE)
+                    {
+                    
+                    }
+                }
+            finally
+                {
+                WIN32.CloseHandle(hDevice);
+                }
             }
         }
 
@@ -84,6 +104,9 @@ namespace Org.SwerveRobotics.Tools.Library
         IDictionary<String, USBDevice>                      mpNameDevice  = null;
         List<Guid>                                          deviceInterfacesOfInterest = null;
         List<IntPtr>                                        deviceNotificationHandles = null;
+
+        public EventHandler<USBDevice>      OnDeviceOfInterestArrived;
+        public EventHandler<USBDevice>      OnDeviceOfInterestRemoved;
 
         //-----------------------------------------------------------------------------------------
         // Construction
@@ -235,15 +258,16 @@ namespace Org.SwerveRobotics.Tools.Library
                 {
                 if (this.deviceInterfacesOfInterest.Contains(device.GuidDeviceInterface))
                     {
-                    if (!this.mpNameDevice.ContainsKey(device.Name))
+                    if (!this.mpNameDevice.ContainsKey(device.DevicePath))
                         {
-                        this.mpNameDevice[device.Name] = device;
+                        this.mpNameDevice[device.DevicePath] = device;
                         if (!this.mpGuidDevices.ContainsKey(device.GuidDeviceInterface))
                             {
                             this.mpGuidDevices[device.GuidDeviceInterface] = this.NewMapStringToDevice();
                             }
-                        this.mpGuidDevices[device.GuidDeviceInterface][device.Name] = device;
+                        this.mpGuidDevices[device.GuidDeviceInterface][device.DevicePath] = device;
                         Trace("added", device);
+                        this.OnDeviceOfInterestArrived.Invoke(null, device);
                         }
                     }
                 }
@@ -253,10 +277,11 @@ namespace Org.SwerveRobotics.Tools.Library
             {
             lock (theLock)
                 {
-                if (this.mpNameDevice.Remove(device.Name))
+                if (this.mpNameDevice.Remove(device.DevicePath))
                     {
-                    this.mpGuidDevices[device.GuidDeviceInterface].Remove(device.Name);
+                    this.mpGuidDevices[device.GuidDeviceInterface].Remove(device.DevicePath);
                     Trace("removed", device);
+                    this.OnDeviceOfInterestRemoved.Invoke(null, device);
                     return true;
                     }
                 }
@@ -325,7 +350,7 @@ namespace Org.SwerveRobotics.Tools.Library
 
 
         //-----------------------------------------------------------------------------------------
-        // Events
+        // Win32 Events
         //-----------------------------------------------------------------------------------------
 
         unsafe void OnDeviceArrived(object sender, DeviceEventArgs args)
@@ -353,7 +378,7 @@ namespace Org.SwerveRobotics.Tools.Library
             lock (traceLock)
                 {
                 this.tracer.Trace("    pintf->size={0}", pintf->dbcc_size);
-                this.tracer.Trace("    pintf->name={0}", pintf->dbcc_name);
+                this.tracer.Trace("    pintf->DevicePath={0}", pintf->dbcc_name);
                 this.tracer.Trace("    pintf->guid={0}", pintf->dbcc_classguid);
                 }
             }
@@ -363,7 +388,7 @@ namespace Org.SwerveRobotics.Tools.Library
             lock (traceLock)
                 {
                 this.tracer.Trace("{0}: ", message);
-                this.tracer.Trace("    name={0}", device.Name);
+                this.tracer.Trace("    DevicePath={0}", device.DevicePath);
                 this.tracer.Trace("    guid={0}", device.GuidDeviceInterface);
                 }
             }
