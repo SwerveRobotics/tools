@@ -28,12 +28,12 @@ namespace Org.SwerveRobotics.Tools.Library
         // Events
         //-----------------------------------------------------------------------------------------
 
-        public void OnAndroidDeviceArrived(object sender, USBDevice device)
+        public void OnAndroidDeviceArrived(object sender, USBDeviceInterface device)
             {
             tracer.Trace("Android arrived", device);
             }
 
-        public void OnAndroidDeviceRemoved(object sender, USBDevice device)
+        public void OnAndroidDeviceRemoved(object sender, USBDeviceInterface device)
             {
             tracer.Trace("Android removed", device);
             }

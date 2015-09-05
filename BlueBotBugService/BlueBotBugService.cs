@@ -285,12 +285,12 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             this.Trace(format, args);
             }
 
-        public void Trace(string message, USBDevice device)
+        public void Trace(string message, USBDeviceInterface device)
             {
             lock (traceLock)
                 {
                 this.Trace("{0}: ", message);
-                this.Trace("    name={0}", device.DevicePath);
+                this.Trace("    name={0}", device.DeviceInterfacePath);
                 this.Trace("    guid={0}", device.GuidDeviceInterface);
                 }
             }

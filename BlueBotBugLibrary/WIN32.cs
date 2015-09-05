@@ -15,7 +15,7 @@ namespace Org.SwerveRobotics.Tools.Library
     {
     //=================================================================================
 
-    public partial class WIN32
+    public static class WIN32
         {
         //------------------------------------------------------------------------------
         // Error codes
@@ -182,9 +182,14 @@ namespace Org.SwerveRobotics.Tools.Library
             public int          Flags;
             public IntPtr       Reserved;
 
-            public void Initialize()
+            public static SP_DEVICE_INTERFACE_DATA Construct()
                 {
-                this.cbSize = Marshal.SizeOf(this);
+                SP_DEVICE_INTERFACE_DATA result;
+                result.cbSize             = Marshal.SizeOf(typeof(SP_DEVICE_INTERFACE_DATA));
+                result.InterfaceClassGuid = Guid.Empty;
+                result.Flags              = 0;
+                result.Reserved           = IntPtr.Zero;
+                return result;
                 }
             }
 
@@ -193,12 +198,14 @@ namespace Org.SwerveRobotics.Tools.Library
             {
             public int          cbSize;
             [MarshalAs(UnmanagedType.ByValTStr, SizeConst=MAX_PATH)]
-            public String       DevicePath;
+            public string       DevicePath;
 
-            public void Initialize()
+            public static SP_DEVICE_INTERFACE_DETAIL_DATA_MANAGED Construct()
                 {
-                // Odd convention used for this size
-                this.cbSize = Marshal.OffsetOf(this.GetType(), "DevicePath").ToInt32() + Marshal.SystemDefaultCharSize;
+                SP_DEVICE_INTERFACE_DETAIL_DATA_MANAGED result;
+                result.cbSize     = Marshal.OffsetOf(typeof(SP_DEVICE_INTERFACE_DETAIL_DATA_MANAGED), nameof(DevicePath)).ToInt32() + Marshal.SystemDefaultCharSize;   // Odd convention used for this size
+                result.DevicePath = null;
+                return result;
                 }
             }
 
@@ -210,9 +217,14 @@ namespace Org.SwerveRobotics.Tools.Library
             public int          DevInst;
             public int          Reserved;
 
-            public void Initialize()
+            public static SP_DEVINFO_DATA Construct()
                 {
-                this.cbSize = Marshal.SizeOf(this);
+                SP_DEVINFO_DATA result;
+                result.cbSize    = Marshal.SizeOf(typeof(SP_DEVINFO_DATA));
+                result.ClassGuid = Guid.Empty;
+                result.DevInst   = 0;
+                result.Reserved  = 0;
+                return result;
                 }
             }
 
@@ -1099,30 +1111,47 @@ namespace Org.SwerveRobotics.Tools.Library
         IntPtr SetupDiCreateDeviceInfoList(ref System.Guid ClassGuid, IntPtr hwndParent);
 
         [DllImport("setupapi.dll", SetLastError = true)] public static extern 
-        bool SetupDiEnumDeviceInfo(IntPtr hDeviceInfoSet, int MemberIndex, out SP_DEVINFO_DATA DeviceInfoData);
+        bool SetupDiEnumDeviceInfo(IntPtr hDeviceInfoSet, int MemberIndex, ref SP_DEVINFO_DATA DeviceInfoData);
 
         [DllImport("setupapi.dll", SetLastError = true)] public static extern 
         bool SetupDiDestroyDeviceInfoList(IntPtr hDeviceInfoSet);
 
         [DllImport("setupapi.dll", SetLastError = true)] public static extern 
-        bool SetupDiEnumDeviceInterfaces(IntPtr hDeviceInfoSet, IntPtr DeviceInfoData, IntPtr InterfaceClassGuid, int MemberIndex, out SP_DEVICE_INTERFACE_DATA DeviceInterfaceData);
+        bool SetupDiEnumDeviceInterfaces(IntPtr hDeviceInfoSet, IntPtr DeviceInfoData, IntPtr InterfaceClassGuid, int MemberIndex, ref SP_DEVICE_INTERFACE_DATA DeviceInterfaceData);
 
         [DllImport("setupapi.dll", SetLastError = true)] public static extern 
-        bool SetupDiEnumDeviceInterfaces(IntPtr hDeviceInfoSet, IntPtr DeviceInfoData, ref System.Guid InterfaceClassGuid, int MemberIndex, out SP_DEVICE_INTERFACE_DATA DeviceInterfaceData);
+        bool SetupDiEnumDeviceInterfaces(IntPtr hDeviceInfoSet, IntPtr DeviceInfoData, ref System.Guid InterfaceClassGuid, int MemberIndex, ref SP_DEVICE_INTERFACE_DATA DeviceInterfaceData);
+
+        [DllImport("setupapi.dll", SetLastError = true)] public static extern 
+        bool SetupDiEnumDeviceInterfaces(IntPtr hDeviceInfoSet, ref SP_DEVINFO_DATA DeviceInfoData, ref System.Guid InterfaceClassGuid, int MemberIndex, ref SP_DEVICE_INTERFACE_DATA DeviceInterfaceData);
 
         [DllImport("setupapi.dll", SetLastError = true, CharSet = CharSet.Auto)] public static extern 
-        IntPtr SetupDiGetClassDevs(IntPtr pClassGuid, IntPtr Enumerator, IntPtr hwndParent, int Flags);
+        IntPtr SetupDiGetClassDevs(IntPtr pClassGuid,         IntPtr Enumerator, IntPtr hwndParent, int Flags);
 
         [DllImport("setupapi.dll", SetLastError = true, CharSet = CharSet.Auto)] public static extern 
         IntPtr SetupDiGetClassDevs(ref System.Guid ClassGuid, IntPtr Enumerator, IntPtr hwndParent, int Flags);
 
+        [DllImport("setupapi.dll", SetLastError = true, CharSet = CharSet.Unicode)] public static extern 
+        IntPtr SetupDiGetClassDevsW(ref System.Guid ClassGuid, string Enumerator, IntPtr hwndParent, int Flags);
+
         [DllImport("setupapi.dll", SetLastError = true, CharSet = CharSet.Auto)] public static extern 
-        bool SetupDiGetDeviceInterfaceDetail(IntPtr hDeviceInfoSet, 
-            ref SP_DEVICE_INTERFACE_DATA        DeviceInterfaceData, 
+        bool SetupDiGetDeviceInterfaceDetail(
+            IntPtr                                      hDeviceInfoSet, 
+            ref SP_DEVICE_INTERFACE_DATA                DeviceInterfaceData, 
             ref SP_DEVICE_INTERFACE_DETAIL_DATA_MANAGED DeviceInterfaceDetailData, 
-            int DeviceInterfaceDetailDataSize, 
-            out int cbRequired, 
-            IntPtr DeviceInfoData);
+            int                                         DeviceInterfaceDetailDataSize, 
+            out int                                     cbRequired, 
+            IntPtr                                      DeviceInfoData
+            );
+
+        [DllImport("setupapi.dll", SetLastError =true, CharSet = CharSet.Unicode)] public static extern
+        bool SetupDiGetDeviceInstanceIdW(
+            IntPtr                                      hDeviceInfoSet,
+            ref SP_DEVINFO_DATA                         DeviceInfoData,
+            IntPtr                                      DeviceInstanceId,
+            int                                         DeviceInstanceIdSize,
+            out int                                     RequiredSize
+            );
 
         [DllImport("user32.dll", SetLastError = true)] public static extern 
         bool UnregisterDeviceNotification(IntPtr Handle);

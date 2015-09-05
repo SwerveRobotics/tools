@@ -47,12 +47,6 @@
     <Compile Include="UsbTree.cs" />
     <Compile Include="UsbTreeNode.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\NativeUsbLib\NativeUsbLib.csproj">
-      <Project>{9abe8cb9-0488-4296-809a-8dec644e796b}</Project>
-      <Name>NativeUsbLib</Name>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

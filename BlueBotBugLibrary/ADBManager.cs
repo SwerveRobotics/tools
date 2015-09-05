@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using System.IO;
 
+// https://madb.codeplex.com/SourceControl/latest#trunk/Managed.AndroidDebugBridge/Managed.Adb.Tests/BaseDeviceTests.cs
+
 namespace Org.SwerveRobotics.Tools.Library
     {
     /// <summary>

@@ -5,18 +5,19 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Org.SwerveRobotics.Tools.Library.WIN32;
 
 namespace Org.SwerveRobotics.Tools.Library
     {
     public interface ITracer
         { 
-        void Trace(string format, params Object[] args);
-        void Trace(string message, USBDevice device);
+        void Trace(string format, params object[] args);
+        void Trace(string message, USBDeviceInterface device);
         }
 
     public unsafe class DeviceEventArgs : EventArgs
         {
-        public WIN32.DEV_BROADCAST_HDR* pHeader;
+        public DEV_BROADCAST_HDR* pHeader;
         }
     public unsafe class DeviceEventArgsCancel : DeviceEventArgs
         {
@@ -40,47 +41,49 @@ namespace Org.SwerveRobotics.Tools.Library
         }
 
     /// <summary>
-    /// USBDevice 
+    /// A USBDeviceInformationElement represents a USB device information element
     /// </summary>
-    public class USBDevice
-    // Helpful links:
-    //      https://msdn.microsoft.com/en-us/library/windows/hardware/ff537109(v=vs.85).aspx
+    /// Helpful links:
+    ///     device id:               https://msdn.microsoft.com/en-us/library/windows/hardware/ff537109(v=vs.85).aspx
+    ///     device information sets: https://msdn.microsoft.com/EN-US/library/windows/hardware/ff541247(v=vs.85).aspx
+    public class USBDeviceInformationElement
         {
         //-----------------------------------------------------------------------------------------
         // State
         //-----------------------------------------------------------------------------------------
 
-        public Guid     GuidDeviceInterface;
-        public String   DevicePath;
+        public string                       DeviceInstanceId = null;
+        public List<USBDeviceInterface>     Interfaces = new List<USBDeviceInterface>();
+        }
+
+
+    public class USBDeviceInterface
+        {
+        //-----------------------------------------------------------------------------------------
+        // State
+        //-----------------------------------------------------------------------------------------
+
+        public readonly Guid     GuidDeviceInterface;
+        public readonly string   DeviceInterfacePath;
 
         //-----------------------------------------------------------------------------------------
         // Construction
         //-----------------------------------------------------------------------------------------
 
-        public unsafe USBDevice(WIN32.DEV_BROADCAST_DEVICEINTERFACE_W* pintf) : this(pintf->dbcc_classguid, pintf->dbcc_name)
+        public USBDeviceInterface()
+            {
+            this.GuidDeviceInterface = Guid.Empty;
+            this.DeviceInterfacePath = null;
+            }
+
+        public unsafe USBDeviceInterface(bool deviceAdded, DEV_BROADCAST_DEVICEINTERFACE_W* pintf) : this(deviceAdded, pintf->dbcc_classguid, pintf->dbcc_name)
             {
             }
 
-        public unsafe USBDevice(Guid interfaceGuid, string devicePath)
+        public USBDeviceInterface(bool deviceAdded, Guid interfaceGuid, string deviceInterfacePath)
             {
             this.GuidDeviceInterface = interfaceGuid;
-            this.DevicePath          = devicePath;
-            ReadDetails();
-            }
-
-        void ReadDetails()
-            {
-            IntPtr hDevice = WIN32.CreateFile(this.DevicePath, WIN32.GENERIC_WRITE, WIN32.FILE_SHARE_WRITE, IntPtr.Zero, (int)WIN32.DISPOSITION.OPEN_EXISTING, 0, IntPtr.Zero);
-            try {
-                if (hDevice != WIN32.INVALID_HANDLE_VALUE)
-                    {
-                    
-                    }
-                }
-            finally
-                {
-                WIN32.CloseHandle(hDevice);
-                }
+            this.DeviceInterfacePath = deviceInterfacePath;
             }
         }
 
@@ -91,22 +94,21 @@ namespace Org.SwerveRobotics.Tools.Library
         // State
         //-----------------------------------------------------------------------------------------
 
-        IDeviceEvents   eventRaiser = null;
-        ITracer         tracer      = null;
-        bool            started     = false;
-        IntPtr          notificationHandle;
-        bool            notificationHandleIsService;
+        IDeviceEvents       eventRaiser = null;
+        ITracer             tracer      = null;
+        bool                started     = false;
+        IntPtr              notificationHandle;
+        bool                notificationHandleIsService;
+        readonly object     traceLock = new object();
 
-        object                                              traceLock = new object();
+        readonly object                                             theLock = new object();
+        IDictionary<Guid, IDictionary<string, USBDeviceInterface>>  mpGuidDevices = null;
+        IDictionary<string, USBDeviceInterface>                     mpNameDevice  = null;
+        List<Guid>                                                  deviceInterfacesOfInterest = null;
+        List<IntPtr>                                                deviceNotificationHandles = null;
 
-        object                                              theLock = new object();
-        IDictionary<Guid, IDictionary<String, USBDevice>>   mpGuidDevices = null;
-        IDictionary<String, USBDevice>                      mpNameDevice  = null;
-        List<Guid>                                          deviceInterfacesOfInterest = null;
-        List<IntPtr>                                        deviceNotificationHandles = null;
-
-        public EventHandler<USBDevice>      OnDeviceOfInterestArrived;
-        public EventHandler<USBDevice>      OnDeviceOfInterestRemoved;
+        public EventHandler<USBDeviceInterface> OnDeviceOfInterestArrived;
+        public EventHandler<USBDeviceInterface> OnDeviceOfInterestRemoved;
 
         //-----------------------------------------------------------------------------------------
         // Construction
@@ -136,7 +138,7 @@ namespace Org.SwerveRobotics.Tools.Library
             {
             lock (theLock)
                 {
-                this.mpGuidDevices = new Dictionary<Guid, IDictionary<String, USBDevice>>();
+                this.mpGuidDevices = new Dictionary<Guid, IDictionary<string, USBDeviceInterface>>();
                 this.mpNameDevice  = this.NewMapStringToDevice();
                 this.deviceInterfacesOfInterest = new List<Guid>();
                 this.deviceNotificationHandles = new List<IntPtr>();
@@ -144,9 +146,9 @@ namespace Org.SwerveRobotics.Tools.Library
             this.started = false;
             }
 
-        IDictionary<String, USBDevice> NewMapStringToDevice()
+        IDictionary<string, USBDeviceInterface> NewMapStringToDevice()
             {
-            return new Dictionary<String, USBDevice>(StringComparer.InvariantCultureIgnoreCase);
+            return new Dictionary<string, USBDeviceInterface>(StringComparer.InvariantCultureIgnoreCase);
             }
 
         public virtual void Dispose(bool fromUserCode)
@@ -182,11 +184,11 @@ namespace Org.SwerveRobotics.Tools.Library
             {
             lock (theLock)
                 {
-                WIN32.DEV_BROADCAST_DEVICEINTERFACE_MANAGED filter = new WIN32.DEV_BROADCAST_DEVICEINTERFACE_MANAGED();
+                DEV_BROADCAST_DEVICEINTERFACE_MANAGED filter = new DEV_BROADCAST_DEVICEINTERFACE_MANAGED();
                 filter.Initialize(guidDevInterface);
 
-                IntPtr hDeviceNotify = WIN32.RegisterDeviceNotification(this.notificationHandle, filter, this.notificationHandleIsService ? WIN32.DEVICE_NOTIFY_SERVICE_HANDLE : WIN32.DEVICE_NOTIFY_WINDOW_HANDLE);
-                WIN32.ThrowIfFail(hDeviceNotify);
+                IntPtr hDeviceNotify = RegisterDeviceNotification(this.notificationHandle, filter, this.notificationHandleIsService ? DEVICE_NOTIFY_SERVICE_HANDLE : DEVICE_NOTIFY_WINDOW_HANDLE);
+                ThrowIfFail(hDeviceNotify);
 
                 this.deviceNotificationHandles.Add(hDeviceNotify);
                 }
@@ -198,7 +200,7 @@ namespace Org.SwerveRobotics.Tools.Library
                 {
                 foreach (IntPtr hDeviceNotify in this.deviceNotificationHandles)
                     {
-                    WIN32.UnregisterDeviceNotification(hDeviceNotify);
+                    UnregisterDeviceNotification(hDeviceNotify);
                     }
                 this.deviceNotificationHandles = new List<IntPtr>();
                 }
@@ -242,30 +244,32 @@ namespace Org.SwerveRobotics.Tools.Library
         // Device Management
         //-----------------------------------------------------------------------------------------
 
-        public unsafe void AddDeviceIfNecessary(WIN32.DEV_BROADCAST_DEVICEINTERFACE_W* pintf)
+        public unsafe void AddDeviceIfNecessary(DEV_BROADCAST_DEVICEINTERFACE_W* pintf)
             {
-            AddDeviceIfNecessary(new USBDevice(pintf));
+            AddDeviceIfNecessary(new USBDeviceInterface(true, pintf));
             }
 
-        public unsafe bool RemoveDeviceIfNecessary(WIN32.DEV_BROADCAST_DEVICEINTERFACE_W* pintf)
+        public unsafe bool RemoveDeviceIfNecessary(DEV_BROADCAST_DEVICEINTERFACE_W* pintf)
             {
-            return RemoveDeviceIfNecessary(new USBDevice(pintf));
+            return RemoveDeviceIfNecessary(new USBDeviceInterface(false, pintf));
             }
 
-        public void AddDeviceIfNecessary(USBDevice device)
+        public void AddDeviceIfNecessary(USBDeviceInterface device)
             {
+            EnumerateDevicesContainingInterface(deviceInterfacesOfInterest[0]);
+
             lock (theLock)
                 {
                 if (this.deviceInterfacesOfInterest.Contains(device.GuidDeviceInterface))
                     {
-                    if (!this.mpNameDevice.ContainsKey(device.DevicePath))
+                    if (!this.mpNameDevice.ContainsKey(device.DeviceInterfacePath))
                         {
-                        this.mpNameDevice[device.DevicePath] = device;
+                        this.mpNameDevice[device.DeviceInterfacePath] = device;
                         if (!this.mpGuidDevices.ContainsKey(device.GuidDeviceInterface))
                             {
                             this.mpGuidDevices[device.GuidDeviceInterface] = this.NewMapStringToDevice();
                             }
-                        this.mpGuidDevices[device.GuidDeviceInterface][device.DevicePath] = device;
+                        this.mpGuidDevices[device.GuidDeviceInterface][device.DeviceInterfacePath] = device;
                         Trace("added", device);
                         this.OnDeviceOfInterestArrived.Invoke(null, device);
                         }
@@ -273,13 +277,13 @@ namespace Org.SwerveRobotics.Tools.Library
                 }
             }
 
-        public bool RemoveDeviceIfNecessary(USBDevice device)
+        public bool RemoveDeviceIfNecessary(USBDeviceInterface device)
             {
             lock (theLock)
                 {
-                if (this.mpNameDevice.Remove(device.DevicePath))
+                if (this.mpNameDevice.Remove(device.DeviceInterfacePath))
                     {
-                    this.mpGuidDevices[device.GuidDeviceInterface].Remove(device.DevicePath);
+                    this.mpGuidDevices[device.GuidDeviceInterface].Remove(device.DeviceInterfacePath);
                     Trace("removed", device);
                     this.OnDeviceOfInterestRemoved.Invoke(null, device);
                     return true;
@@ -292,27 +296,103 @@ namespace Org.SwerveRobotics.Tools.Library
         // Scanning
         //-----------------------------------------------------------------------------------------
 
-        void FindExistingDevices(Guid guidInterfaceClass)
+        //  “adb shell netcfg” | qgrep -y wlan
+        // adb shell ifconfig wlan0
+
+        void EnumerateDevicesContainingInterface(Guid guidInterfaceClass)
+        // Device information sets: https://msdn.microsoft.com/EN-US/library/windows/hardware/ff541247(v=vs.85).aspx
             {
-            IntPtr hDeviceInfoSet = WIN32.INVALID_HANDLE_VALUE;
+            List<USBDeviceInformationElement> result = new List<USBDeviceInformationElement>();
+
+            IntPtr hDeviceInfoSet = INVALID_HANDLE_VALUE;
             try 
                 {
-                hDeviceInfoSet = WIN32.SetupDiGetClassDevs(ref guidInterfaceClass, IntPtr.Zero, IntPtr.Zero, WIN32.DIGCF_PRESENT | WIN32.DIGCF_DEVICEINTERFACE);
-                if (WIN32.INVALID_HANDLE_VALUE==hDeviceInfoSet)
-                    WIN32.ThrowWin32Error();
+                // Query for every device information element in the system
+                hDeviceInfoSet = SetupDiGetClassDevsW(ref guidInterfaceClass, "USB", IntPtr.Zero, DIGCF_PRESENT | DIGCF_ALLCLASSES);
+                if (INVALID_HANDLE_VALUE != hDeviceInfoSet)
+                    {
+                    int cbRequired;
 
-                WIN32.SP_DEVICE_INTERFACE_DATA did = new WIN32.SP_DEVICE_INTERFACE_DATA();
-                did.Initialize();
+                    // Enumerate all those devices
+                    for (int iDevInfo = 0; ; iDevInfo++)
+                        {
+                        SP_DEVINFO_DATA devInfo = SP_DEVINFO_DATA.Construct();
+                        if (SetupDiEnumDeviceInfo(hDeviceInfoSet, iDevInfo, ref devInfo))
+                            {
+                            // Retrieve the device instance ID that is associated with the current device information element
+                            cbRequired = 2;     // arbitrary
+                            IntPtr pbDeviceInstanceId = Marshal.AllocCoTaskMem(cbRequired);
+                            if (!SetupDiGetDeviceInstanceIdW(hDeviceInfoSet, ref devInfo, IntPtr.Zero, cbRequired, out cbRequired))
+                                {
+                                Marshal.FreeCoTaskMem(pbDeviceInstanceId);
+                                pbDeviceInstanceId = Marshal.AllocCoTaskMem(cbRequired);
+                                }
+                            try {
+                                ThrowIfFail(SetupDiGetDeviceInstanceIdW(hDeviceInfoSet, ref devInfo, pbDeviceInstanceId, cbRequired, out cbRequired));
+                                string deviceInstanceId = Marshal.PtrToStringUni(pbDeviceInstanceId);
 
-                for (int iMember=0 ;; iMember++)
+                                USBDeviceInformationElement device = new USBDeviceInformationElement() { DeviceInstanceId = deviceInstanceId };
+                                result.Add(device);
+
+                                // Enumerate the interfaces of that device information element
+                                SP_DEVICE_INTERFACE_DATA deviceInterfaceData = SP_DEVICE_INTERFACE_DATA.Construct();
+                                for (int iInterface=0 ;; iInterface++)
+                                    {
+                                    if (SetupDiEnumDeviceInterfaces(hDeviceInfoSet, ref devInfo, ref guidInterfaceClass, iInterface, ref deviceInterfaceData))
+                                        {
+                                        // Retrieve the device path of that interfae
+                                        SP_DEVICE_INTERFACE_DETAIL_DATA_MANAGED devicePath = SP_DEVICE_INTERFACE_DETAIL_DATA_MANAGED.Construct();
+                                        ThrowIfFail(SetupDiGetDeviceInterfaceDetail(hDeviceInfoSet, ref deviceInterfaceData, ref devicePath, Marshal.SizeOf(devicePath), out cbRequired, IntPtr.Zero));
+
+                                        USBDeviceInterface deviceInterface = new USBDeviceInterface(true, deviceInterfaceData.InterfaceClassGuid, devicePath.DevicePath);
+                                        device.Interfaces.Add(deviceInterface);
+                                        }
+                                    else
+                                        break; // interface enumeration complete
+                                    }
+                                }
+                            finally
+                                {
+                                Marshal.FreeCoTaskMem(pbDeviceInstanceId);
+                                }
+                            }
+                        else
+                            break;  // device enumeration complete
+                        }
+                    }
+                else
+                    ThrowWin32Error();
+                }
+            finally
+                {
+                // Clean up the device enumeration
+                if (hDeviceInfoSet != IntPtr.Zero && hDeviceInfoSet != INVALID_HANDLE_VALUE)
+                    {
+                    SetupDiDestroyDeviceInfoList(hDeviceInfoSet);
+                    }
+                }
+            }
+
+        void FindExistingDevices(Guid guidInterfaceClass)
+            {
+            IntPtr hDeviceInfoSet = INVALID_HANDLE_VALUE;
+            try 
+                {
+                hDeviceInfoSet = SetupDiGetClassDevs(ref guidInterfaceClass, IntPtr.Zero, IntPtr.Zero, DIGCF_PRESENT | DIGCF_DEVICEINTERFACE);
+                if (INVALID_HANDLE_VALUE==hDeviceInfoSet)
+                    ThrowWin32Error();
+
+                SP_DEVICE_INTERFACE_DATA did = SP_DEVICE_INTERFACE_DATA.Construct();
+
+                for (int iInterface=0 ;; iInterface++)
                     {
                     // Get did of the next interface
-                    bool fSuccess = WIN32.SetupDiEnumDeviceInterfaces
+                    bool fSuccess = SetupDiEnumDeviceInterfaces
                         (hDeviceInfoSet,
-                        IntPtr.Zero,
+                        IntPtr.Zero,        // change
                         ref guidInterfaceClass,
-                        iMember,
-                        out did);
+                        iInterface,
+                        ref did);
 
                     if (!fSuccess)
                         {
@@ -321,11 +401,10 @@ namespace Org.SwerveRobotics.Tools.Library
                     else
                         {
                         // A device is present. Get details
-                        WIN32.SP_DEVICE_INTERFACE_DETAIL_DATA_MANAGED detail = new WIN32.SP_DEVICE_INTERFACE_DETAIL_DATA_MANAGED();
-                        detail.Initialize();
+                        SP_DEVICE_INTERFACE_DETAIL_DATA_MANAGED detail = SP_DEVICE_INTERFACE_DETAIL_DATA_MANAGED.Construct();
 
                         int cbRequired;
-                        WIN32.ThrowIfFail(WIN32.SetupDiGetDeviceInterfaceDetail
+                        ThrowIfFail(SetupDiGetDeviceInterfaceDetail
                             (hDeviceInfoSet,
                             ref did,
                             ref detail,
@@ -333,7 +412,7 @@ namespace Org.SwerveRobotics.Tools.Library
                             out cbRequired,
                             IntPtr.Zero));
 
-                        USBDevice device = new USBDevice(did.InterfaceClassGuid, detail.DevicePath);
+                        USBDeviceInterface device = new USBDeviceInterface(true, did.InterfaceClassGuid, detail.DevicePath);
                         this.AddDeviceIfNecessary(device);
                         }
 
@@ -341,9 +420,9 @@ namespace Org.SwerveRobotics.Tools.Library
                 }
             finally
                 { 
-                if (hDeviceInfoSet != IntPtr.Zero && hDeviceInfoSet != WIN32.INVALID_HANDLE_VALUE)
+                if (hDeviceInfoSet != IntPtr.Zero && hDeviceInfoSet != INVALID_HANDLE_VALUE)
                     {
-                    WIN32.SetupDiDestroyDeviceInfoList(hDeviceInfoSet);
+                    SetupDiDestroyDeviceInfoList(hDeviceInfoSet);
                     }
                 }
             }
@@ -355,25 +434,25 @@ namespace Org.SwerveRobotics.Tools.Library
 
         unsafe void OnDeviceArrived(object sender, DeviceEventArgs args)
             {
-            if (args.pHeader->dbch_devicetype == WIN32.DBT_DEVTYP_DEVICEINTERFACE)
+            if (args.pHeader->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
                 {
-                WIN32.DEV_BROADCAST_DEVICEINTERFACE_W* pintf = (WIN32.DEV_BROADCAST_DEVICEINTERFACE_W*)args.pHeader;
+                DEV_BROADCAST_DEVICEINTERFACE_W* pintf = (DEV_BROADCAST_DEVICEINTERFACE_W*)args.pHeader;
                 // Trace(pintf);
-                this.AddDeviceIfNecessary(new USBDevice(pintf));
+                this.AddDeviceIfNecessary(new USBDeviceInterface(true, pintf));
                 }
             }
 
         unsafe void OnDeviceRemoveComplete(object sender, DeviceEventArgs args)
             {
-            if (args.pHeader->dbch_devicetype == WIN32.DBT_DEVTYP_DEVICEINTERFACE)
+            if (args.pHeader->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
                 {
-                WIN32.DEV_BROADCAST_DEVICEINTERFACE_W* pintf = (WIN32.DEV_BROADCAST_DEVICEINTERFACE_W*)args.pHeader;
+                DEV_BROADCAST_DEVICEINTERFACE_W* pintf = (DEV_BROADCAST_DEVICEINTERFACE_W*)args.pHeader;
                 // Trace(pintf);
-                this.RemoveDeviceIfNecessary(new USBDevice(pintf));
+                this.RemoveDeviceIfNecessary(new USBDeviceInterface(false, pintf));
                 }
             }
 
-        unsafe void Trace(WIN32.DEV_BROADCAST_DEVICEINTERFACE_W* pintf)
+        unsafe void Trace(DEV_BROADCAST_DEVICEINTERFACE_W* pintf)
             {
             lock (traceLock)
                 {
@@ -383,12 +462,12 @@ namespace Org.SwerveRobotics.Tools.Library
                 }
             }
 
-        void Trace(string message, USBDevice device)
+        void Trace(string message, USBDeviceInterface device)
             {
             lock (traceLock)
                 {
                 this.tracer.Trace("{0}: ", message);
-                this.tracer.Trace("    DevicePath={0}", device.DevicePath);
+                this.tracer.Trace("    DevicePath={0}", device.DeviceInterfacePath);
                 this.tracer.Trace("    guid={0}", device.GuidDeviceInterface);
                 }
             }

@@ -517,7 +517,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                     }
                 catch (Exception exception)
                     {
-                    this.WriteEventLogEntry(Res.GetString("CommandFailed", new object[] { exception.ToString() }), EventLogEntryType.Error);
+                    this.WriteEventLogEntry(Res.GetString("CommandFailed", exception.ToString()), EventLogEntryType.Error);
                     throw;
                     }
                 }
@@ -577,7 +577,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                     this.startCompletedSignal.WaitOne();
                     if (!WIN32.SetServiceStatus(this.statusHandle, service_statusRef))
                         {
-                        this.WriteEventLogEntry(Res.GetString("StartFailed", new object[] { new Win32Exception().Message }), EventLogEntryType.Error);
+                        this.WriteEventLogEntry(Res.GetString("StartFailed", new Win32Exception().Message), EventLogEntryType.Error);
                         this.status.currentState = 1;
                         WIN32.SetServiceStatus(this.statusHandle, service_statusRef);
                         }
@@ -598,7 +598,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                 }
             catch (Exception exception)
                 {
-                this.WriteEventLogEntry(Res.GetString("StartFailed", new object[] { exception.ToString() }), EventLogEntryType.Error);
+                this.WriteEventLogEntry(Res.GetString("StartFailed", exception.ToString()), EventLogEntryType.Error);
                 this.status.currentState = 1;
                 }
             this.startCompletedSignal.Set();
