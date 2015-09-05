@@ -256,7 +256,8 @@ namespace Org.SwerveRobotics.Tools.Library
 
         public void AddDeviceIfNecessary(USBDeviceInterface device)
             {
-            EnumerateDevicesContainingInterface(deviceInterfacesOfInterest[0]);
+            Guid intf = deviceInterfacesOfInterest[0];
+            ToolsLibraryHelper.EnumerateUSBDevices(ref intf);
 
             lock (theLock)
                 {
@@ -296,89 +297,22 @@ namespace Org.SwerveRobotics.Tools.Library
         // Scanning
         //-----------------------------------------------------------------------------------------
 
+        static class ToolsLibraryHelper
+            {
+            [DllImport("ToolsLibraryHelper.dll", CharSet = CharSet.Unicode)] public static extern 
+            IntPtr EnumerateUSBDevices(ref Guid guidInterfaceClass);
+            }
+
         //  “adb shell netcfg” | qgrep -y wlan
         // adb shell ifconfig wlan0
 
-        void EnumerateDevicesContainingInterface(Guid guidInterfaceClass)
-        // Device information sets: https://msdn.microsoft.com/EN-US/library/windows/hardware/ff541247(v=vs.85).aspx
-            {
-            List<USBDeviceInformationElement> result = new List<USBDeviceInformationElement>();
-
-            IntPtr hDeviceInfoSet = INVALID_HANDLE_VALUE;
-            try 
-                {
-                // Query for every device information element in the system
-                hDeviceInfoSet = SetupDiGetClassDevsW(ref guidInterfaceClass, "USB", IntPtr.Zero, DIGCF_PRESENT | DIGCF_ALLCLASSES);
-                if (INVALID_HANDLE_VALUE != hDeviceInfoSet)
-                    {
-                    int cbRequired;
-
-                    // Enumerate all those devices
-                    for (int iDevInfo = 0; ; iDevInfo++)
-                        {
-                        SP_DEVINFO_DATA devInfo = SP_DEVINFO_DATA.Construct();
-                        if (SetupDiEnumDeviceInfo(hDeviceInfoSet, iDevInfo, ref devInfo))
-                            {
-                            // Retrieve the device instance ID that is associated with the current device information element
-                            cbRequired = 2;     // arbitrary
-                            IntPtr pbDeviceInstanceId = Marshal.AllocCoTaskMem(cbRequired);
-                            if (!SetupDiGetDeviceInstanceIdW(hDeviceInfoSet, ref devInfo, IntPtr.Zero, cbRequired, out cbRequired))
-                                {
-                                Marshal.FreeCoTaskMem(pbDeviceInstanceId);
-                                pbDeviceInstanceId = Marshal.AllocCoTaskMem(cbRequired);
-                                }
-                            try {
-                                ThrowIfFail(SetupDiGetDeviceInstanceIdW(hDeviceInfoSet, ref devInfo, pbDeviceInstanceId, cbRequired, out cbRequired));
-                                string deviceInstanceId = Marshal.PtrToStringUni(pbDeviceInstanceId);
-
-                                USBDeviceInformationElement device = new USBDeviceInformationElement() { DeviceInstanceId = deviceInstanceId };
-                                result.Add(device);
-
-                                // Enumerate the interfaces of that device information element
-                                SP_DEVICE_INTERFACE_DATA deviceInterfaceData = SP_DEVICE_INTERFACE_DATA.Construct();
-                                for (int iInterface=0 ;; iInterface++)
-                                    {
-                                    if (SetupDiEnumDeviceInterfaces(hDeviceInfoSet, ref devInfo, ref guidInterfaceClass, iInterface, ref deviceInterfaceData))
-                                        {
-                                        // Retrieve the device path of that interfae
-                                        SP_DEVICE_INTERFACE_DETAIL_DATA_MANAGED devicePath = SP_DEVICE_INTERFACE_DETAIL_DATA_MANAGED.Construct();
-                                        ThrowIfFail(SetupDiGetDeviceInterfaceDetail(hDeviceInfoSet, ref deviceInterfaceData, ref devicePath, Marshal.SizeOf(devicePath), out cbRequired, IntPtr.Zero));
-
-                                        USBDeviceInterface deviceInterface = new USBDeviceInterface(true, deviceInterfaceData.InterfaceClassGuid, devicePath.DevicePath);
-                                        device.Interfaces.Add(deviceInterface);
-                                        }
-                                    else
-                                        break; // interface enumeration complete
-                                    }
-                                }
-                            finally
-                                {
-                                Marshal.FreeCoTaskMem(pbDeviceInstanceId);
-                                }
-                            }
-                        else
-                            break;  // device enumeration complete
-                        }
-                    }
-                else
-                    ThrowWin32Error();
-                }
-            finally
-                {
-                // Clean up the device enumeration
-                if (hDeviceInfoSet != IntPtr.Zero && hDeviceInfoSet != INVALID_HANDLE_VALUE)
-                    {
-                    SetupDiDestroyDeviceInfoList(hDeviceInfoSet);
-                    }
-                }
-            }
-
         void FindExistingDevices(Guid guidInterfaceClass)
             {
+            return;
             IntPtr hDeviceInfoSet = INVALID_HANDLE_VALUE;
             try 
                 {
-                hDeviceInfoSet = SetupDiGetClassDevs(ref guidInterfaceClass, IntPtr.Zero, IntPtr.Zero, DIGCF_PRESENT | DIGCF_DEVICEINTERFACE);
+                hDeviceInfoSet = SetupDiGetClassDevsW(ref guidInterfaceClass, IntPtr.Zero, IntPtr.Zero, DIGCF_PRESENT | DIGCF_DEVICEINTERFACE);
                 if (INVALID_HANDLE_VALUE==hDeviceInfoSet)
                     ThrowWin32Error();
 

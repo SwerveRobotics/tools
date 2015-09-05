@@ -1125,11 +1125,14 @@ namespace Org.SwerveRobotics.Tools.Library
         [DllImport("setupapi.dll", SetLastError = true)] public static extern 
         bool SetupDiEnumDeviceInterfaces(IntPtr hDeviceInfoSet, ref SP_DEVINFO_DATA DeviceInfoData, ref System.Guid InterfaceClassGuid, int MemberIndex, ref SP_DEVICE_INTERFACE_DATA DeviceInterfaceData);
 
-        [DllImport("setupapi.dll", SetLastError = true, CharSet = CharSet.Auto)] public static extern 
-        IntPtr SetupDiGetClassDevs(IntPtr pClassGuid,         IntPtr Enumerator, IntPtr hwndParent, int Flags);
+        [DllImport("setupapi.dll", SetLastError = true, CharSet = CharSet.Unicode)] public static extern 
+        IntPtr SetupDiGetClassDevsW(IntPtr pClassGuid,         IntPtr Enumerator, IntPtr hwndParent, int Flags);
 
-        [DllImport("setupapi.dll", SetLastError = true, CharSet = CharSet.Auto)] public static extern 
-        IntPtr SetupDiGetClassDevs(ref System.Guid ClassGuid, IntPtr Enumerator, IntPtr hwndParent, int Flags);
+        [DllImport("setupapi.dll", SetLastError = true, CharSet = CharSet.Unicode)] public static extern 
+        IntPtr SetupDiGetClassDevsW(ref System.Guid ClassGuid, IntPtr Enumerator, IntPtr hwndParent, int Flags);
+
+        [DllImport("setupapi.dll", SetLastError = true, CharSet = CharSet.Unicode)] public static extern 
+        IntPtr SetupDiGetClassDevsW(IntPtr ClassGuid, string Enumerator, IntPtr hwndParent, int Flags);
 
         [DllImport("setupapi.dll", SetLastError = true, CharSet = CharSet.Unicode)] public static extern 
         IntPtr SetupDiGetClassDevsW(ref System.Guid ClassGuid, string Enumerator, IntPtr hwndParent, int Flags);
@@ -1252,6 +1255,11 @@ namespace Org.SwerveRobotics.Tools.Library
             default:
                 throw new System.ComponentModel.Win32Exception(err);
                 }
+            }
+
+        public static int GetLastError()
+            {
+            return Marshal.GetLastWin32Error();
             }
 
         //------------------------------------------------------------------------------

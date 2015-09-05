@@ -4,28 +4,31 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlueBotBugService", "BlueBotBugService\BlueBotBugService.csproj", "{98E84E5D-BA98-470B-AA07-A5506267FF78}"
+	ProjectSection(ProjectDependencies) = postProject
+		{6E1D7D0C-67E6-4A32-B6E4-A744A13D93E9} = {6E1D7D0C-67E6-4A32-B6E4-A744A13D93E9}
+	EndProjectSection
 EndProject
 Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Setup", "Setup\Setup.vdproj", "{07F56415-F04A-49FE-939C-98E7D66A48C1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToolsLibrary", "BlueBotBugLibrary\ToolsLibrary.csproj", "{51A902E2-443A-40C5-92E1-914DABD57668}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ToolsLibraryHelper", "ToolsLibraryHelper\ToolsLibraryHelper.vcxproj", "{6E1D7D0C-67E6-4A32-B6E4-A744A13D93E9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
-		Release|Any CPU = Release|Any CPU
+		Debug|OurOnlySolutionPlatform = Debug|OurOnlySolutionPlatform
+		Release|OurOnlySolutionPlatform = Release|OurOnlySolutionPlatform
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{98E84E5D-BA98-470B-AA07-A5506267FF78}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{98E84E5D-BA98-470B-AA07-A5506267FF78}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{98E84E5D-BA98-470B-AA07-A5506267FF78}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{98E84E5D-BA98-470B-AA07-A5506267FF78}.Release|Any CPU.Build.0 = Release|Any CPU
-		{07F56415-F04A-49FE-939C-98E7D66A48C1}.Debug|Any CPU.ActiveCfg = Debug
-		{07F56415-F04A-49FE-939C-98E7D66A48C1}.Release|Any CPU.ActiveCfg = Release
-		{07F56415-F04A-49FE-939C-98E7D66A48C1}.Release|Any CPU.Build.0 = Release
-		{51A902E2-443A-40C5-92E1-914DABD57668}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{51A902E2-443A-40C5-92E1-914DABD57668}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{51A902E2-443A-40C5-92E1-914DABD57668}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{51A902E2-443A-40C5-92E1-914DABD57668}.Release|Any CPU.Build.0 = Release|Any CPU
+		{98E84E5D-BA98-470B-AA07-A5506267FF78}.Debug|OurOnlySolutionPlatform.ActiveCfg = Debug|Any CPU
+		{98E84E5D-BA98-470B-AA07-A5506267FF78}.Debug|OurOnlySolutionPlatform.Build.0 = Debug|Any CPU
+		{98E84E5D-BA98-470B-AA07-A5506267FF78}.Release|OurOnlySolutionPlatform.ActiveCfg = Release|Any CPU
+		{98E84E5D-BA98-470B-AA07-A5506267FF78}.Release|OurOnlySolutionPlatform.Build.0 = Release|Any CPU
+		{07F56415-F04A-49FE-939C-98E7D66A48C1}.Debug|OurOnlySolutionPlatform.ActiveCfg = Debug
+		{07F56415-F04A-49FE-939C-98E7D66A48C1}.Release|OurOnlySolutionPlatform.ActiveCfg = Release
+		{07F56415-F04A-49FE-939C-98E7D66A48C1}.Release|OurOnlySolutionPlatform.Build.0 = Release
+		{6E1D7D0C-67E6-4A32-B6E4-A744A13D93E9}.Debug|OurOnlySolutionPlatform.ActiveCfg = Debug|x64
+		{6E1D7D0C-67E6-4A32-B6E4-A744A13D93E9}.Debug|OurOnlySolutionPlatform.Build.0 = Debug|x64
+		{6E1D7D0C-67E6-4A32-B6E4-A744A13D93E9}.Release|OurOnlySolutionPlatform.ActiveCfg = Release|x64
+		{6E1D7D0C-67E6-4A32-B6E4-A744A13D93E9}.Release|OurOnlySolutionPlatform.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
