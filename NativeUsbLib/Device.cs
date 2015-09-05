@@ -330,7 +330,7 @@ namespace NativeUsbLib
         /// <param name="deviceDescriptor">The device descriptor.</param>
         /// <param name="adapterNumber">The adapter number.</param>
         /// <param name="devicePath">The device path.</param>
-        public Device(Device parent, UsbApi.USB_DEVICE_DESCRIPTOR deviceDescriptor, int adapterNumber, string devicePath)
+        protected Device(Device parent, UsbApi.USB_DEVICE_DESCRIPTOR deviceDescriptor, int adapterNumber, string devicePath)
             {
             this.parent = parent;
             this.m_AdapterNumber = adapterNumber;
@@ -515,17 +515,17 @@ namespace NativeUsbLib
                     }
 
                 // Get the Driver Key Name (usefull in locating a device)
-                UsbApi.USB_NODE_CONNECTION_DRIVERKEY_NAME DriverKey = new UsbApi.USB_NODE_CONNECTION_DRIVERKEY_NAME();
-                DriverKey.ConnectionIndex = adapterNumber;
-                nBytes = Marshal.SizeOf(DriverKey);
+                UsbApi.USB_NODE_CONNECTION_DRIVERKEY_NAME driverKey = new UsbApi.USB_NODE_CONNECTION_DRIVERKEY_NAME();
+                driverKey.ConnectionIndex = adapterNumber;
+                nBytes = Marshal.SizeOf(driverKey);
                 IntPtr ptrDriverKey = Marshal.AllocHGlobal(nBytes);
-                Marshal.StructureToPtr(DriverKey, ptrDriverKey, true);
+                Marshal.StructureToPtr(driverKey, ptrDriverKey, true);
 
                 // Use an IOCTL call to request the Driver Key Name
                 if (UsbApi.DeviceIoControl(handel, UsbApi.IOCTL_USB_GET_NODE_CONNECTION_DRIVERKEY_NAME, ptrDriverKey, nBytes, ptrDriverKey, nBytes, out nBytesReturned, IntPtr.Zero))
                     {
-                    DriverKey = (UsbApi.USB_NODE_CONNECTION_DRIVERKEY_NAME) Marshal.PtrToStructure(ptrDriverKey, typeof (UsbApi.USB_NODE_CONNECTION_DRIVERKEY_NAME));
-                    this.m_DriverKey = DriverKey.DriverKeyName;
+                    driverKey = (UsbApi.USB_NODE_CONNECTION_DRIVERKEY_NAME) Marshal.PtrToStructure(ptrDriverKey, typeof (UsbApi.USB_NODE_CONNECTION_DRIVERKEY_NAME));
+                    this.m_DriverKey = driverKey.DriverKeyName;
 
                     // use the DriverKeyName to get the Device Description, Instance ID, and DevicePath for devices(not hubs)
                     m_DeviceDescription = GetDescriptionByKeyName(this.DriverKey);
@@ -882,7 +882,6 @@ namespace NativeUsbLib
         /// <returns>The device.</returns>
         public static Device BuildDevice(Device parent, int portCount, string devicePath)
             {
-            IntPtr handel1 = IntPtr.Zero;
             Device _Device = null;
 
             int nBytes = -1;
@@ -890,8 +889,8 @@ namespace NativeUsbLib
             bool isConnected = false;
 
             // Open a handle to the Hub device
-            handel1 = UsbApi.CreateFile(devicePath, UsbApi.GENERIC_WRITE, UsbApi.FILE_SHARE_WRITE, IntPtr.Zero, UsbApi.OPEN_EXISTING, 0, IntPtr.Zero);
-            if (handel1.ToInt32() != UsbApi.INVALID_HANDLE_VALUE)
+            IntPtr hDevice = UsbApi.CreateFile(devicePath, UsbApi.GENERIC_WRITE, UsbApi.FILE_SHARE_WRITE, IntPtr.Zero, UsbApi.OPEN_EXISTING, 0, IntPtr.Zero);
+            if (hDevice.ToInt32() != UsbApi.INVALID_HANDLE_VALUE)
                 {
                 nBytes = Marshal.SizeOf(typeof (UsbApi.USB_NODE_CONNECTION_INFORMATION_EX));
                 IntPtr ptrNodeConnection = Marshal.AllocHGlobal(nBytes);
@@ -899,7 +898,7 @@ namespace NativeUsbLib
                 nodeConnection.ConnectionIndex = portCount;
                 Marshal.StructureToPtr(nodeConnection, ptrNodeConnection, true);
 
-                if (UsbApi.DeviceIoControl(handel1, UsbApi.IOCTL_USB_GET_NODE_CONNECTION_INFORMATION_EX, ptrNodeConnection, nBytes, ptrNodeConnection, nBytes, out nBytesReturned, IntPtr.Zero))
+                if (UsbApi.DeviceIoControl(hDevice, UsbApi.IOCTL_USB_GET_NODE_CONNECTION_INFORMATION_EX, ptrNodeConnection, nBytes, ptrNodeConnection, nBytes, out nBytesReturned, IntPtr.Zero))
                     {
                     nodeConnection = (UsbApi.USB_NODE_CONNECTION_INFORMATION_EX) Marshal.PtrToStructure(ptrNodeConnection, typeof (UsbApi.USB_NODE_CONNECTION_INFORMATION_EX));
                     isConnected = (nodeConnection.ConnectionStatus == (UsbApi.USB_CONNECTION_STATUS) UsbApi.USB_CONNECTION_STATUS.DeviceConnected);
@@ -912,12 +911,11 @@ namespace NativeUsbLib
                         nBytes = Marshal.SizeOf(typeof (UsbApi.USB_NODE_CONNECTION_NAME));
                         ptrNodeConnection = Marshal.AllocHGlobal(nBytes);
                         nBytesReturned = -1;
-                        UsbApi.USB_NODE_CONNECTION_NAME nameConnection = new UsbApi.USB_NODE_CONNECTION_NAME();
                         Marshal.StructureToPtr(nodeConnection, ptrNodeConnection, true);
 
-                        if (UsbApi.DeviceIoControl(handel1, UsbApi.IOCTL_USB_GET_NODE_CONNECTION_NAME, ptrNodeConnection, nBytes, ptrNodeConnection, nBytes, out nBytesReturned, IntPtr.Zero))
+                        if (UsbApi.DeviceIoControl(hDevice, UsbApi.IOCTL_USB_GET_NODE_CONNECTION_NAME, ptrNodeConnection, nBytes, ptrNodeConnection, nBytes, out nBytesReturned, IntPtr.Zero))
                             {
-                            nameConnection = (UsbApi.USB_NODE_CONNECTION_NAME) Marshal.PtrToStructure(ptrNodeConnection, typeof (UsbApi.USB_NODE_CONNECTION_NAME));
+                            UsbApi.USB_NODE_CONNECTION_NAME nameConnection = (UsbApi.USB_NODE_CONNECTION_NAME) Marshal.PtrToStructure(ptrNodeConnection, typeof (UsbApi.USB_NODE_CONNECTION_NAME));
                             string name = @"\\?\" + nameConnection.NodeName;
                             //this.childs.Add(new UsbHub(this, name, false));
                             _Device = new UsbHub(parent, nodeConnection.DeviceDescriptor, name);
@@ -937,7 +935,7 @@ namespace NativeUsbLib
                     _Device.NodeConnectionInfo = nodeConnection;
                     }
                 Marshal.FreeHGlobal(ptrNodeConnection);
-                UsbApi.CloseHandle(handel1);
+                UsbApi.CloseHandle(hDevice);
                 }
 
             return _Device;

@@ -73,14 +73,6 @@
     <Compile Include="UsbHub.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="ModelSupport\default.txaPackage" />
-    <None Include="ModelSupport\default.txvpck" />
-    <None Include="ModelSupport\Devices\default.txaPackage" />
-    <None Include="ModelSupport\Devices\default.txvpck" />
-    <None Include="ModelSupport\USBDevices\default.txaPackage" />
-    <None Include="ModelSupport\USBDevices\default.txvpck" />
-  </ItemGroup>
-  <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
       <Visible>False</Visible>
       <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>

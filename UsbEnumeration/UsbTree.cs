@@ -10,17 +10,13 @@
 using System;
 using System.Collections.Generic;
 using NativeUsbLib;
-using NLog;
 
 namespace UsbEnumeration
     {
     public class UsbTree
         {
-        private static readonly Logger Nlog = LogManager.GetLogger("loggerAbc");
-
         private readonly Action<bool, ushort, ushort, string, int, int, string, string> _reportDevice; // VID, PID, serial#, hub#, port#, devicePath, usbDevicePath
         public const ushort VendorId = 0x0123; // VID of interest
-        public static List<uint> AllowedPids;
 
         private readonly UsbBus _usbBus = new UsbBus();
         private UsbTreeNode _usbRoot;
@@ -28,12 +24,6 @@ namespace UsbEnumeration
         public UsbTree(Action<bool, ushort, ushort, string, int, int, string, string> reportDevice)
             {
             _reportDevice = reportDevice;
-
-            // PID's of interest
-            AllowedPids = new List<uint>();
-            AllowedPids.Add(0x123);
-            AllowedPids.Add(0x456);
-            AllowedPids.Add(0x789);
             }
 
         // 25-Jul-2013 added targetDeviceName to specify which device was just plugged-in
@@ -48,15 +38,9 @@ namespace UsbEnumeration
                 NodeText = "Root",
                 Children = new List<UsbTreeNode>()
                 };
-            try
-                {
-                ReScanUsbBus();
-                WalkTheBus(VendorId, deviceAdded, targetDeviceName);
-                }
-            catch (Exception ex)
-                {
-                Nlog.ErrorException("Exception refreshing USB tree", ex);
-                }
+
+            ReScanUsbBus();
+            WalkTheBus(VendorId, deviceAdded, targetDeviceName);
             }
 
         private void WalkTheBus(ushort vendorId, bool deviceAdded, string deviceName)
@@ -98,13 +82,10 @@ namespace UsbEnumeration
                         {
                         var parent = usbNode.Parent;
                         if (parent.Type != DeviceTyp.Hub && parent.Type != DeviceTyp.RootHub)
-                            Nlog.Error("*ERROR* Parent type is not a HUB\t: " + parent.Type.ToString());
+                            {
+                            }
                         else
                             {
-                            // TBD Remove these debugging aids
-                            Nlog.Debug("DevicePath:{0}", device.DevicePath);
-                            //Debug.WriteLine(string.Format("DevicePath:{0}", device.DevicePath));
-                            // End debugging aids
                             _reportDevice(deviceAdded,
                                 device.DeviceDescriptor.idVendor,
                                 device.DeviceDescriptor.idProduct,
@@ -150,10 +131,6 @@ namespace UsbEnumeration
                     ShowHub(usbNode, hub);
                     }
                 }
-            else
-                {
-                Nlog.Warn("Controller  = null");
-                }
             }
 
         /// <summary>
@@ -196,10 +173,6 @@ namespace UsbEnumeration
                     ShowDevice(usbNode, device);
                     }
                 }
-            else
-                {
-                Nlog.Warn("\tHub = null");
-                }
             }
 
         private void ShowDevice(UsbTreeNode node, Device device)
@@ -233,10 +206,6 @@ namespace UsbEnumeration
                     usbNode.NodeText = s;
                     node.Children.Add(usbNode);
                     }
-                }
-            else
-                {
-                Nlog.Warn("Device = null");
                 }
             }
         }
