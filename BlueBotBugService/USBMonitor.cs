@@ -41,22 +41,6 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
         event EventHandler<EventArgs>             DeviceDevNodesChanged;
         }
 
-    /// <summary>
-    /// A USBDeviceInformationElement represents a USB device information element
-    /// </summary>
-    /// Helpful links:
-    ///     device id:               https://msdn.microsoft.com/en-us/library/windows/hardware/ff537109(v=vs.85).aspx
-    ///     device information sets: https://msdn.microsoft.com/EN-US/library/windows/hardware/ff541247(v=vs.85).aspx
-    public class USBDeviceInformationElement
-        {
-        //-----------------------------------------------------------------------------------------
-        // State
-        //-----------------------------------------------------------------------------------------
-
-        public string                       DeviceInstanceId = null;
-        public List<USBDeviceInterface>     Interfaces = new List<USBDeviceInterface>();
-        }
-
 
     public class USBDeviceInterface
         {
@@ -64,8 +48,9 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
         // State
         //-----------------------------------------------------------------------------------------
 
-        public readonly Guid     GuidDeviceInterface;
-        public readonly string   DeviceInterfacePath;
+        public Guid    GuidDeviceInterface;
+        public string  DeviceInterfacePath;
+        public string  SerialNumber; 
 
         //-----------------------------------------------------------------------------------------
         // Construction
@@ -75,19 +60,35 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             {
             this.GuidDeviceInterface = Guid.Empty;
             this.DeviceInterfacePath = null;
+            this.SerialNumber        = null;
             }
 
-        public unsafe USBDeviceInterface(bool deviceAdded, DEV_BROADCAST_DEVICEINTERFACE_W* pintf) : this(deviceAdded, pintf->dbcc_classguid, pintf->dbcc_name)
-            {
-            }
-
-        public USBDeviceInterface(bool deviceAdded, Guid interfaceGuid, string deviceInterfacePath)
+        public USBDeviceInterface(Guid interfaceGuid, string deviceInterfacePath, string serialNumber)
             {
             this.GuidDeviceInterface = interfaceGuid;
-            this.DeviceInterfacePath = deviceInterfacePath;
+            this.DeviceInterfacePath = deviceInterfacePath.ToLowerInvariant();
+            this.SerialNumber        = serialNumber;
+            }
+
+        public unsafe USBDeviceInterface(DEV_BROADCAST_DEVICEINTERFACE_W* pintf, string serialNumber)
+            {
+            this.GuidDeviceInterface = pintf->dbcc_classguid;
+            this.DeviceInterfacePath = pintf->dbcc_name.ToLowerInvariant();
+            this.SerialNumber        = serialNumber;
+            }
+
+        public override bool Equals(object obj)
+            {
+            if (obj is USBDeviceInterface)
+                return this.DeviceInterfacePath == (obj as USBDeviceInterface).DeviceInterfacePath;
+            else
+                return false;
+            }
+        public override int GetHashCode()
+            {
+            return this.DeviceInterfacePath.GetHashCode() ^ 1398713;
             }
         }
-
 
     public class USBMonitor : IDisposable
         {
@@ -102,11 +103,10 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
         bool                notificationHandleIsService;
         readonly object     traceLock = new object();
 
-        readonly object                                             theLock = new object();
-        IDictionary<Guid, IDictionary<string, USBDeviceInterface>>  mpGuidDevices = null;
-        IDictionary<string, USBDeviceInterface>                     mpNameDevice  = null;
-        List<Guid>                                                  deviceInterfacesOfInterest = null;
-        List<IntPtr>                                                deviceNotificationHandles = null;
+        readonly object     theLock = new object();
+        HashSet<USBDeviceInterface>     currentDevices = null;
+        List<Guid>                      deviceInterfacesOfInterest = null;
+        List<IntPtr>                    deviceNotificationHandles = null;
 
         public EventHandler<USBDeviceInterface> OnDeviceOfInterestArrived;
         public EventHandler<USBDeviceInterface> OnDeviceOfInterestRemoved;
@@ -139,17 +139,11 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             {
             lock (theLock)
                 {
-                this.mpGuidDevices = new Dictionary<Guid, IDictionary<string, USBDeviceInterface>>();
-                this.mpNameDevice  = this.NewMapStringToDevice();
+                this.currentDevices = new HashSet<USBDeviceInterface>();
                 this.deviceInterfacesOfInterest = new List<Guid>();
                 this.deviceNotificationHandles = new List<IntPtr>();
                 }
             this.started = false;
-            }
-
-        IDictionary<string, USBDeviceInterface> NewMapStringToDevice()
-            {
-            return new Dictionary<string, USBDeviceInterface>(StringComparer.InvariantCultureIgnoreCase);
             }
 
         public virtual void Dispose(bool fromUserCode)
@@ -177,7 +171,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             if (this.started)
                 {
                 GetDeviceNotificationsFor(guid);
-                // FindExistingDevices(guid);
+                FindExistingDevices(guid);
                 }
             }
 
@@ -217,7 +211,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                 foreach (Guid guid in this.deviceInterfacesOfInterest)
                     {
                     GetDeviceNotificationsFor(guid);
-                    // FindExistingDevices(guid);
+                    FindExistingDevices(guid);
                     }
                 
                 this.started = true;
@@ -245,110 +239,159 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
         // Device Management
         //-----------------------------------------------------------------------------------------
 
-        public unsafe void AddDeviceIfNecessary(DEV_BROADCAST_DEVICEINTERFACE_W* pintf)
+        public bool AddDeviceIfNecessary(USBDeviceInterface device)
             {
-            AddDeviceIfNecessary(new USBDeviceInterface(true, pintf));
-            }
-
-        public unsafe bool RemoveDeviceIfNecessary(DEV_BROADCAST_DEVICEINTERFACE_W* pintf)
-            {
-            return RemoveDeviceIfNecessary(new USBDeviceInterface(false, pintf));
-            }
-
-        public void AddDeviceIfNecessary(USBDeviceInterface device)
-            {
+            bool result = false;
             lock (theLock)
                 {
                 if (this.deviceInterfacesOfInterest.Contains(device.GuidDeviceInterface))
                     {
-                    if (!this.mpNameDevice.ContainsKey(device.DeviceInterfacePath))
+                    if (this.currentDevices.Add(device))
                         {
-                        this.mpNameDevice[device.DeviceInterfacePath] = device;
-                        if (!this.mpGuidDevices.ContainsKey(device.GuidDeviceInterface))
-                            {
-                            this.mpGuidDevices[device.GuidDeviceInterface] = this.NewMapStringToDevice();
-                            }
-                        this.mpGuidDevices[device.GuidDeviceInterface][device.DeviceInterfacePath] = device;
+                        result = true;
                         Trace("added", device);
-                        this.OnDeviceOfInterestArrived.Invoke(null, device);
                         }
                     }
                 }
+            return result;
             }
 
         public bool RemoveDeviceIfNecessary(USBDeviceInterface device)
             {
+            bool result = false;
             lock (theLock)
                 {
-                if (this.mpNameDevice.Remove(device.DeviceInterfacePath))
+                foreach (USBDeviceInterface him in this.currentDevices)
                     {
-                    this.mpGuidDevices[device.GuidDeviceInterface].Remove(device.DeviceInterfacePath);
+                    if (him.DeviceInterfacePath == device.DeviceInterfacePath)
+                        {
+                        device.SerialNumber = him.SerialNumber;
+                        break;
+                        }
+                    }
+                if (this.currentDevices.Remove(device))
+                    {
+                    result = true;
                     Trace("removed", device);
-                    this.OnDeviceOfInterestRemoved.Invoke(null, device);
-                    return true;
                     }
                 }
-            return false;
+            return result;
             }
 
         //-----------------------------------------------------------------------------------------
         // Scanning
         //-----------------------------------------------------------------------------------------
 
-        //  “adb shell netcfg” | qgrep -y wlan
-        // adb shell ifconfig wlan0
-
-        void FindExistingDevices(Guid guidInterfaceClass)
+        void FindExistingDevices(Guid guidInterface)
             {
-            IntPtr hADB = AdbEnumInterfaces(guidInterfaceClass, true, true, true);
-            if (hADB != IntPtr.Zero)
+            HashSet<USBDeviceInterface> devices = GetSerialNumbersofDevices(guidInterface);
+            foreach (USBDeviceInterface device in devices)
                 {
-                try {
-                    AdbInterfaceInfo_Managed info = new AdbInterfaceInfo_Managed();
-                    int cb = AdbInterfaceInfo_Managed.CbMarshalledSize;
-                    while (AdbNextInterface(hADB, ref info, ref cb))
-                        {
-                        string path = @"\\?\USB#VID_19D2&PID_1351&MI_01#7&6f0a7d6&1&0001#{f72fe0d4-cbcb-407d-8814-9ed673d0dd6b}";
-                        IntPtr h = CreateFile(path, GENERIC_WRITE, FILE_SHARE_WRITE, IntPtr.Zero, OPEN_EXISTING, 0, IntPtr.Zero);
-                        CloseHandle(h);
+                AddDeviceIfNecessary(device);
+                }
+            }
 
-                        IntPtr hintf = OpenUSBDeviceInterface(info);
-                        try
-                            {
-                            int cchBuffer = 512;
-                            int cbBuffer = cchBuffer * 2;
-                            IntPtr rgchBuffer = Marshal.AllocCoTaskMem(cbBuffer);
-                            try
+        public static string SerialNumberOfDeviceInterface(string path)
+        // Given a path to a USB device interface, return the serial number of that device
+            {
+            string result = null;
+            IntPtr h = CreateFile(path, GENERIC_READ | GENERIC_WRITE,
+                                  FILE_SHARE_READ | FILE_SHARE_WRITE,
+                                  IntPtr.Zero, OPEN_EXISTING,
+                                  FILE_FLAG_OVERLAPPED, IntPtr.Zero);
+            if (h != INVALID_HANDLE_VALUE)
+                {
+                try
+                    {
+                    // Convert the file handle to a WinUSB handle
+                    IntPtr usbHandle;
+                    if (WinUsb_Initialize(h, out usbHandle))
+                        {
+                        try {
+                            // Get the device descriptor; that will give us a serial number 'index'
+                            int cbCopied;
+                            USB_DEVICE_DESCRIPTOR usbDeviceDescriptor = new USB_DEVICE_DESCRIPTOR();
+                            if (WinUsb_GetDescriptor(usbHandle, USB_DEVICE_DESCRIPTOR_TYPE, 0, 0, ref usbDeviceDescriptor, Marshal.SizeOf(usbDeviceDescriptor), out cbCopied))
                                 {
-                                if (AdbGetSerialNumber(hintf, rgchBuffer, ref cchBuffer, false))
+                                // Exchange that 'index' for a string. Unfortunately, WinUsb_GetDescriptor wont ever tell us how big of 
+                                // buffer it actually needs, so we just grow until we get big enough
+                                int cbBuffer = 64;
+                                IntPtr pbBuffer = Marshal.AllocCoTaskMem(cbBuffer);
+                                while (!WinUsb_GetDescriptor(usbHandle, USB_STRING_DESCRIPTOR_TYPE, usbDeviceDescriptor.iSerialNumber, 0x409, pbBuffer, cbBuffer, out cbCopied))
                                     {
-                                    string serialNumber = Marshal.PtrToStringUni(rgchBuffer);
+                                    if (GetLastError()==ERROR_INSUFFICIENT_BUFFER)
+                                        {
+                                        Marshal.FreeCoTaskMem(pbBuffer);
+                                        cbBuffer *= 2;
+                                        }
+                                    else
+                                        ThrowWin32Error();
                                     }
-                                else
-                                    ThrowWin32Error();
-                                }
-                            finally
-                                {
-                                Marshal.FreeCoTaskMem(rgchBuffer);
+
+                                result = Marshal.PtrToStringUni(pbBuffer+USB_STRING_DESCRIPTOR.CbOverhead, (cbCopied-USB_STRING_DESCRIPTOR.CbOverhead)/2);
+                                Marshal.FreeCoTaskMem(pbBuffer);
                                 }
                             }
                         finally
                             {
-                            AdbCloseHandle(hintf);
+                            WinUsb_Free(usbHandle);
                             }
                         }
-                    if (GetLastError() != ERROR_NO_MORE_ITEMS)
+                    else
                         ThrowWin32Error();
                     }
                 finally
                     {
-                    AdbCloseHandle(hADB);
+                    CloseHandle(h);
                     }
                 }
             else
                 ThrowWin32Error();
+
+            return result;
             }
 
+        HashSet<USBDeviceInterface> GetSerialNumbersofDevices(Guid guidInterfaceClass)
+        // Return the set of serial numbers of currently connected USB devices which have the indicated interface class
+            {
+            HashSet<USBDeviceInterface> result = new HashSet<USBDeviceInterface>();
+
+            // Get a set consisting of the USB devices that have the device interface of interest
+            IntPtr hDeviceInfoSet = SetupDiGetClassDevsW(ref guidInterfaceClass, IntPtr.Zero, IntPtr.Zero, DIGCF_PRESENT | DIGCF_DEVICEINTERFACE);
+            if (hDeviceInfoSet != INVALID_HANDLE_VALUE)
+                {
+                try {
+                    SP_DEVICE_INTERFACE_DATA deviceInterfaceData = SP_DEVICE_INTERFACE_DATA.Construct();
+                    for (int iDevice=0 ;; iDevice++)
+                        {
+                        // Iterate over that device interface set
+                        if (SetupDiEnumDeviceInterfaces(hDeviceInfoSet, IntPtr.Zero, ref guidInterfaceClass, iDevice, ref deviceInterfaceData))
+                            {
+                            // Get the path to the next device
+                            SP_DEVICE_INTERFACE_DETAIL_DATA_MANAGED detail = SP_DEVICE_INTERFACE_DETAIL_DATA_MANAGED.Construct();
+                            int cbRequired;
+                            if (SetupDiGetDeviceInterfaceDetail(hDeviceInfoSet, ref deviceInterfaceData, ref detail, Marshal.SizeOf(detail), out cbRequired, IntPtr.Zero))
+                                {
+                                // From that path, retrieve the USB serial number
+                                string serialNumber = SerialNumberOfDeviceInterface(detail.DevicePath);
+                                result.Add(new USBDeviceInterface(guidInterfaceClass, detail.DevicePath, serialNumber));
+                                }
+                            else
+                                ThrowWin32Error();
+                            }
+                        else if (GetLastError() == ERROR_NO_MORE_ITEMS)
+                            break;
+                        else
+                            ThrowWin32Error();
+                        }
+                    }
+                finally
+                    { 
+                    SetupDiDestroyDeviceInfoList(hDeviceInfoSet);
+                    }
+                }
+            return result;
+            }
 
         //-----------------------------------------------------------------------------------------
         // Win32 Events
@@ -359,9 +402,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             if (args.pHeader->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
                 {
                 DEV_BROADCAST_DEVICEINTERFACE_W* pintf = (DEV_BROADCAST_DEVICEINTERFACE_W*)args.pHeader;
-                // Trace(pintf);
-                FindExistingDevices(pintf->dbcc_classguid);
-                this.AddDeviceIfNecessary(new USBDeviceInterface(true, pintf));
+                this.AddDeviceIfNecessary(new USBDeviceInterface(pintf, USBMonitor.SerialNumberOfDeviceInterface(pintf->dbcc_name)));
                 }
             }
 
@@ -370,8 +411,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             if (args.pHeader->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
                 {
                 DEV_BROADCAST_DEVICEINTERFACE_W* pintf = (DEV_BROADCAST_DEVICEINTERFACE_W*)args.pHeader;
-                // Trace(pintf);
-                this.RemoveDeviceIfNecessary(new USBDeviceInterface(false, pintf));
+                this.RemoveDeviceIfNecessary(new USBDeviceInterface(pintf, null));
                 }
             }
 
@@ -379,9 +419,9 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             {
             lock (traceLock)
                 {
-                this.tracer.Trace("    pintf->size={0}", pintf->dbcc_size);
-                this.tracer.Trace("    pintf->DevicePath={0}", pintf->dbcc_name);
-                this.tracer.Trace("    pintf->guid={0}", pintf->dbcc_classguid);
+                this.tracer.Trace("    pintf->size={0}",        pintf->dbcc_size);
+                this.tracer.Trace("    pintf->DevicePath={0}",  pintf->dbcc_name);
+                this.tracer.Trace("    pintf->guid={0}",        pintf->dbcc_classguid);
                 }
             }
 
@@ -390,8 +430,9 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             lock (traceLock)
                 {
                 this.tracer.Trace("{0}: ", message);
-                this.tracer.Trace("    DevicePath={0}", device.DeviceInterfacePath);
-                this.tracer.Trace("    guid={0}", device.GuidDeviceInterface);
+                this.tracer.Trace("    devicePath={0}",     device.DeviceInterfacePath);
+                this.tracer.Trace("    guid={0}",           device.GuidDeviceInterface);
+                this.tracer.Trace("    serialNumber={0}",   device.SerialNumber);
                 }
             }
         }

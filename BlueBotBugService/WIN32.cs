@@ -830,9 +830,52 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             };
 
 
+        [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Unicode)]
+        public struct USB_DEVICE_DESCRIPTOR
+            {
+            public byte   bLength;
+            public byte   bDescriptorType;
+            public short  bcdUSB;
+            public byte   bDeviceClass;
+            public byte   bDeviceSubClass;
+            public byte   bDeviceProtocol;
+            public byte   bMaxPacketSize0;
+            public short  idVendor;
+            public short  idProduct;
+            public short  bcdDevice;
+            public byte   iManufacturer;
+            public byte   iProduct;
+            public byte   iSerialNumber;
+            public byte   bNumConfigurations;
+            }
+
+        //
+        // USB 1.1: 9.6.5 String, Table 9-12. UNICODE String Descriptor
+        // USB 2.0: 9.6.7 String, Table 9-16. UNICODE String Descriptor
+        // USB 3.0: 9.6.8 String, Table 9-22. UNICODE String Descriptor
+        //
+        [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Unicode)]
+        public struct USB_STRING_DESCRIPTOR
+            {
+            public byte bLength;
+            public byte bDescriptorType;
+            // public char bString[];
+
+            public static int CbOverhead { get { return 2; } }
+            }
+
         //------------------------------------------------------------------------------
         // Constants
         //------------------------------------------------------------------------------
+
+        //
+        // USB 1.1: 9.4 Standard Device Requests, Table 9-5. Descriptor Types
+        //
+        public const byte USB_DEVICE_DESCRIPTOR_TYPE                          = 0x01;
+        public const byte USB_CONFIGURATION_DESCRIPTOR_TYPE                   = 0x02;
+        public const byte USB_STRING_DESCRIPTOR_TYPE                          = 0x03;
+        public const byte USB_INTERFACE_DESCRIPTOR_TYPE                       = 0x04;
+        public const byte USB_ENDPOINT_DESCRIPTOR_TYPE                        = 0x05;
 
         public static Guid   IID_IUnknown         = new Guid("00000000-0000-0000-C000-000000000046");
         public static IntPtr INVALID_HANDLE_VALUE = new IntPtr(-1);
@@ -1181,6 +1224,32 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
         [DllImport("winusb.dll", SetLastError=true)] public static extern 
         bool WinUsb_Initialize(SafeFileHandle hDevice, ref IntPtr hInterface);
 
+        [DllImport("winusb.dll", SetLastError=true, CharSet=CharSet.Unicode)] public static extern
+        bool WinUsb_Initialize(IntPtr handle, out IntPtr pWinUsbHandle);
+
+        [DllImport("winusb.dll", SetLastError=true, CharSet=CharSet.Unicode)] public static extern
+        bool WinUsb_GetDescriptor
+            (
+            IntPtr InterfaceHandle,
+            byte   DescriptorType,
+            byte   Index,
+            short  LanguageID,
+            IntPtr Buffer,
+            int    BufferLength,
+            out int LengthTransferred
+            );
+
+        [DllImport("winusb.dll", SetLastError=true, CharSet=CharSet.Unicode)] public static extern
+        bool WinUsb_GetDescriptor
+            (
+            IntPtr InterfaceHandle,
+            byte   DescriptorType,
+            byte   Index,
+            short  LanguageID,
+            ref USB_DEVICE_DESCRIPTOR Buffer,
+            int    BufferLength,
+            out int LengthTransferred
+            );
         //  Use this declaration to retrieve DEVICE_SPEED (the only currently defined InformationType).
         [DllImport("winusb.dll", SetLastError=true)] public static extern 
         bool WinUsb_QueryDeviceInformation(IntPtr hInterface, uint InformationType, ref uint BufferLength, ref byte Buffer);
