@@ -17,7 +17,7 @@ namespace NativeUsbLib
         #region fields
 
         private Guid m_InterfaceClassGuid = Guid.Empty;
-        private Guid m_Guid = new Guid(UsbApi.GUID_DEVINTERFACE_HUBCONTROLLER);
+        private readonly Guid m_Guid = new Guid(UsbApi.GUID_DEVINTERFACE_HUBCONTROLLER);
 
         #endregion
 
@@ -33,16 +33,17 @@ namespace NativeUsbLib
         public UsbController(Device parent, int index)
             : base(parent, null, index, null)
             {
+            // Get a set of ALL the controllers
             IntPtr ptr = Marshal.AllocHGlobal(UsbApi.MAX_BUFFER_SIZE);
             bool success = true;
-            IntPtr handel = UsbApi.SetupDiGetClassDevs(ref m_Guid, 0, IntPtr.Zero, UsbApi.DIGCF_PRESENT | UsbApi.DIGCF_DEVICEINTERFACE);
+            IntPtr handle = UsbApi.SetupDiGetClassDevs(ref m_Guid, 0, IntPtr.Zero, UsbApi.DIGCF_PRESENT | UsbApi.DIGCF_DEVICEINTERFACE);
 
             // Create a device interface data structure
             UsbApi.SP_DEVICE_INTERFACE_DATA deviceInterfaceData = new UsbApi.SP_DEVICE_INTERFACE_DATA();
             deviceInterfaceData.cbSize = Marshal.SizeOf(deviceInterfaceData);
 
-            // Start the enumeration.
-            success = UsbApi.SetupDiEnumDeviceInterfaces(handel, IntPtr.Zero, ref m_Guid, index, ref deviceInterfaceData);
+            // Extract us, the index'th controller
+            success = UsbApi.SetupDiEnumDeviceInterfaces(handle, IntPtr.Zero, ref m_Guid, index, ref deviceInterfaceData);
             if (success)
                 {
                 m_InterfaceClassGuid = deviceInterfaceData.InterfaceClassGuid;
@@ -58,7 +59,7 @@ namespace NativeUsbLib
                 // Now we can get some more detailed informations.
                 int nRequiredSize = 0;
                 int nBytes = UsbApi.MAX_BUFFER_SIZE;
-                if (UsbApi.SetupDiGetDeviceInterfaceDetail(handel, ref deviceInterfaceData, ref deviceInterfaceDetailData, nBytes, ref nRequiredSize, ref deviceInfoData))
+                if (UsbApi.SetupDiGetDeviceInterfaceDetail(handle, ref deviceInterfaceData, ref deviceInterfaceDetailData, nBytes, ref nRequiredSize, ref deviceInfoData))
                     {
                     this.m_DevicePath = deviceInterfaceDetailData.DevicePath;
 
@@ -66,14 +67,14 @@ namespace NativeUsbLib
                     int requiredSize = 0;
                     int regType = UsbApi.REG_SZ;
 
-                    if (UsbApi.SetupDiGetDeviceRegistryProperty(handel, ref deviceInfoData, UsbApi.SPDRP_DEVICEDESC, ref regType, ptr, UsbApi.MAX_BUFFER_SIZE, ref requiredSize))
+                    if (UsbApi.SetupDiGetDeviceRegistryProperty(handle, ref deviceInfoData, UsbApi.SPDRP_DEVICEDESC, ref regType, ptr, UsbApi.MAX_BUFFER_SIZE, ref requiredSize))
                         this.m_DeviceDescription = Marshal.PtrToStringAuto(ptr);
-                    if (UsbApi.SetupDiGetDeviceRegistryProperty(handel, ref deviceInfoData, UsbApi.SPDRP_DRIVER, ref regType, ptr, UsbApi.MAX_BUFFER_SIZE, ref requiredSize))
+                    if (UsbApi.SetupDiGetDeviceRegistryProperty(handle, ref deviceInfoData, UsbApi.SPDRP_DRIVER, ref regType, ptr, UsbApi.MAX_BUFFER_SIZE, ref requiredSize))
                         this.m_DriverKey = Marshal.PtrToStringAuto(ptr);
                     }
 
                 Marshal.FreeHGlobal(ptr);
-                UsbApi.SetupDiDestroyDeviceInfoList(handel);
+                UsbApi.SetupDiDestroyDeviceInfoList(handle);
 
                 try
                     {
