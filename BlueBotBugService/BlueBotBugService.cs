@@ -7,7 +7,7 @@ using System.Linq;
 using System.ServiceProcess;
 using System.Text;
 using System.Threading.Tasks;
-using Org.SwerveRobotics.Tools.Library;
+using Org.SwerveRobotics.BlueBotBug.Service;
 
 namespace Org.SwerveRobotics.BlueBotBug.Service
     {
@@ -17,19 +17,14 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
         // State
         //------------------------------------------------------------------------------------------
         
-        System.Diagnostics.EventLog eventLog       = null;
+        System.Diagnostics.EventLog         eventLog       = null;
 
-        private const string        eventLogSourceName = "BlueBotBug";
-        private const string        eventLogName       = "Application";
+        private const string                eventLogSourceName = "BlueBotBug";
+        private const string                eventLogName       = "Application";
 
         private bool                        oleInitialized = false;
         private USBMonitor                  usbMonitor     = null;
         private AndroidDebuggerConfigerator configurator   = null;
-
-        // http://binarydb.com/driver/Android-ADB-Interface-265790.html
-
-        readonly static Guid AndroidUsbDeviceClass     = new Guid("{3f966bd9-fa04-4ec5-991c-d326973b5128}");
-        readonly static Guid AndroidADBDeviceInterface = new Guid("{F72FE0D4-CBCB-407D-8814-9ED673D0DD6B}");
 
         //------------------------------------------------------------------------------------------
         // Construction
@@ -71,7 +66,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             this.configurator = new AndroidDebuggerConfigerator(this);
             //
             this.usbMonitor = new USBMonitor(this, this, this.ServiceHandle, true);
-            this.usbMonitor.AddDeviceInterfaceOfInterest(AndroidADBDeviceInterface);
+            this.usbMonitor.AddDeviceInterfaceOfInterest(AdbWinApi.AndroidADBDeviceInterface);
             this.usbMonitor.OnDeviceOfInterestArrived += this.configurator.OnAndroidDeviceArrived;
             this.usbMonitor.OnDeviceOfInterestRemoved += this.configurator.OnAndroidDeviceRemoved;
             this.usbMonitor.Start();

@@ -5,9 +5,10 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static Org.SwerveRobotics.Tools.Library.WIN32;
+using static Org.SwerveRobotics.BlueBotBug.Service.WIN32;
+using static Org.SwerveRobotics.BlueBotBug.Service.AdbWinApi;
 
-namespace Org.SwerveRobotics.Tools.Library
+namespace Org.SwerveRobotics.BlueBotBug.Service
     {
     public interface ITracer
         { 
@@ -294,43 +295,54 @@ namespace Org.SwerveRobotics.Tools.Library
         // Scanning
         //-----------------------------------------------------------------------------------------
 
-        [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Unicode)]
-        unsafe struct EnumeratedUSBDevice
-            {
-            public Guid     guidInterface;
-            public char*    wszInterfacePath;
-            };
-
-
-        static class ToolsLibraryHelper
-            {
-            [DllImport("ToolsLibraryHelper.dll", CharSet = CharSet.Unicode)] public unsafe static extern 
-            bool EnumerateUSBDevices(ref Guid guidInterfaceClass, out EnumeratedUSBDevice* pDevices, out int cDevices);
-            }
-
         //  “adb shell netcfg” | qgrep -y wlan
         // adb shell ifconfig wlan0
 
-        unsafe void FindExistingDevices(Guid guidInterfaceClass)
+        void FindExistingDevices(Guid guidInterfaceClass)
             {
-            List<USBDeviceInformationElement> devices = new List<USBDeviceInformationElement>();
-
-            int cDevices = 0;
-            EnumeratedUSBDevice* pDevices = null;
-            if (ToolsLibraryHelper.EnumerateUSBDevices(ref guidInterfaceClass, out pDevices, out cDevices))
+            IntPtr hADB = AdbEnumInterfaces(guidInterfaceClass, true, true, true);
+            if (hADB != IntPtr.Zero)
                 {
-                for (int iDevice = 0; iDevice < cDevices; iDevice++)
+                try {
+                    AdbInterfaceInfo_Managed info = new AdbInterfaceInfo_Managed();
+                    int cb = AdbInterfaceInfo_Managed.CbMarshalledSize;
+                    while (AdbNextInterface(hADB, ref info, ref cb))
+                        {
+                        IntPtr hintf = OpenUSBDeviceInterface(info);
+                        try
+                            {
+                            int cchBuffer = 512;
+                            int cbBuffer = cchBuffer * 2;
+                            IntPtr rgchBuffer = Marshal.AllocCoTaskMem(cbBuffer);
+                            try
+                                {
+                                if (AdbGetSerialNumber(hintf, rgchBuffer, ref cchBuffer, false))
+                                    {
+                                    string serialNumber = Marshal.PtrToStringUni(rgchBuffer);
+                                    }
+                                else
+                                    ThrowWin32Error();
+                                }
+                            finally
+                                {
+                                Marshal.FreeCoTaskMem(rgchBuffer);
+                                }
+                            }
+                        finally
+                            {
+                            AdbCloseHandle(hintf);
+                            }
+                        }
+                    if (GetLastError() != ERROR_NO_MORE_ITEMS)
+                        ThrowWin32Error();
+                    }
+                finally
                     {
-                    string interfacePath = Marshal.PtrToStringUni(new IntPtr(pDevices[iDevice].wszInterfacePath));
+                    AdbCloseHandle(hADB);
                     }
                 }
-
-            // Free up everything, always
-            for (int iDevice = 0; iDevice < cDevices; iDevice++)
-                {
-                Marshal.FreeCoTaskMem(new IntPtr(pDevices[iDevice].wszInterfacePath));
-                }
-            Marshal.FreeCoTaskMem(new IntPtr(pDevices));
+            else
+                ThrowWin32Error();
             }
 
 

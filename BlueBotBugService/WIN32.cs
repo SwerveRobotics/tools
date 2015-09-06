@@ -11,7 +11,7 @@ using System.Windows.Forms;
 using COMTypes = System.Runtime.InteropServices.ComTypes;
 using Microsoft.Win32.SafeHandles;
 
-namespace Org.SwerveRobotics.Tools.Library
+namespace Org.SwerveRobotics.BlueBotBug.Service
     {
     //=================================================================================
 
@@ -38,6 +38,7 @@ namespace Org.SwerveRobotics.Tools.Library
         public const int ERROR_SHARING_VIOLATION        = 32;
         public const int ERROR_LOCK_VIOLATION           = 33;
         public const int ERROR_INVALID_PARAMETER        = 87;
+        public const int ERROR_NO_MORE_ITEMS            = 259;
         public const int ERROR_OPERATION_ABORTED        = 995;
         public const int ERROR_IO_INCOMPLETE            = 996;
         public const int ERROR_IO_PENDING               = 997;

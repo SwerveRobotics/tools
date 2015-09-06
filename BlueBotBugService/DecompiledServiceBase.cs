@@ -19,7 +19,7 @@ using System.Runtime.InteropServices;
 using System.Security.Permissions;
 using System.Threading;
 using System.ServiceProcess;
-using Org.SwerveRobotics.Tools.Library;
+using Org.SwerveRobotics.BlueBotBug.Service;
 
 namespace Org.SwerveRobotics.BlueBotBug.Service
     {

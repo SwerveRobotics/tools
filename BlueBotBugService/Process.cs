@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Diagnostics;
 
-namespace Org.SwerveRobotics.Tools.Library
+namespace Org.SwerveRobotics.BlueBotBug.Service
     {
     public static class ProcessUtil
     // A class with various utilities for manipulating processes

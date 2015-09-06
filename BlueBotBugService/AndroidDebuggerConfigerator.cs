@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Org.SwerveRobotics.Tools.Library
+namespace Org.SwerveRobotics.BlueBotBug.Service
     {
     public class AndroidDebuggerConfigerator 
         {
