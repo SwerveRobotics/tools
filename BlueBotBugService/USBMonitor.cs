@@ -308,6 +308,10 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                     int cb = AdbInterfaceInfo_Managed.CbMarshalledSize;
                     while (AdbNextInterface(hADB, ref info, ref cb))
                         {
+                        string path = @"\\?\USB#VID_19D2&PID_1351&MI_01#7&6f0a7d6&1&0001#{f72fe0d4-cbcb-407d-8814-9ed673d0dd6b}";
+                        IntPtr h = CreateFile(path, GENERIC_WRITE, FILE_SHARE_WRITE, IntPtr.Zero, OPEN_EXISTING, 0, IntPtr.Zero);
+                        CloseHandle(h);
+
                         IntPtr hintf = OpenUSBDeviceInterface(info);
                         try
                             {

@@ -10,3 +10,4 @@
 #include <SetupAPI.h>
 #include <strsafe.h>
 #include <usbspec.h>
+#include <winusb.h>
