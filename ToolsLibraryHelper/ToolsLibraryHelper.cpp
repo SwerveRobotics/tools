@@ -3,7 +3,7 @@
 //
 #include "stdafx.h"
 
-template<class T> void Zero(T* pTarget, int cb)
+template<class T> void Zero(T* pTarget, size_t cb)
     {
     memset(pTarget, 0, cb);
     }
@@ -25,69 +25,108 @@ void Construct(SP_DEVICE_INTERFACE_DATA& result)
 void Construct(SP_DEVICE_INTERFACE_DETAIL_DATA_W& result, int cbAllocated)
     {
     Zero(&result, cbAllocated);
-    result.cbSize = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA);    // C
+    result.cbSize = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA);
+    }
+LPWSTR AllocCopyString(LPWSTR wsz)
+    {
+    size_t cbAlloc = (wcslen(wsz) + 1) * sizeof(wsz[0]);
+    LPWSTR result = static_cast<LPWSTR>(CoTaskMemAlloc(cbAlloc));
+    if (result != nullptr)
+        StringCbCopy(result, cbAlloc, wsz);
+    return result;
     }
 
-extern "C" __declspec(dllexport) void EnumerateUSBDevices(GUID& guidInterfaceClass)
+LPWSTR GetDeviceInstanceId(HDEVINFO hDevInfo, SP_DEVINFO_DATA& devInfoDevice)
     {
-    int err;
-    HDEVINFO hDeviceInfoSet = SetupDiGetClassDevsW(&guidInterfaceClass, nullptr, nullptr, DIGCF_PRESENT | DIGCF_DEVICEINTERFACE);
-    if (hDeviceInfoSet != INVALID_HANDLE_VALUE)
+    DWORD cbRequired = 0;
+    SetupDiGetDeviceInstanceIdW(hDevInfo, &devInfoDevice, nullptr, cbRequired, &cbRequired);
+    LPWSTR result = static_cast<LPWSTR>(CoTaskMemAlloc(cbRequired));
+    if (SetupDiGetDeviceInstanceIdW(hDevInfo, &devInfoDevice, result, cbRequired, &cbRequired))
+        {
+        // All is well
+        }
+    else
+        {
+        CoTaskMemFree(result);
+        result = nullptr;
+        }
+
+    return result;
+    }
+
+struct EnumeratedUSBDevice
+    {
+    GUID        guidInterface;
+    LPWSTR      wszInterfacePath;
+    };
+
+extern "C" __declspec(dllexport) BOOL EnumerateUSBDevices(GUID& guidInterfaceClass, EnumeratedUSBDevice** ppResult, int*pcDevices)
+    {
+    EnumeratedUSBDevice* pResult = nullptr;
+    BOOL fSuccess = true;
+    int cDevices = 0;
+
+    int err = 0;
+    HDEVINFO hDevInfo = SetupDiGetClassDevsW(&guidInterfaceClass, nullptr, nullptr, DIGCF_PRESENT | DIGCF_DEVICEINTERFACE);
+    if (hDevInfo != INVALID_HANDLE_VALUE)
         {
         __try
             {
+            // How many results did we get?
+            for (cDevices = 0 ;; cDevices++)
+                {
+                SP_DEVINFO_DATA devInfoInterface; Construct(devInfoInterface);
+                if (SetupDiEnumDeviceInfo(hDevInfo, cDevices, &devInfoInterface))
+                    {
+                    }
+                else
+                    break;
+                }
+
+            size_t cbResult = cDevices * sizeof(EnumeratedUSBDevice);
+            pResult = static_cast<EnumeratedUSBDevice*>(CoTaskMemAlloc(cbResult));
+            Zero(pResult, cbResult);
+
             DWORD cbRequired;
 
             // Enumerate all those devices
-            for (int iDevInfo = 0;; iDevInfo++)
+            for (int iResult = 0; fSuccess; iResult++)
                 {
-                SP_DEVINFO_DATA devInfoEnum; Construct(devInfoEnum);
-                if (SetupDiEnumDeviceInfo(hDeviceInfoSet, iDevInfo, &devInfoEnum))
-                    {
-                    if (false)
-                        {
-                        // Retrieve the device instance ID that is associated with the current device information element
-                        cbRequired = 2;     // size is arbitrary, but seems to be necessary that it be non-zero (?)
-                        LPWSTR pbDeviceInstanceId = static_cast<LPWSTR>(CoTaskMemAlloc(cbRequired));
-                        __try 
-                            {
-                            if (!SetupDiGetDeviceInstanceIdW(hDeviceInfoSet, &devInfoEnum, pbDeviceInstanceId, cbRequired, &cbRequired))
-                                {
-                                CoTaskMemFree(pbDeviceInstanceId);
-                                pbDeviceInstanceId = static_cast<LPWSTR>(CoTaskMemAlloc(cbRequired));
-                                if (!SetupDiGetDeviceInstanceIdW(hDeviceInfoSet, &devInfoEnum, pbDeviceInstanceId, cbRequired, &cbRequired))
-                                    {
-                                    return;
-                                    }
-                                }
-                            }
-                        __finally
-                            {
-                            CoTaskMemFree(pbDeviceInstanceId);
-                            }
-                        }
+                pResult[iResult].guidInterface = guidInterfaceClass;
 
+                SP_DEVINFO_DATA devInfoInterface; Construct(devInfoInterface);
+                if (SetupDiEnumDeviceInfo(hDevInfo, iResult, &devInfoInterface))
+                    {
                     if (true)
                         {
                         // Enumerate the interfaces of that device information element
                         SP_DEVICE_INTERFACE_DATA deviceInterfaceData; Construct(deviceInterfaceData);
                         for (int iInterface = 0;; iInterface++)
                             {
-                            if (SetupDiEnumDeviceInterfaces(hDeviceInfoSet, &devInfoEnum, &guidInterfaceClass, iInterface, &deviceInterfaceData))
+                            if (SetupDiEnumDeviceInterfaces(hDevInfo, &devInfoInterface, &guidInterfaceClass, iInterface, &deviceInterfaceData))
                                 {
-                                // Retrieve the device path of that interface and 
-                                SetupDiGetDeviceInterfaceDetailW(hDeviceInfoSet, &deviceInterfaceData, nullptr, 0, &cbRequired, nullptr);
+                                // Retrieve the device path of that interface and the actual device object itself
+                                SetupDiGetDeviceInterfaceDetailW(hDevInfo, &deviceInterfaceData, nullptr, 0, &cbRequired, nullptr);
                                 SP_DEVICE_INTERFACE_DETAIL_DATA_W* pInterfaceDetail = static_cast<SP_DEVICE_INTERFACE_DETAIL_DATA_W*>(CoTaskMemAlloc(cbRequired));
                                 __try
                                     {
                                     Construct(*pInterfaceDetail, cbRequired);
                                     SP_DEVINFO_DATA devInfoDevice; Construct(devInfoDevice);
-                                    if (SetupDiGetDeviceInterfaceDetailW(hDeviceInfoSet, &deviceInterfaceData, pInterfaceDetail, cbRequired, &cbRequired, &devInfoDevice))
+                                    if (SetupDiGetDeviceInterfaceDetailW(hDevInfo, &deviceInterfaceData, pInterfaceDetail, cbRequired, &cbRequired, &devInfoDevice))
                                         {
-                                        
+                                        pResult[iResult].wszInterfacePath = AllocCopyString(pInterfaceDetail->DevicePath);
+                                        if (pResult[iResult].wszInterfacePath != nullptr)
+                                            {
+                                            
+                                            }
+                                        else
+                                            fSuccess = false;
+
+                                        // LPWSTR wszDeviceInstanceId = GetDeviceInstanceId(hDevInfo, devInfoDevice);
+                                        // CoTaskMemFree(wszDeviceInstanceId);
                                         }
                                     else
-                                        err = GetLastError();
+                                        fSuccess = false;
                                     }
                                 __finally
                                     {
@@ -107,11 +146,16 @@ extern "C" __declspec(dllexport) void EnumerateUSBDevices(GUID& guidInterfaceCla
         __finally
             {
             // Clean up the device enumeration
-            SetupDiDestroyDeviceInfoList(hDeviceInfoSet);
+            SetupDiDestroyDeviceInfoList(hDevInfo);
             }
         }
     else
-        {
         err = GetLastError();    
-        }
+    
+    if (nullptr== pResult)
+        cDevices = 0;
+
+    *pcDevices = cDevices;
+    *ppResult  = pResult;
+    return fSuccess;
     }

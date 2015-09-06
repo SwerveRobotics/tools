@@ -176,7 +176,7 @@ namespace Org.SwerveRobotics.Tools.Library
             if (this.started)
                 {
                 GetDeviceNotificationsFor(guid);
-                FindExistingDevices(guid);
+                // FindExistingDevices(guid);
                 }
             }
 
@@ -216,7 +216,7 @@ namespace Org.SwerveRobotics.Tools.Library
                 foreach (Guid guid in this.deviceInterfacesOfInterest)
                     {
                     GetDeviceNotificationsFor(guid);
-                    FindExistingDevices(guid);
+                    // FindExistingDevices(guid);
                     }
                 
                 this.started = true;
@@ -256,9 +256,6 @@ namespace Org.SwerveRobotics.Tools.Library
 
         public void AddDeviceIfNecessary(USBDeviceInterface device)
             {
-            Guid intf = deviceInterfacesOfInterest[0];
-            ToolsLibraryHelper.EnumerateUSBDevices(ref intf);
-
             lock (theLock)
                 {
                 if (this.deviceInterfacesOfInterest.Contains(device.GuidDeviceInterface))
@@ -297,68 +294,43 @@ namespace Org.SwerveRobotics.Tools.Library
         // Scanning
         //-----------------------------------------------------------------------------------------
 
+        [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Unicode)]
+        unsafe struct EnumeratedUSBDevice
+            {
+            public Guid     guidInterface;
+            public char*    wszInterfacePath;
+            };
+
+
         static class ToolsLibraryHelper
             {
-            [DllImport("ToolsLibraryHelper.dll", CharSet = CharSet.Unicode)] public static extern 
-            IntPtr EnumerateUSBDevices(ref Guid guidInterfaceClass);
+            [DllImport("ToolsLibraryHelper.dll", CharSet = CharSet.Unicode)] public unsafe static extern 
+            bool EnumerateUSBDevices(ref Guid guidInterfaceClass, out EnumeratedUSBDevice* pDevices, out int cDevices);
             }
 
         //  “adb shell netcfg” | qgrep -y wlan
         // adb shell ifconfig wlan0
 
-        void FindExistingDevices(Guid guidInterfaceClass)
+        unsafe void FindExistingDevices(Guid guidInterfaceClass)
             {
-            return;
-            IntPtr hDeviceInfoSet = INVALID_HANDLE_VALUE;
-            try 
+            List<USBDeviceInformationElement> devices = new List<USBDeviceInformationElement>();
+
+            int cDevices = 0;
+            EnumeratedUSBDevice* pDevices = null;
+            if (ToolsLibraryHelper.EnumerateUSBDevices(ref guidInterfaceClass, out pDevices, out cDevices))
                 {
-                hDeviceInfoSet = SetupDiGetClassDevsW(ref guidInterfaceClass, IntPtr.Zero, IntPtr.Zero, DIGCF_PRESENT | DIGCF_DEVICEINTERFACE);
-                if (INVALID_HANDLE_VALUE==hDeviceInfoSet)
-                    ThrowWin32Error();
-
-                SP_DEVICE_INTERFACE_DATA did = SP_DEVICE_INTERFACE_DATA.Construct();
-
-                for (int iInterface=0 ;; iInterface++)
+                for (int iDevice = 0; iDevice < cDevices; iDevice++)
                     {
-                    // Get did of the next interface
-                    bool fSuccess = SetupDiEnumDeviceInterfaces
-                        (hDeviceInfoSet,
-                        IntPtr.Zero,        // change
-                        ref guidInterfaceClass,
-                        iInterface,
-                        ref did);
-
-                    if (!fSuccess)
-                        {
-                        break;  // Done! no more 
-                        }
-                    else
-                        {
-                        // A device is present. Get details
-                        SP_DEVICE_INTERFACE_DETAIL_DATA_MANAGED detail = SP_DEVICE_INTERFACE_DETAIL_DATA_MANAGED.Construct();
-
-                        int cbRequired;
-                        ThrowIfFail(SetupDiGetDeviceInterfaceDetail
-                            (hDeviceInfoSet,
-                            ref did,
-                            ref detail,
-                            Marshal.SizeOf(detail),
-                            out cbRequired,
-                            IntPtr.Zero));
-
-                        USBDeviceInterface device = new USBDeviceInterface(true, did.InterfaceClassGuid, detail.DevicePath);
-                        this.AddDeviceIfNecessary(device);
-                        }
-
+                    string interfacePath = Marshal.PtrToStringUni(new IntPtr(pDevices[iDevice].wszInterfacePath));
                     }
                 }
-            finally
-                { 
-                if (hDeviceInfoSet != IntPtr.Zero && hDeviceInfoSet != INVALID_HANDLE_VALUE)
-                    {
-                    SetupDiDestroyDeviceInfoList(hDeviceInfoSet);
-                    }
+
+            // Free up everything, always
+            for (int iDevice = 0; iDevice < cDevices; iDevice++)
+                {
+                Marshal.FreeCoTaskMem(new IntPtr(pDevices[iDevice].wszInterfacePath));
                 }
+            Marshal.FreeCoTaskMem(new IntPtr(pDevices));
             }
 
 
@@ -372,6 +344,7 @@ namespace Org.SwerveRobotics.Tools.Library
                 {
                 DEV_BROADCAST_DEVICEINTERFACE_W* pintf = (DEV_BROADCAST_DEVICEINTERFACE_W*)args.pHeader;
                 // Trace(pintf);
+                FindExistingDevices(pintf->dbcc_classguid);
                 this.AddDeviceIfNecessary(new USBDeviceInterface(true, pintf));
                 }
             }

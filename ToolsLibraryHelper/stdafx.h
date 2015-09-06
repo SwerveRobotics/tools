@@ -8,3 +8,4 @@
 
 #include <windows.h>
 #include <SetupAPI.h>
+#include <strsafe.h>
