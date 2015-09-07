@@ -10,7 +10,7 @@ namespace Managed.Adb {
 
 		}
 
-		public String ResolvedPath { get; set; }
+		public string ResolvedPath { get; set; }
 
 		protected override void ProcessNewLines ( string[] lines ) {
 			// all we care about is a line with '->'

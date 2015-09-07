@@ -9,12 +9,12 @@ namespace Managed.Adb.Exceptions {
 	/// Exception thrown when adb refuses a command.
 	/// </summary>
 	public class AdbCommandRejectedException : AdbException {
-		public AdbCommandRejectedException ( String message )
+		public AdbCommandRejectedException (string message )
 			: base ( message ) {
 			IsDeviceOffline = message.Equals ( "device offline" );
 			WasErrorDuringDeviceSelection = false;
 		}
-		public AdbCommandRejectedException ( String message, bool errorDuringDeviceSelection )
+		public AdbCommandRejectedException (string message, bool errorDuringDeviceSelection )
 			: base ( message ) {
 			WasErrorDuringDeviceSelection = errorDuringDeviceSelection;
 			IsDeviceOffline = message.Equals ( "device offline" );

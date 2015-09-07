@@ -21,7 +21,7 @@ namespace Managed.Adb.Exceptions {
 		/// Initializes a new instance of the <see cref="AdbException"/> class.
 		/// </summary>
 		/// <param name="message">The message.</param>
-		public AdbException( String message )
+		public AdbException(string message )
 			: base ( message ) {
 
 		}
@@ -40,7 +40,7 @@ namespace Managed.Adb.Exceptions {
 		/// </summary>
 		/// <param name="message">The message.</param>
 		/// <param name="innerException">The inner exception.</param>
-		public AdbException( String message, Exception innerException )
+		public AdbException(string message, Exception innerException )
 			: base ( message, innerException ) {
 
 		}

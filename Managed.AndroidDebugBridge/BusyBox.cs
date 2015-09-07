@@ -15,11 +15,11 @@ namespace Managed.Adb {
 		/// <summary>
 		/// 
 		/// </summary>
-		private const String BUSYBOX_BIN = "/data/local/bin/";
+		private const string BUSYBOX_BIN = "/data/local/bin/";
 		/// <summary>
 		/// 
 		/// </summary>
-		private const String BUSYBOX_COMMAND = "busybox";
+		private const string BUSYBOX_COMMAND = "busybox";
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="BusyBox"/> class.
@@ -28,7 +28,7 @@ namespace Managed.Adb {
 		public BusyBox ( Device device ) {
 			this.Device = device;
 			Version = new System.Version ( "0.0.0.0" );
-			Commands = new List<String> ( );
+			Commands = new List<string> ( );
 			CheckForBusyBox ( );
 
 		}
@@ -38,7 +38,7 @@ namespace Managed.Adb {
 		/// </summary>
 		/// <param name="busybox">The path to the busybox binary to install.</param>
 		/// <returns><c>true</c>, if successful; otherwise, <c>false</c></returns>
-		public bool Install ( String busybox ) {
+		public bool Install (string busybox ) {
 			busybox.ThrowIfNullOrWhiteSpace ( "busybox" );
 
 			FileEntry bb = null;
@@ -67,7 +67,7 @@ namespace Managed.Adb {
 
 				Device.FileSystem.Chmod ( path.FullPath, "0755" );
 
-				String bbPath = LinuxPath.Combine ( path.FullPath, BUSYBOX_COMMAND );
+                string bbPath = LinuxPath.Combine ( path.FullPath, BUSYBOX_COMMAND );
 
 				Device.FileSystem.Copy ( busybox, bbPath );
 
@@ -80,7 +80,7 @@ namespace Managed.Adb {
 				// check if this path exists in the path already
 				if ( Device.EnvironmentVariables.ContainsKey ( "PATH" ) ) {
 					var paths = Device.EnvironmentVariables["PATH"].Split ( ':' );
-					var found = paths.Where ( p => String.Compare ( p, BUSYBOX_BIN, false ) == 0 ).Count ( ) > 0;
+					var found = paths.Where ( p => string.Compare ( p, BUSYBOX_BIN, false ) == 0 ).Count ( ) > 0;
 
 					// we didnt find it, so add it.
 					if ( !found ) {
@@ -128,9 +128,9 @@ namespace Managed.Adb {
 		/// <param name="command"></param>
 		/// <param name="receiver"></param>
 		/// <param name="commandArgs"></param>
-		public void ExecuteShellCommand( String command, IShellOutputReceiver receiver, params object[] commandArgs ) {
+		public void ExecuteShellCommand(string command, IShellOutputReceiver receiver, params object[] commandArgs ) {
 			command.ThrowIfNullOrWhiteSpace ( "command" );
-			var cmd = String.Format ( "{0} {1}", BUSYBOX_COMMAND, String.Format ( command, commandArgs ) );
+			var cmd = string.Format ( "{0} {1}", BUSYBOX_COMMAND, string.Format ( command, commandArgs ) );
 			Log.d ( "executing: {0}", cmd );
 			AdbHelper.Instance.ExecuteRemoteCommand ( AndroidDebugBridge.SocketAddress, cmd, this.Device, receiver );
 		}
@@ -141,9 +141,9 @@ namespace Managed.Adb {
 		/// <param name="command">The command.</param>
 		/// <param name="receiver">The receiver.</param>
 		/// <param name="commandArgs">The command args.</param>
-		public void ExecuteRootShellCommand( String command, IShellOutputReceiver receiver, params object[] commandArgs ) {
+		public void ExecuteRootShellCommand(string command, IShellOutputReceiver receiver, params object[] commandArgs ) {
 			command.ThrowIfNullOrWhiteSpace ( "command" );
-			var cmd = String.Format ( "{0} {1}", BUSYBOX_COMMAND, String.Format ( command, commandArgs ) );
+			var cmd = string.Format ( "{0} {1}", BUSYBOX_COMMAND, string.Format ( command, commandArgs ) );
 			Log.d ( "executing (su): {0}", cmd );
 			AdbHelper.Instance.ExecuteRemoteRootCommand ( AndroidDebugBridge.SocketAddress, cmd, this.Device, receiver );
 		}
@@ -166,21 +166,21 @@ namespace Managed.Adb {
 		/// <summary>
 		/// Gets a collection of the supported commands
 		/// </summary>
-		public List<String> Commands { get; private set; }
+		public List<string> Commands { get; private set; }
 
 		/// <summary>
 		/// Gets if the specified command name is supported by this version of busybox
 		/// </summary>
 		/// <param name="command">The command name to check</param>
 		/// <returns><c>true</c>, if supported; otherwise, <c>false</c>.</returns>
-		public bool Supports ( String command ) {
+		public bool Supports (string command ) {
 			command.ThrowIfNullOrWhiteSpace ( "command" );
 
 			if ( Available && ( Commands == null || Commands.Count == 0 ) ) {
 				CheckForBusyBox ( );
 			}
 
-			return Commands.Where( c => String.Compare(c,command,false) == 0).FirstOrDefault() != null;
+			return Commands.Where( c => string.Compare(c,command,false) == 0).FirstOrDefault() != null;
 		}
 
 		/// <summary>
@@ -190,11 +190,11 @@ namespace Managed.Adb {
 			/// <summary>
 			/// The busybox version regex pattern
 			/// </summary>
-			private const String BB_VERSION_PATTERN = @"^BusyBox\sv(\d{1,}\.\d{1,}\.\d{1,})";
+			private const string BB_VERSION_PATTERN = @"^BusyBox\sv(\d{1,}\.\d{1,}\.\d{1,})";
 			/// <summary>
 			/// the busybox commands list regex pattern
 			/// </summary>
-			private const String BB_FUNCTIONS_PATTERN = @"(?:([\[a-z0-9]+)(?:,\s*))";
+			private const string BB_FUNCTIONS_PATTERN = @"(?:([\[a-z0-9]+)(?:,\s*))";
 
 			public BusyBoxCommandsReceiver ( BusyBox bb )
 				: base ( ) {

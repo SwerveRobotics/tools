@@ -10,13 +10,13 @@ namespace Managed.Adb {
 			
 		}
 
-		public FilePermissions ( String permissions ) {
+		public FilePermissions (string permissions ) {
 			if ( permissions.Length > 9 ) {
 				permissions = permissions.Substring ( 1,9 );
 			}
 
 			if ( permissions.Length < 9 ) {
-				throw new ArgumentException ( String.Format("Invalid permissions string: {0}",permissions) );
+				throw new ArgumentException (string.Format("Invalid permissions string: {0}",permissions) );
 			}
 
 			User = new FilePermission ( permissions.Substring ( 0, 3 ) );
@@ -36,11 +36,11 @@ namespace Managed.Adb {
 
 
 		public override string ToString ( ) {
-			return String.Format ( "{0}{1}{2}", User.ToString ( ), Group.ToString ( ), Other.ToString ( ) );
+			return string.Format ( "{0}{1}{2}", User.ToString ( ), Group.ToString ( ), Other.ToString ( ) );
 		}
 
-		public String ToChmod ( ) {
-			return String.Format ( "{0}{1}{2}", (int)User.ToChmod ( ), (int)Group.ToChmod ( ), (int)Other.ToChmod ( ) );
+		public string ToChmod ( ) {
+			return string.Format ( "{0}{1}{2}", (int)User.ToChmod ( ), (int)Group.ToChmod ( ), (int)Other.ToChmod ( ) );
 		}
 	}
 
@@ -119,7 +119,7 @@ namespace Managed.Adb {
 		/// </value>
 		public bool CanDelete { get; private set; }
 
-		public String ToString ( ) {
+		public string ToString ( ) {
 			StringBuilder perm = new StringBuilder ( );
 			return perm.AppendFormat ( "{0}", CanRead ? "r" : "-" ).AppendFormat ( "{0}", CanWrite ? "w" : "-" ).AppendFormat ( "{0}", CanExecute ? CanDelete ? "x" : "t" : "-" ).ToString ( );
 		}

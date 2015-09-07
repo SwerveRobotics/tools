@@ -12,11 +12,11 @@ namespace Managed.Adb {
 		/// <summary>
 		/// 
 		/// </summary>
-		public const String ENV_COMMAND = "printenv";
+		public const string ENV_COMMAND = "printenv";
 		/// <summary>
 		/// 
 		/// </summary>
-		private const String ENV_PATTERN = @"^([^=\s]+)\s*=\s*(.*)$";
+		private const string ENV_PATTERN = @"^([^=\s]+)\s*=\s*(.*)$";
 		/// <summary>
 		/// Initializes a new instance of the <see cref="EnvironmentVariablesReceiver"/> class.
 		/// </summary>
@@ -36,15 +36,15 @@ namespace Managed.Adb {
 		/// </summary>
 		/// <param name="lines">The lines.</param>
 		protected override void ProcessNewLines ( string[] lines ) {
-			foreach ( String line in lines ) {
-				if ( String.IsNullOrEmpty ( line ) || line.StartsWith ( "#" ) ) {
+			foreach (string line in lines ) {
+				if (string.IsNullOrEmpty ( line ) || line.StartsWith ( "#" ) ) {
 					continue;
 				}
 
 				Match m = Regex.Match ( line, ENV_PATTERN );
 				if ( m.Success ) {
-					String label = m.Groups[1].Value.Trim ( );
-					String value = m.Groups[2].Value.Trim ( );
+                    string label = m.Groups[1].Value.Trim ( );
+                    string value = m.Groups[2].Value.Trim ( );
 
 					if ( label.Length > 0 ) {
 						if ( Device.EnvironmentVariables.ContainsKey ( label ) ) {

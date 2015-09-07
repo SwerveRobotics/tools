@@ -21,7 +21,7 @@ namespace Managed.Adb {
 		/// <summary>
 		/// 
 		/// </summary>
-		public const String PM_FULL_LISTING = "pm list packages -f";
+		public const string PM_FULL_LISTING = "pm list packages -f";
 
 		/// <summary>
 		/// This is the pattern that supports busybox ls and toolbox ls.
@@ -43,42 +43,42 @@ namespace Managed.Adb {
 		/// <remarks>
 		/// added non-capture "(?:\d{1,},\s+)?" for "blocks"
 		/// </remarks>
-		public const String LS_PATTERN_EX = @"^([bcdlsp-][-r][-w][-xsS][-r][-w][-xsS][-r][-w][-xstST])\s+(?:\d{0,})?\s*(\S+)\s+(\S+)\s+(?:\d{1,},\s+)?(\d{1,}|\s)\s+(\w{3}|\d{4})[\s-](?:\s?(\d{1,2})\s?)[\s-]\s?(?:(\d{2}|\d{4}|\s)\s*)?(\d{2}:\d{2}|\s)\s*(.*?)([/@=*\|]?)$";
+		public const string LS_PATTERN_EX = @"^([bcdlsp-][-r][-w][-xsS][-r][-w][-xsS][-r][-w][-xstST])\s+(?:\d{0,})?\s*(\S+)\s+(\S+)\s+(?:\d{1,},\s+)?(\d{1,}|\s)\s+(\w{3}|\d{4})[\s-](?:\s?(\d{1,2})\s?)[\s-]\s?(?:(\d{2}|\d{4}|\s)\s*)?(\d{2}:\d{2}|\s)\s*(.*?)([/@=*\|]?)$";
 
 		/// <summary>
 		///  Top level data folder.
 		/// </summary>
-		public const String DIRECTORY_DATA = "data";
+		public const string DIRECTORY_DATA = "data";
 		/// <summary>
 		/// Top level sdcard folder.
 		/// </summary>
-		public const String DIRECTORY_SDCARD = "sdcard";
+		public const string DIRECTORY_SDCARD = "sdcard";
 		/// <summary>
 		/// Top level mount folder.
 		/// </summary>
-		public const String DIRECTORY_MNT = "mnt";
+		public const string DIRECTORY_MNT = "mnt";
 		/// <summary>
 		/// Top level system folder.
 		/// </summary>
-		public const String DIRECTORY_SYSTEM = "system";
+		public const string DIRECTORY_SYSTEM = "system";
 		/// <summary>
 		/// Top level temp folder.
 		/// </summary>
-		public const String DIRECTORY_TEMP = "tmp";
+		public const string DIRECTORY_TEMP = "tmp";
 		/// <summary>
 		/// Application folder. 
 		/// </summary>
-		public const String DIRECTORY_APP = "app";
+		public const string DIRECTORY_APP = "app";
 
 		/// <summary>
 		/// 
 		/// </summary>
-		public const String DIRECTORY_SD = "sdcard";
+		public const string DIRECTORY_SD = "sdcard";
 
 		/// <summary>
 		/// 
 		/// </summary>
-		public const String DIRECTORY_SDEXT = "sd-ext";
+		public const string DIRECTORY_SDEXT = "sd-ext";
 
 
 		/// <summary>
@@ -93,25 +93,25 @@ namespace Managed.Adb {
 		/// <summary>
 		/// 
 		/// </summary>
-		public const String FILE_SEPARATOR = "/";
+		public const string FILE_SEPARATOR = "/";
 		/// <summary>
 		/// 
 		/// </summary>
-		public const String FILE_ROOT = "/";
+		public const string FILE_ROOT = "/";
 
 		/// <summary>
 		/// 
 		/// </summary>
-		public const String BUSYBOX_LS = "busybox ls -lFa --color=never {0}";
+		public const string BUSYBOX_LS = "busybox ls -lFa --color=never {0}";
 		/// <summary>
 		/// 
 		/// </summary>
-		public const String TOOLBOX_LS = "ls -la {0}";
+		public const string TOOLBOX_LS = "ls -la {0}";
 
 		/// <summary>
 		/// 
 		/// </summary>
-		public static readonly String[] RootLevelApprovedItems = {
+		public static readonly string[] RootLevelApprovedItems = {
 				DIRECTORY_DATA,
 				DIRECTORY_SDCARD,
 				DIRECTORY_SYSTEM,
@@ -252,14 +252,14 @@ namespace Managed.Adb {
 
 				FileEntry[] children = state.Entry.Children.ToArray ( );
 				if ( children.Length > 0 && children[0].IsApplicationPackage ) {
-					var map = new Dictionary<String, FileEntry> ( );
+					var map = new Dictionary<string, FileEntry> ( );
 
 					children.ForEach ( child => {
 						map.Add ( child.FullPath, child );
 					} );
 
-					// call pm.
-					String command = PM_FULL_LISTING;
+                    // call pm.
+                    string command = PM_FULL_LISTING;
 					try {
 						this.Device.ExecuteShellCommand ( command, new PackageManagerListingReceiver ( map, receiver ) );
 					} catch ( IOException e ) {
@@ -316,11 +316,11 @@ namespace Managed.Adb {
 			List<FileEntry> entryList = new List<FileEntry> ( );
 
 			// create a list that will receive the link to compute post ls;
-			List<String> linkList = new List<String> ( );
+			List<string> linkList = new List<string> ( );
 
 			try {
-				// create the command
-				String command = String.Format ( ForceBusyBox ? BUSYBOX_LS : TOOLBOX_LS, entry.FullPath );
+                // create the command
+                string command = string.Format ( ForceBusyBox ? BUSYBOX_LS : TOOLBOX_LS, entry.FullPath );
 				// create the receiver object that will parse the result from ls
 				ListingServiceReceiver receiver = new ListingServiceReceiver ( entry, entryList, linkList );
 
@@ -363,7 +363,7 @@ namespace Managed.Adb {
 		/// <param name="path">The file path of</param>
 		/// <returns>The FileEntry</returns>
 		/// <exception cref="FileNotFoundException">Throws if unable to locate the file or directory</exception>
-		public FileEntry FindFileEntry ( String path ) {
+		public FileEntry FindFileEntry (string path ) {
 			return FindFileEntry ( this.Root, path );
 		}
 
@@ -373,7 +373,7 @@ namespace Managed.Adb {
 		/// <param name="parent">The parent.</param>
 		/// <param name="path">The path.</param>
 		/// <returns></returns>
-		public FileEntry FindFileEntry ( FileEntry parent, String path ) {
+		public FileEntry FindFileEntry ( FileEntry parent, string path ) {
 			var rpath = Device.FileSystem.ResolveLink ( path );
 			var entriesString = rpath.Split ( new char[] { LinuxPath.DirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries );
 			FileEntry current = parent;
@@ -382,7 +382,7 @@ namespace Managed.Adb {
 			foreach ( var pathItem in entriesString ) {
 				FileEntry[] entries = GetChildren ( current, true, null );
 				foreach ( var e in entries ) {
-					if ( String.Compare ( e.Name, pathItem, false ) == 0 ) {
+					if (string.Compare ( e.Name, pathItem, false ) == 0 ) {
 						current = e;
 						break;
 					}
@@ -390,13 +390,13 @@ namespace Managed.Adb {
 			}
 
 			// better checking if the file is the "same" based on the link or the reference
-			if ( ( String.Compare ( current.FullPath, path, false ) == 0 ||
-				String.Compare ( current.FullResolvedPath, path, false ) == 0 ||
-				String.Compare ( current.FullPath, rpath, false ) == 0 ||
-				String.Compare ( current.FullResolvedPath, rpath, false ) == 0 ) ) {
+			if ( (string.Compare ( current.FullPath, path, false ) == 0 ||
+                string.Compare ( current.FullResolvedPath, path, false ) == 0 ||
+                string.Compare ( current.FullPath, rpath, false ) == 0 ||
+                string.Compare ( current.FullResolvedPath, rpath, false ) == 0 ) ) {
 				return current;
 			} else {
-				throw new FileNotFoundException ( String.Format ( "Unable to locate {0}", path ) );
+				throw new FileNotFoundException (string.Format ( "Unable to locate {0}", path ) );
 			}
 		}
 	}

@@ -29,7 +29,7 @@ namespace Managed.Adb {
 		/// <param name="lines">The lines.</param>
 			protected override void ProcessNewLines ( string[] lines ) {
 				foreach ( var line in lines ) {
-					if ( String.IsNullOrEmpty ( line ) || line.StartsWith ( "#" ) || line.StartsWith("$") ) {
+					if (string.IsNullOrEmpty ( line ) || line.StartsWith ( "#" ) || line.StartsWith("$") ) {
 						continue;
 					}
 					Console.WriteLine ( line );

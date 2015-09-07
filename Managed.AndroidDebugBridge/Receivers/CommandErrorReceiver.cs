@@ -19,7 +19,7 @@ namespace Managed.Adb {
 		protected override void ProcessNewLines ( string[] lines ) {
 			StringBuilder message = new StringBuilder ( );
 			foreach ( var line in lines ) {
-				if ( String.IsNullOrEmpty ( line ) || line.StartsWith ( "#" ) || line.StartsWith("$") ) {
+				if (string.IsNullOrEmpty ( line ) || line.StartsWith ( "#" ) || line.StartsWith("$") ) {
 					continue;
 				}
 
@@ -37,6 +37,6 @@ namespace Managed.Adb {
 		/// <value>
 		/// The error message.
 		/// </value>
-		public String ErrorMessage { get; set; }
+		public string ErrorMessage { get; set; }
 	}
 }

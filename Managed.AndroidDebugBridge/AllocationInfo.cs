@@ -18,7 +18,7 @@ namespace Managed.Adb {
 		/// <param name="allocationSize">Size of the allocation.</param>
 		/// <param name="threadId">The thread id.</param>
 		/// <param name="stackTrace">The stack trace.</param>
-		public AllocationInfo ( String allocatedClass, int allocationSize, short threadId, StackTrace stackTrace ) {
+		public AllocationInfo (string allocatedClass, int allocationSize, short threadId, StackTrace stackTrace ) {
 			AllocatedClass = allocatedClass;
 			AllocationSize = allocationSize;
 			ThreadId = threadId;
@@ -29,7 +29,7 @@ namespace Managed.Adb {
 		/// Gets the allocated class.
 		/// </summary>
 		/// <value>The allocated class.</value>
-		public String AllocatedClass { get; private set; }
+		public string AllocatedClass { get; private set; }
 		/// <summary>
 		/// Gets the size of the allocation.
 		/// </summary>

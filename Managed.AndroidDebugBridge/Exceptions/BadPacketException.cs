@@ -21,7 +21,7 @@ namespace Managed.Adb.Exceptions {
 		/// Initializes a new instance of the <see cref="BadPacketException"/> class.
 		/// </summary>
 		/// <param name="msg">The MSG.</param>
-		public BadPacketException ( String msg )
+		public BadPacketException (string msg )
 			: base ( msg ) {
 
 		}

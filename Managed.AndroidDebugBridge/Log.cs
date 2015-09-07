@@ -67,7 +67,7 @@ namespace Managed.Adb {
 		/// </summary>
 		/// <param name="tag">The tag associated with the message.</param>
 		/// <param name="message">The message to output</param>
-		public static void v ( String tag, String message ) {
+		public static void v (string tag, string message ) {
 			WriteLine ( LogLevel.Verbose, tag, message );
 		}
 
@@ -77,8 +77,8 @@ namespace Managed.Adb {
 		/// <param name="tag">The tag associated with the message.</param>
 		/// <param name="format">The message to output format string.</param>
 		/// <param name="args">The values for the format message</param>
-		public static void v ( String tag, String format, params object[] args ) {
-			WriteLine ( LogLevel.Verbose, tag, String.Format ( format, args ) );
+		public static void v (string tag, string format, params object[] args ) {
+			WriteLine ( LogLevel.Verbose, tag, string.Format ( format, args ) );
 		}
 
 		/// <summary>
@@ -86,7 +86,7 @@ namespace Managed.Adb {
 		/// </summary>
 		/// <param name="tag">The tag associated with the message.</param>
 		/// <param name="message">The message to output</param>
-		public static void d ( String tag, String message ) {
+		public static void d (string tag, string message ) {
 			WriteLine ( LogLevel.Debug, tag, message );
 		}
 
@@ -96,8 +96,8 @@ namespace Managed.Adb {
 		/// <param name="tag">The tag associated with the message.</param>
 		/// <param name="format">The message to output format string.</param>
 		/// <param name="args">The values for the format message</param>
-		public static void d ( String tag, String format, params object[] args ) {
-			WriteLine ( LogLevel.Debug, tag, String.Format ( format, args ) );
+		public static void d (string tag, string format, params object[] args ) {
+			WriteLine ( LogLevel.Debug, tag, string.Format ( format, args ) );
 		}
 
 		/// <summary>
@@ -105,7 +105,7 @@ namespace Managed.Adb {
 		/// </summary>
 		/// <param name="tag">The tag associated with the message.</param>
 		/// <param name="format">The message to output.</param>
-		public static void i ( String tag, String message ) {
+		public static void i (string tag, string message ) {
 			WriteLine ( LogLevel.Info, tag, message );
 		}
 
@@ -115,8 +115,8 @@ namespace Managed.Adb {
 		/// <param name="tag">The tag associated with the message.</param>
 		/// <param name="format">The message to output format string.</param>
 		/// <param name="args">The values for the format message</param>
-		public static void i ( String tag, String format, params object[] args ) {
-			WriteLine ( LogLevel.Info, tag, String.Format ( format, args ) );
+		public static void i (string tag, string format, params object[] args ) {
+			WriteLine ( LogLevel.Info, tag, string.Format ( format, args ) );
 		}
 
 		/// <summary>
@@ -124,7 +124,7 @@ namespace Managed.Adb {
 		/// </summary>
 		/// <param name="tag">The tag associated with the message.</param>
 		/// <param name="message">The message to output.</param>
-		public static void w ( String tag, String message ) {
+		public static void w (string tag, string message ) {
 			WriteLine ( LogLevel.Warn, tag, message );
 		}
 
@@ -134,8 +134,8 @@ namespace Managed.Adb {
 		/// <param name="tag">The tag associated with the message.</param>
 		/// <param name="format">The message to output format string.</param>
 		/// <param name="args">The values for the format message</param>
-		public static void w ( String tag, String format, params object[] args ) {
-			WriteLine ( LogLevel.Warn, tag, String.Format ( format, args ) );
+		public static void w (string tag, string format, params object[] args ) {
+			WriteLine ( LogLevel.Warn, tag, string.Format ( format, args ) );
 		}
 
 		/// <summary>
@@ -143,7 +143,7 @@ namespace Managed.Adb {
 		/// </summary>
 		/// <param name="tag">The tag associated with the message.</param>
 		/// <param name="exception">The exception to warn</param>
-		public static void w ( String tag, Exception exception ) {
+		public static void w (string tag, Exception exception ) {
 			if ( exception != null ) {
 				w ( tag, exception.ToString ( ) );
 			}
@@ -155,7 +155,7 @@ namespace Managed.Adb {
 		/// <param name="tag">The tag associated with the message.</param>
 		/// <param name="message">The message to output.</param>
 		/// <param name="exception">The exception to warn</param>
-		public static void w ( String tag, String message, Exception exception ) {
+		public static void w (string tag, string message, Exception exception ) {
 			w ( tag, "{0}\n{1}", message, exception );
 		}
 
@@ -165,7 +165,7 @@ namespace Managed.Adb {
 		/// <param name="tag">The tag associated with the message.</param>
 		/// <param name="message">The message to output.</param>
 		/// <gist id="f4fa3525f899e5461d4e" />
-		public static void e ( String tag, String message ) {
+		public static void e (string tag, string message ) {
 			WriteLine ( LogLevel.Error, tag, message );
 		}
 
@@ -176,8 +176,8 @@ namespace Managed.Adb {
 		/// <param name="format">The message to output format string.</param>
 		/// <param name="args">The values for the format message</param>
 		/// <gist id="16a731d7e4f074fca809" />
-		public static void e ( String tag, String format, params object[] args ) {
-			WriteLine ( LogLevel.Error, tag, String.Format ( format, args ) );
+		public static void e (string tag, string format, params object[] args ) {
+			WriteLine ( LogLevel.Error, tag, string.Format ( format, args ) );
 		}
 
 		/// <summary>
@@ -186,7 +186,7 @@ namespace Managed.Adb {
 		/// <param name="tag">The tag associated with the message.</param>
 		/// <param name="exception">The exception to warn</param>
 		/// <gist id="4e0438f59a00d57af4ef"/>
-		public static void e ( String tag, Exception exception ) {
+		public static void e (string tag, Exception exception ) {
 			if ( exception != null ) {
 				e ( tag, exception.ToString ( ) );
 			}
@@ -199,7 +199,7 @@ namespace Managed.Adb {
 		/// <param name="message">The message to output.</param>
 		/// <param name="exception">The exception to warn</param>
 		/// <gist id="90b6664f4dd84da50b27" />
-		public static void e ( String tag, String message, Exception exception ) {
+		public static void e (string tag, string message, Exception exception ) {
 			e ( tag, "{0}\n{1}", message, exception );
 		}
 
@@ -210,7 +210,7 @@ namespace Managed.Adb {
 		/// <param name="logLevel">The log level</param>
 		/// <param name="tag">The tag associated with the message.</param>
 		/// <param name="message">The message to output.</param>
-		public static void LogAndDisplay ( LogLevel.LogLevelInfo logLevel, String tag, String message ) {
+		public static void LogAndDisplay ( LogLevel.LogLevelInfo logLevel, string tag, string message ) {
 			if ( LogOutput != null ) {
 				LogOutput.WriteAndPromptLog ( logLevel, tag, message );
 			} else {
@@ -232,7 +232,7 @@ namespace Managed.Adb {
 		/// 1230- 00 11 22 33 44 55 66 77 88 99 aa bb cc dd ee ff  0123456789abcdef
 		/// Uses no string concatenation; creates one String object per line.
 		/// </remarks>
-		internal static void HexDump ( String tag, LogLevel.LogLevelInfo level, byte[] data, int offset, int length ) {
+		internal static void HexDump (string tag, LogLevel.LogLevelInfo level, byte[] data, int offset, int length ) {
 
 			int kHexOffset = 6;
 			int kAscOffset = 55;
@@ -284,7 +284,7 @@ namespace Managed.Adb {
 						line[kAscOffset + i] = '.';
 				}
 
-				WriteLine ( level, tag, new String ( line ) );
+				WriteLine ( level, tag, new string( line ) );
 
 				// advance to next chunk of data
 				length -= count;
@@ -309,7 +309,7 @@ namespace Managed.Adb {
 		/// <param name="logLevel"></param>
 		/// <param name="tag"></param>
 		/// <param name="message"></param>
-		private static void WriteLine ( LogLevel.LogLevelInfo logLevel, String tag, String message ) {
+		private static void WriteLine ( LogLevel.LogLevelInfo logLevel, string tag, string message ) {
 			if ( logLevel.Priority >= Level.Priority ) {
 				if ( LogOutput != null ) {
 					LogOutput.Write ( logLevel, tag, message );
@@ -325,7 +325,7 @@ namespace Managed.Adb {
 		/// <param name="logLevel"></param>
 		/// <param name="tag"></param>
 		/// <param name="message"></param>
-		public static void Write ( LogLevel.LogLevelInfo logLevel, String tag, String message ) {
+		public static void Write ( LogLevel.LogLevelInfo logLevel, string tag, string message ) {
 			Console.Write ( GetLogFormatString ( logLevel, tag, message ) );
 		}
 
@@ -336,9 +336,9 @@ namespace Managed.Adb {
 		/// <param name="tag"></param>
 		/// <param name="message"></param>
 		/// <returns></returns>
-		public static String GetLogFormatString ( LogLevel.LogLevelInfo logLevel, String tag, String message ) {
+		public static string GetLogFormatString ( LogLevel.LogLevelInfo logLevel, string tag, string message ) {
 			long msec = DateTime.Now.ToUnixEpoch ( );
-			return String.Format ( "{0:00}:{1:00} {2}/{3}: {4}\n", ( msec / 60000 ) % 60, ( msec / 1000 ) % 60,
+			return string.Format ( "{0:00}:{1:00} {2}/{3}: {4}\n", ( msec / 60000 ) % 60, ( msec / 1000 ) % 60,
 							logLevel.Letter, tag, message );
 		}
 	}

@@ -81,7 +81,7 @@ namespace Managed.Adb {
 				MemoryStream data, bool isReply, int msgId ) {
 			if ( type == CHUNK_FAIL ) {
 				int errorCode, msgLen;
-				String msg;
+                string msg;
 
 				errorCode = data.ReadByte ( );
 				msgLen = data.ReadByte ( );
@@ -103,17 +103,17 @@ namespace Managed.Adb {
 		 * This is here because multiple chunk handlers can make use of it,
 		 * and there's nowhere better to put it.
 		 */
-		static String GetString ( MemoryStream buf, int len ) {
+		static string GetString ( MemoryStream buf, int len ) {
 			char[] data = new char[len];
 			for ( int i = 0; i < len; i++ )
 				data[i] = (char)buf.ReadByte ( );
-			return new String ( data );
+			return new string( data );
 		}
 
 		/**
 		 * Utility function to copy a String into a ByteBuffer.
 		 */
-		static void PutString ( MemoryStream buf, String str ) {
+		static void PutString ( MemoryStream buf, string str ) {
 			byte[] data = Encoding.Default.GetBytes ( str );
 			buf.Write ( data, 0, data.Length );
 		}
@@ -121,7 +121,7 @@ namespace Managed.Adb {
 		/**
 		 * Convert a 4-character string to a 32-bit type.
 		 */
-		static int type ( String typeName ) {
+		static int type (string typeName ) {
 			int val = 0;
 
 			if ( typeName.Length != 4 ) {
@@ -140,7 +140,7 @@ namespace Managed.Adb {
 		/**
 		 * Convert an integer type to a 4-character string.
 		 */
-		static String name ( int type ) {
+		static string name ( int type ) {
 			char[] ascii = new char[4];
 
 			ascii[0] = (char)( ( type >> 24 ) & 0xff );
@@ -148,7 +148,7 @@ namespace Managed.Adb {
 			ascii[2] = (char)( ( type >> 8 ) & 0xff );
 			ascii[3] = (char)( type & 0xff );
 
-			return new String ( ascii );
+			return new string( ascii );
 		}
 
 		/**
@@ -215,7 +215,7 @@ namespace Managed.Adb {
 		 * @param appName
 		 * @return
 		 */
-		protected static IClient checkDebuggerPortForAppName ( IClient client, String appName ) {
+		protected static IClient checkDebuggerPortForAppName ( IClient client, string appName ) {
 			/*IDebugPortProvider provider = DebugPortManager.getProvider ( );
 			if ( provider != null ) {
 				Device device = client.GetDeviceImpl ( );

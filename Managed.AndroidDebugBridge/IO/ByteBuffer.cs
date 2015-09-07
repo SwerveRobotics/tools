@@ -293,15 +293,15 @@ namespace Managed.Adb.IO {
 		/// </summary>
 		/// <param name="value"></param>
 		/// <returns></returns>
-		public virtual ByteBuffer Write ( String value ) {
+		public virtual ByteBuffer Write (string value ) {
 			writer.Write ( Encoding.ASCII.GetBytes ( value ) );
 			return this;
 		}
-		public virtual String ReadString ( ) {
+		public virtual string ReadString ( ) {
 			Rewind ( );
 			return ReadString ( length ( ) );
 		}
-		public virtual String ReadString ( int len ) {
+		public virtual string ReadString ( int len ) {
 			byte[] b = new byte[len];
 			reader.Read ( b, 0, len );
 			while ( len > 0 && b[len - 1] == 0 ) {
@@ -323,12 +323,12 @@ namespace Managed.Adb.IO {
 			return reader.ReadBoolean ( );
 		}
 
-		public virtual String ToString ( ) {
+		public virtual string ToString ( ) {
 			System.Text.StringBuilder buf = new System.Text.StringBuilder ( );
 
 			byte[] arr = ToArray ( );
 			foreach ( byte b in arr ) {
-				buf.Append ( String.Format ( "{0:X2} ", b ) );
+				buf.Append (string.Format ( "{0:X2} ", b ) );
 			}
 
 			return buf.ToString ( );

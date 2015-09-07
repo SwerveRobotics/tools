@@ -58,7 +58,7 @@ namespace Managed.Adb {
 		/// <summary>
 		/// The regex pattern for getting the adb version
 		/// </summary>
-		private const String ADB_VERSION_PATTERN = "^.*(\\d+)\\.(\\d+)\\.(\\d+)$";
+		private const string ADB_VERSION_PATTERN = "^.*(\\d+)\\.(\\d+)\\.(\\d+)$";
 
 #if LINUX
 		/// <summary>
@@ -81,19 +81,19 @@ namespace Managed.Adb {
 		/// <summary>
 		/// The ADB executive
 		/// </summary>
-		public const String ADB = "adb.exe";
+		public const string ADB = "adb.exe";
 		/// <summary>
 		/// The DDMS executive
 		/// </summary>
-		public const String DDMS = "monitor.bat";
+		public const string DDMS = "monitor.bat";
 		/// <summary>
 		/// The hierarchy viewer
 		/// </summary>
-		public const String HIERARCHYVIEWER = "hierarchyviewer.bat";
+		public const string HIERARCHYVIEWER = "hierarchyviewer.bat";
 		/// <summary>
 		/// The AAPT executive
 		/// </summary>
-		public const String AAPT = "aapt.exe";
+		public const string AAPT = "aapt.exe";
 
 #endif
 
@@ -266,10 +266,10 @@ namespace Managed.Adb {
 		/// <remarks>Any existing server will be disconnected, unless the location is the same and
 		/// <code>forceNewBridge</code> is set to false.
 		/// </remarks>
-		public static AndroidDebugBridge CreateBridge ( String osLocation, bool forceNewBridge ) {
+		public static AndroidDebugBridge CreateBridge (string osLocation, bool forceNewBridge ) {
 
 			if ( _instance != null ) {
-				if ( !String.IsNullOrEmpty ( AdbOsLocation ) && string.Compare ( AdbOsLocation, osLocation, true ) == 0 && !forceNewBridge ) {
+				if ( !string.IsNullOrEmpty ( AdbOsLocation ) && string.Compare ( AdbOsLocation, osLocation, true ) == 0 && !forceNewBridge ) {
 					return _instance;
 				} else {
 					// stop the current server
@@ -321,7 +321,7 @@ namespace Managed.Adb {
 		/// <param name="osLocation">the location of the command line tool</param>
 		/// <exception cref="ArgumentException"></exception>
 		/// <exception cref="FileNotFoundException"></exception>
-		private AndroidDebugBridge ( String osLocation ) {
+		private AndroidDebugBridge (string osLocation ) {
 			if ( string.IsNullOrEmpty ( osLocation ) ) {
 				throw new ArgumentException ( );
 			}
@@ -402,7 +402,7 @@ namespace Managed.Adb {
 		/// </summary>
 		/// <returns><c>true</c> if success.</returns>
 		public bool Start ( ) {
-			if ( String.IsNullOrEmpty(AdbOsLocation) || !VersionCheck || !StartAdb ( ) ) {
+			if (string.IsNullOrEmpty(AdbOsLocation) || !VersionCheck || !StartAdb ( ) ) {
 				return false;
 			}
 
@@ -594,13 +594,13 @@ namespace Managed.Adb {
 			// default is bad check
 			VersionCheck = false;
 
-			if ( String.IsNullOrEmpty ( AdbOsLocation ) ) {
+			if (string.IsNullOrEmpty ( AdbOsLocation ) ) {
 				Console.WriteLine ( "AdbOsLocation is Empty" );
 				return;
 			}
 
 			try {
-				Log.d ( DDMS, String.Format ( "Checking '{0} version'", AdbOsLocation ) );
+				Log.d ( DDMS, string.Format ( "Checking '{0} version'", AdbOsLocation ) );
 
 				ProcessStartInfo psi = new ProcessStartInfo ( AdbOsLocation, "version" );
 				psi.WindowStyle = ProcessWindowStyle.Hidden;
@@ -609,14 +609,14 @@ namespace Managed.Adb {
 				psi.RedirectStandardError = true;
 				psi.RedirectStandardOutput = true;
 
-				List<String> errorOutput = new List<String> ( );
-				List<String> stdOutput = new List<String> ( );
+				List<string> errorOutput = new List<string> ( );
+				List<string> stdOutput = new List<string> ( );
 				using ( Process proc = Process.Start ( psi ) ) {
 					int status = GrabProcessOutput ( proc, errorOutput, stdOutput, true /* waitForReaders */);
 					if ( status != 0 ) {
 						StringBuilder builder = new StringBuilder ( "'adb version' failed!" );
 						builder.AppendLine ( string.Empty );
-						foreach ( String error in errorOutput ) {
+						foreach (string error in errorOutput ) {
 							builder.AppendLine ( error );
 						}
 						Log.LogAndDisplay ( LogLevel.Error, "adb", builder.ToString ( ) );
@@ -625,7 +625,7 @@ namespace Managed.Adb {
 
 				// check both stdout and stderr
 				bool versionFound = false;
-				foreach ( String line in stdOutput ) {
+				foreach (string line in stdOutput ) {
 					versionFound = ScanVersionLine ( line );
 					if ( versionFound ) {
 						break;
@@ -633,7 +633,7 @@ namespace Managed.Adb {
 				}
 
 				if ( !versionFound ) {
-					foreach ( String line in errorOutput ) {
+					foreach (string line in errorOutput ) {
 						versionFound = ScanVersionLine ( line );
 						if ( versionFound ) {
 							break;
@@ -658,7 +658,7 @@ namespace Managed.Adb {
 		/// <returns><c>true</c> if a version number was found (whether it is acceptable or not).</returns>
 		/// <remarks>If a version number is found, it checks the version number against what is expected
 		/// by this version of ddms.</remarks>
-		private bool ScanVersionLine ( String line ) {
+		private bool ScanVersionLine (string line ) {
 			if ( !string.IsNullOrEmpty ( line ) ) {
 				Match matcher = Regex.Match ( line, ADB_VERSION_PATTERN );
 				if ( matcher.Success ) {
@@ -668,11 +668,11 @@ namespace Managed.Adb {
 
 					// check only the micro version for now.
 					if ( microVersion < ADB_VERSION_MICRO_MIN ) {
-						String message = String.Format ( "Required minimum version of adb: {0}.{1}.{2}. Current version is {0}.{1}.{3}",
+                        string message = string.Format ( "Required minimum version of adb: {0}.{1}.{2}. Current version is {0}.{1}.{3}",
 										majorVersion, minorVersion, ADB_VERSION_MICRO_MIN, microVersion );
 						Log.LogAndDisplay ( LogLevel.Error, ADB, message );
 					} else if ( ADB_VERSION_MICRO_MAX != -1 && microVersion > ADB_VERSION_MICRO_MAX ) {
-						String message = String.Format ( "Required maximum version of adb: {0}.{1}.{2}. Current version is {0}.{1}.{3}", 
+                        string message = string.Format ( "Required maximum version of adb: {0}.{1}.{2}. Current version is {0}.{1}.{3}", 
 										majorVersion, minorVersion, ADB_VERSION_MICRO_MAX, microVersion );
 						Log.LogAndDisplay ( LogLevel.Error, ADB, message );
 					} else {
@@ -697,8 +697,8 @@ namespace Managed.Adb {
 			int status = -1;
 
 			try {
-				String command = "start-server";
-				Log.d ( DDMS, String.Format ( "Launching '{0} {1}' to ensure ADB is running.", AdbOsLocation, command ) );
+                string command = "start-server";
+				Log.d ( DDMS, string.Format ( "Launching '{0} {1}' to ensure ADB is running.", AdbOsLocation, command ) );
 				ProcessStartInfo psi = new ProcessStartInfo ( AdbOsLocation, command );
 				psi.CreateNoWindow = true;
 				psi.WindowStyle = ProcessWindowStyle.Hidden;
@@ -707,8 +707,8 @@ namespace Managed.Adb {
 				psi.RedirectStandardOutput = true;
 
 				using ( Process proc = Process.Start ( psi ) ) {
-					List<String> errorOutput = new List<String> ( );
-					List<String> stdOutput = new List<String> ( );
+					List<string> errorOutput = new List<string> ( );
+					List<string> stdOutput = new List<string> ( );
 					status = GrabProcessOutput ( proc, errorOutput, stdOutput, false /* waitForReaders */);
 				}
 			} catch ( IOException ioe ) {
@@ -740,7 +740,7 @@ namespace Managed.Adb {
 			int status = -1;
 
 			try {
-				String command = "kill-server";
+                string command = "kill-server";
 				ProcessStartInfo psi = new ProcessStartInfo ( AdbOsLocation, command );
 				psi.CreateNoWindow = true;
 				psi.WindowStyle = ProcessWindowStyle.Hidden;
@@ -776,7 +776,7 @@ namespace Managed.Adb {
 		/// <param name="stdOutput">The array to store the stdout output. cannot be null.</param>
 		/// <param name="waitforReaders">if true, this will wait for the reader threads.</param>
 		/// <returns>the process return code.</returns>
-		private int GrabProcessOutput ( Process process, List<String> errorOutput, List<String> stdOutput, bool waitforReaders ) {
+		private int GrabProcessOutput ( Process process, List<string> errorOutput, List<string> stdOutput, bool waitforReaders ) {
 			if ( errorOutput == null ) {
 				throw new ArgumentNullException ( "errorOutput" );
 			}
@@ -790,8 +790,8 @@ namespace Managed.Adb {
 				try {
 					using ( StreamReader sr = process.StandardError ) {
 						while ( !sr.EndOfStream ) {
-							String line = sr.ReadLine ( );
-							if ( !String.IsNullOrEmpty ( line ) ) {
+                            string line = sr.ReadLine ( );
+							if ( !string.IsNullOrEmpty ( line ) ) {
 								Log.e ( ADB, line );
 								errorOutput.Add ( line );
 							}
@@ -807,8 +807,8 @@ namespace Managed.Adb {
 				try {
 					using ( StreamReader sr = process.StandardOutput ) {
 						while ( !sr.EndOfStream ) {
-							String line = sr.ReadLine ( );
-							if ( !String.IsNullOrEmpty ( line ) ) {
+                            string line = sr.ReadLine ( );
+							if ( !string.IsNullOrEmpty ( line ) ) {
 								stdOutput.Add ( line );
 							}
 						}

@@ -16,7 +16,7 @@ namespace Managed.Adb {
 		/// <summary>
 		/// 
 		/// </summary>
-		private const String TAG = "DeviceMonitor";
+		private const string TAG = "DeviceMonitor";
 
 		/// <summary>
 		/// 
@@ -249,9 +249,9 @@ namespace Managed.Adb {
 
 			if ( length > 0 ) {
 				byte[] buffer = new byte[length];
-				String result = Read ( MainAdbConnection, buffer );
+                string result = Read ( MainAdbConnection, buffer );
 
-				String[] devices = result.Split ( new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries );
+                string[] devices = result.Split ( new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries );
 				devices.ForEach ( d => {
 					try {
 						var dv = Device.CreateFromAdbData ( d );
@@ -291,7 +291,7 @@ namespace Managed.Adb {
 						for ( int dd = 0; dd < count; dd++ ) {
 							Device newDevice = list[dd];
 							// see if it matches in id and serial number.
-							if ( String.Compare ( newDevice.SerialNumber, device.SerialNumber, true ) == 0 ) {
+							if (string.Compare ( newDevice.SerialNumber, device.SerialNumber, true ) == 0 ) {
 								foundMatch = true;
 
 								// update the state if needed.
@@ -721,7 +721,7 @@ namespace Managed.Adb {
 		/// <param name="buffer"></param>
 		/// <returns>the length, or 0 (zero) if no data is available from the socket.</returns>
 		private int ReadLength( Socket socket, byte[] buffer ) {
-			String msg = Read ( socket, buffer );
+            string msg = Read ( socket, buffer );
 			if ( msg != null ) {
 				try {
 					int len = int.Parse ( msg, System.Globalization.NumberStyles.HexNumber );
@@ -741,7 +741,7 @@ namespace Managed.Adb {
 		/// <param name="socket">The socket.</param>
 		/// <param name="data">The data.</param>
 		/// <returns></returns>
-		private String Read( Socket socket, byte[] data ) {
+		private string Read( Socket socket, byte[] data ) {
 			int count = -1;
 			int totalRead = 0;
 
@@ -763,9 +763,9 @@ namespace Managed.Adb {
 				} catch ( SocketException sex ) {
 					if ( sex.Message.Contains ( "connection was aborted" ) ) {
 						// ignore this?
-						return String.Empty;
+						return string.Empty;
 					} else {
-						throw new IOException ( String.Format ( "No Data to read: {0}", sex.Message ) );
+						throw new IOException (string.Format ( "No Data to read: {0}", sex.Message ) );
 					}
 				}
 			}

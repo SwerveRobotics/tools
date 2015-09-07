@@ -16,7 +16,7 @@ namespace Managed.Adb {
 		/// The output format looks like:
 		/// /data/app/myapp.apk=com.mypackage.myapp
 		/// </summary>
-		public const String PM_PACKAGE_PATTERN = "^package:(.+?)=(.+)$";
+		public const string PM_PACKAGE_PATTERN = "^package:(.+?)=(.+)$";
 
 		/// <summary>
 		/// Creates an instance of PackageManagerReceiver
@@ -118,7 +118,7 @@ namespace Managed.Adb {
 		/// </summary>
 		/// <param name="entryMap">The entry map.</param>
 		/// <param name="receiver">The receiver.</param>
-		public PackageManagerListingReceiver ( Dictionary<String, FileEntry> entryMap, IListingReceiver receiver ) {
+		public PackageManagerListingReceiver ( Dictionary<string, FileEntry> entryMap, IListingReceiver receiver ) {
 			this.Map = entryMap;
 			this.Receiver = receiver;
 		}
@@ -127,7 +127,7 @@ namespace Managed.Adb {
 		/// Gets or sets the map.
 		/// </summary>
 		/// <value>The map.</value>
-		public Dictionary<String, FileEntry> Map { get; set; }
+		public Dictionary<string, FileEntry> Map { get; set; }
 		/// <summary>
 		/// Gets or sets the receiver.
 		/// </summary>
@@ -139,7 +139,7 @@ namespace Managed.Adb {
 		/// </summary>
 		/// <param name="lines">The lines.</param>
 		protected override void ProcessNewLines ( string[] lines ) {
-			foreach ( String line in lines ) {
+			foreach (string line in lines ) {
 				if ( line.Length > 0 ) {
 					// get the filepath and package from the line
 					Match m = Regex.Match ( line, PackageManagerReceiver.PM_PACKAGE_PATTERN, RegexOptions.Compiled );

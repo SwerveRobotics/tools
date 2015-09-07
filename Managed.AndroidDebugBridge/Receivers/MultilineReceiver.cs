@@ -12,11 +12,11 @@ namespace Managed.Adb {
 		/// <summary>
 		/// 
 		/// </summary>
-		protected const String NEWLINE = "\r\n";
+		protected const string NEWLINE = "\r\n";
 		/// <summary>
 		/// 
 		/// </summary>
-		protected const String ENCODING = "ISO-8859-1";
+		protected const string ENCODING = "ISO-8859-1";
 
 		/// <summary>
 		/// Gets or sets a value indicating whether [trim lines].
@@ -27,18 +27,18 @@ namespace Managed.Adb {
 		/// Gets or sets the unfinished line.
 		/// </summary>
 		/// <value>The unfinished line.</value>
-		protected String UnfinishedLine { get; set; }
+		protected string UnfinishedLine { get; set; }
 		/// <summary>
 		/// Gets or sets the lines.
 		/// </summary>
 		/// <value>The lines.</value>
-		protected ICollection<String> Lines { get; set; }
+		protected ICollection<string> Lines { get; set; }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="MultiLineReceiver"/> class.
 		/// </summary>
 		public MultiLineReceiver( ) {
-			Lines = new List<String> ( );
+			Lines = new List<string> ( );
 		}
 
 		/// <summary>
@@ -49,7 +49,7 @@ namespace Managed.Adb {
 		/// <param name="length">The length.</param>
 		public void AddOutput( byte[] data, int offset, int length ) {
 			if ( !IsCancelled ) {
-				String s = null;
+                string s = null;
 				try {
 					s = Encoding.GetEncoding ( ENCODING ).GetString ( data, offset, length ); //$NON-NLS-1$
 				} catch ( DecoderFallbackException ) {
@@ -58,9 +58,9 @@ namespace Managed.Adb {
 				}
 
 				// ok we've got a string
-				if ( !String.IsNullOrEmpty ( s ) ) {
+				if ( !string.IsNullOrEmpty ( s ) ) {
 					// if we had an unfinished line we add it.
-					if ( !String.IsNullOrEmpty ( UnfinishedLine ) ) {
+					if ( !string.IsNullOrEmpty ( UnfinishedLine ) ) {
 						s = UnfinishedLine + s;
 						UnfinishedLine = null;
 					}
@@ -78,9 +78,9 @@ namespace Managed.Adb {
 							break;
 						}
 
-						// so we found a \r\n;
-						// extract the line
-						String line = s.Substring ( start, index - start );
+                        // so we found a \r\n;
+                        // extract the line
+                        string line = s.Substring ( start, index - start );
 						if ( TrimLines ) {
 							line = line.Trim ( );
 						}
@@ -98,17 +98,17 @@ namespace Managed.Adb {
 		/// </summary>
 		public void Flush( ) {
 			if (!IsCancelled && Lines.Count > 0 ) {
-				// at this point we've split all the lines.
-				// make the array
-				String[] lines = Lines.ToArray ( );
+                // at this point we've split all the lines.
+                // make the array
+                string[] lines = Lines.ToArray ( );
 
 				// send it for final processing
 				ProcessNewLines ( lines );
 				Lines.Clear ( );
 			}
 
-			if ( !IsCancelled && !String.IsNullOrEmpty ( UnfinishedLine ) ) {
-				ProcessNewLines ( new String[] { UnfinishedLine } );
+			if ( !IsCancelled && !string.IsNullOrEmpty ( UnfinishedLine ) ) {
+				ProcessNewLines ( new string[] { UnfinishedLine } );
 			}
 
 			Done ( );
@@ -133,7 +133,7 @@ namespace Managed.Adb {
 		/// Processes the new lines.
 		/// </summary>
 		/// <param name="lines">The lines.</param>
-		protected abstract void ProcessNewLines( String[] lines );
+		protected abstract void ProcessNewLines(string[] lines );
 	}
 
 }

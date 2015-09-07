@@ -43,7 +43,7 @@ namespace Managed.Adb {
 		/// <value>
 		/// The message.
 		/// </value>
-		public String Message { get; set; }
+		public string Message { get; set; }
 	}
 
 }

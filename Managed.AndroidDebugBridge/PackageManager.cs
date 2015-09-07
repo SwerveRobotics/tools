@@ -10,7 +10,7 @@ namespace Managed.Adb {
 	/// 
 	/// </summary>
 	public class PackageManager {
-		private const String PM_LIST_FULL = "pm list packages -f";
+		private const string PM_LIST_FULL = "pm list packages -f";
 		/// <summary>
 		/// Initializes a new instance of the <see cref="PackageManager"/> class.
 		/// </summary>
@@ -26,7 +26,7 @@ namespace Managed.Adb {
 		/// <value>
 		/// The packages.
 		/// </value>
-		public Dictionary<String,FileEntry> Packages { get; set; }
+		public Dictionary<string, FileEntry> Packages { get; set; }
 
 		/// <summary>
 		/// Refreshes the packages.
@@ -46,7 +46,7 @@ namespace Managed.Adb {
 		/// </summary>
 		/// <param name="package">The package.</param>
 		/// <returns></returns>
-		public bool Exists ( String package ) {
+		public bool Exists (string package ) {
 			try {
 				return GetApkFileEntry ( package ) != null;
 			} catch ( FileNotFoundException) {
@@ -59,7 +59,7 @@ namespace Managed.Adb {
 		/// </summary>
 		/// <param name="package">The package.</param>
 		/// <returns></returns>
-		public FileEntry GetApkFileEntry ( String package ) {
+		public FileEntry GetApkFileEntry (string package ) {
 			return FileEntry.Find ( this.Device, GetApkPath ( package ) );
 		}
 
@@ -68,7 +68,7 @@ namespace Managed.Adb {
 		/// </summary>
 		/// <param name="package">The package.</param>
 		/// <returns></returns>
-		public String GetApkPath ( String package ) {
+		public string GetApkPath (string package ) {
 
 			if ( this.Device.IsOffline ) {
 				throw new IOException ( "Device is offline" );
@@ -76,10 +76,10 @@ namespace Managed.Adb {
 
 			PackageManagerPathReceiver receiver = new PackageManagerPathReceiver();
 			this.Device.ExecuteShellCommand ( "pm path {0}", receiver, package );
-			if ( !String.IsNullOrEmpty ( receiver.Path ) ) {
+			if ( !string.IsNullOrEmpty ( receiver.Path ) ) {
 				return receiver.Path;
 			} else {
-				throw new FileNotFoundException ( String.Format ( "The package '{0}' is not installed on the device: {1}", package, Device.SerialNumber ) );
+				throw new FileNotFoundException (string.Format ( "The package '{0}' is not installed on the device: {1}", package, Device.SerialNumber ) );
 			}
 
 		}
@@ -101,7 +101,7 @@ namespace Managed.Adb {
 			/// The output format looks like:
 			/// /data/app/myapp.apk=com.mypackage.myapp
 			/// </summary>
-			public const String PM_PATH_PATTERN = "^package:(.+?)$";
+			public const string PM_PATH_PATTERN = "^package:(.+?)$";
 
 			/// <summary>
 			/// Initializes a new instance of the <see cref="PackageManagerPathReceiver"/> class.
@@ -116,15 +116,15 @@ namespace Managed.Adb {
 			/// <value>
 			/// The path.
 			/// </value>
-			public String Path { get; private set; }
+			public string Path { get; private set; }
 
 			/// <summary>
 			/// Processes the new lines.
 			/// </summary>
 			/// <param name="lines">The lines.</param>
 			protected override void ProcessNewLines ( string[] lines ) {
-				foreach ( String line in lines ) {
-					if ( !String.IsNullOrEmpty ( line ) && !line.StartsWith ( "#" ) ) {
+				foreach (string line in lines ) {
+					if ( !string.IsNullOrEmpty ( line ) && !line.StartsWith ( "#" ) ) {
 						// get the filepath and package from the line
 						Match m = Regex.Match ( line, PM_PATH_PATTERN, RegexOptions.Compiled );
 						if ( m.Success ) {

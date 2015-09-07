@@ -9,15 +9,15 @@ using Managed.Adb.IO;
 
 namespace Managed.Adb {
 	public class SyncService : IDisposable {
-		private const String OKAY = "OKAY";
-		private const String FAIL = "FAIL";
-		private const String STAT = "STAT";
-		private const String RECV = "RECV";
-		private const String DATA = "DATA";
-		private const String DONE = "DONE";
-		private const String SEND = "SEND";
-		private const String LIST = "LIST";
-		private const String DENT = "DENT";
+		private const string OKAY = "OKAY";
+		private const string FAIL = "FAIL";
+		private const string STAT = "STAT";
+		private const string RECV = "RECV";
+		private const string DATA = "DATA";
+		private const string DONE = "DONE";
+		private const string SEND = "SEND";
+		private const string LIST = "LIST";
+		private const string DENT = "DENT";
 
 		[Flags]
 		public enum FileMode {
@@ -160,7 +160,7 @@ namespace Managed.Adb {
 		/// <param name="command">the 4 byte command (STAT, RECV, ...).</param>
 		/// <param name="value"></param>
 		/// <returns>the byte[] to send to the device through adb</returns>
-		private static byte[] CreateRequest ( String command, int value ) {
+		private static byte[] CreateRequest (string command, int value ) {
 			return CreateRequest ( Encoding.Default.GetBytes ( command ), value );
 		}
 
@@ -185,7 +185,7 @@ namespace Managed.Adb {
 		/// <param name="command">the 4 byte command (STAT, RECV, ...).</param>
 		/// <param name="path">The path, as a byte array, of the remote file on which to execute the command</param>
 		/// <returns>the byte[] to send to the device through adb</returns>
-		private static byte[] CreateFileRequest ( String command, String path ) {
+		private static byte[] CreateFileRequest (string command, string path ) {
 			return CreateFileRequest ( Encoding.Default.GetBytes ( command ), Encoding.Default.GetBytes ( path ) );
 		}
 
@@ -205,12 +205,12 @@ namespace Managed.Adb {
 			return array;
 		}
 
-		private static byte[] CreateSendFileRequest ( String command, String path, FileMode mode ) {
+		private static byte[] CreateSendFileRequest (string command, string path, FileMode mode ) {
 			return CreateSendFileRequest ( Encoding.Default.GetBytes ( command ), Encoding.Default.GetBytes ( path ), mode );
 		}
 
 		private static byte[] CreateSendFileRequest ( byte[] command, byte[] path, FileMode mode ) {
-			String modeString = String.Format ( ",{0}", ( (int)mode & 0777 ) );
+            string modeString = string.Format ( ",{0}", ( (int)mode & 0777 ) );
 			byte[] modeContent = null;
 			try {
 				modeContent = Encoding.Default.GetBytes ( modeString );
@@ -340,7 +340,7 @@ namespace Managed.Adb {
 		/// </returns>
 		/// <exception cref="System.ArgumentNullException">monitor;Monitor cannot be null</exception>
 		/// <gist id="c9ca09c0c0779d0a5fb8" />
-		public SyncResult Pull ( IEnumerable<FileEntry> entries, String localPath, ISyncProgressMonitor monitor ) {
+		public SyncResult Pull ( IEnumerable<FileEntry> entries, string localPath, ISyncProgressMonitor monitor ) {
 			if ( monitor == null ) {
 				throw new ArgumentNullException ( "monitor", "Monitor cannot be null" );
 			}
@@ -384,7 +384,7 @@ namespace Managed.Adb {
 		/// <exception cref="System.ArgumentNullException">monitor;Monitor cannot be null</exception>
 		/// <exception cref="ArgumentNullException">Throws if monitor is null</exception>
 		/// <gist id="39fdc76b6f394b9bdf88" />
-		public SyncResult PullFile ( FileEntry remote, String localFilename, ISyncProgressMonitor monitor ) {
+		public SyncResult PullFile ( FileEntry remote, string localFilename, ISyncProgressMonitor monitor ) {
 			if ( monitor == null ) {
 				throw new ArgumentNullException ( "monitor", "Monitor cannot be null" );
 			}
@@ -413,7 +413,7 @@ namespace Managed.Adb {
 		/// <exception cref="System.ArgumentNullException">monitor;Monitor cannot be null</exception>
 		/// <exception cref="ArgumentNullException">Throws if monitor is null</exception>
 		/// <gist id="9021e6c39ee20a6e122b" />
-		public SyncResult PullFile ( String remoteFilepath, String localFilename, ISyncProgressMonitor monitor ) {
+		public SyncResult PullFile (string remoteFilepath, string localFilename, ISyncProgressMonitor monitor ) {
 			if ( monitor == null ) {
 				throw new ArgumentNullException ( "monitor", "Monitor cannot be null" );
 			}
@@ -446,7 +446,7 @@ namespace Managed.Adb {
 		/// </returns>
 		/// <exception cref="System.ArgumentNullException">Monitor cannot be null</exception>
 		/// <gist id="380b3c149499bf31e49d" />
-		public SyncResult Push ( IEnumerable<String> local, FileEntry remote, ISyncProgressMonitor monitor ) {
+		public SyncResult Push ( IEnumerable<string> local, FileEntry remote, ISyncProgressMonitor monitor ) {
 			if ( monitor == null ) {
 				throw new ArgumentNullException ( "monitor", "Monitor cannot be null" );
 			}
@@ -457,7 +457,7 @@ namespace Managed.Adb {
 
 			// make a list of File from the list of String
 			List<FileSystemInfo> files = new List<FileSystemInfo> ( );
-			foreach ( String path in local ) {
+			foreach (string path in local ) {
 				files.Add ( path.GetFileSystemInfo ( ) );
 			}
 
@@ -482,7 +482,7 @@ namespace Managed.Adb {
 		/// </returns>
 		/// <exception cref="System.ArgumentNullException">monitor;Monitor cannot be null</exception>
 		/// <exception cref="ArgumentNullException">Throws if monitor is null</exception>
-		public SyncResult PushFile ( String local, String remote, ISyncProgressMonitor monitor ) {
+		public SyncResult PushFile (string local, string remote, ISyncProgressMonitor monitor ) {
 			if ( monitor == null ) {
 				throw new ArgumentNullException ( "monitor", "Monitor cannot be null" );
 			}
@@ -624,8 +624,8 @@ namespace Managed.Adb {
 
 						AdbHelper.Instance.Read ( Channel, DataBuffer, len, timeOut );
 
-						// output the result?
-						String message = DataBuffer.GetString ( 0, len );
+                        // output the result?
+                        string message = DataBuffer.GetString ( 0, len );
 						Log.e ( "ddms", "transfer error: " + message );
 						return new SyncResult ( ErrorCodeHelper.RESULT_UNKNOWN_ERROR, message );
 					}
@@ -659,8 +659,8 @@ namespace Managed.Adb {
 				if ( monitor.IsCanceled ) {
 					return new SyncResult ( ErrorCodeHelper.RESULT_CANCELED );
 				}
-				// append the name of the directory/file to the remote path
-				String dest = LinuxPath.Combine ( remotePath, f.Name );
+                // append the name of the directory/file to the remote path
+                string dest = LinuxPath.Combine ( remotePath, f.Name );
 				if ( f.Exists ) {
 					if ( f.IsDirectory ( ) ) {
 						DirectoryInfo fsiDir = f as DirectoryInfo;
@@ -834,10 +834,10 @@ namespace Managed.Adb {
 					return new SyncResult ( ErrorCodeHelper.RESULT_CANCELED );
 				}
 
-				// the destination item (folder or file)
+                // the destination item (folder or file)
 
 
-				String dest = Path.Combine ( localPath, e.Name );
+                string dest = Path.Combine ( localPath, e.Name );
 
 				// get type (we only pull directory and files for now)
 				FileListingService.FileTypes type = e.Type;
@@ -864,7 +864,7 @@ namespace Managed.Adb {
 						return result;
 					}
 				} else {
-					Log.d ( "ddms-sync", String.Format ( "unknown type to transfer: {0}", type ) );
+					Log.d ( "ddms-sync", string.Format ( "unknown type to transfer: {0}", type ) );
 				}
 			}
 
@@ -920,7 +920,7 @@ namespace Managed.Adb {
 		/// </summary>
 		/// <param name="path">the remote file</param>
 		/// <returns>the mode if all went well; otherwise, FileMode.UNKNOWN</returns>
-		private FileMode ReadMode ( String path ) {
+		private FileMode ReadMode (string path ) {
 			try {
 				// create the stat request message.
 				byte[] msg = CreateFileRequest ( STAT, path );

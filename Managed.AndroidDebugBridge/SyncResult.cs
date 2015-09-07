@@ -13,7 +13,7 @@ namespace Managed.Adb {
 		/// </summary>
 		/// <param name="code">The error code</param>
 		/// <param name="message">The error message</param>
-		public SyncResult ( int code, String message ) {
+		public SyncResult ( int code, string message ) {
 
 			this.Message = message ?? ErrorCodeHelper.ErrorCodeToString ( code );
 			this.Code = code;
@@ -41,7 +41,7 @@ namespace Managed.Adb {
 		/// <summary>
 		/// Gets the error message
 		/// </summary>
-		public String Message { get; private set; }
+		public string Message { get; private set; }
 		/// <summary>
 		/// Gets the error code
 		/// </summary>

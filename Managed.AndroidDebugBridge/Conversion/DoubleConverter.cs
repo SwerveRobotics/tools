@@ -226,7 +226,7 @@ namespace Managed.Adb.Conversion
 			/// <summary>
 			/// Converts the value to a proper decimal string representation.
 			/// </summary>
-			public override String ToString()
+			public override string ToString()
 			{
 				char[] digitString = new char[digits.Length];            
 				for (int i=0; i < digits.Length; i++)
