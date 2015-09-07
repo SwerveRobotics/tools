@@ -58,6 +58,8 @@ namespace MadBee.Console
                         List<Device> devices = AdbHelper.Instance.GetDevices(AndroidDebugBridge.SocketAddress);
                         foreach (Device device in devices)
                             {
+                            AdbHelper.Instance.TcpIp(5555, AndroidDebugBridge.SocketAddress, device);
+                            // "service.adb.tcp.port"
                             // bridge.ExecuteRawSocketCommand(address, "host:devices-l")
                             // AdbHelper.Instance.SetDevice(, device);
                             }

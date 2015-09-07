@@ -10,6 +10,7 @@ using Managed.Adb.Exceptions;
 using MoreLinq;
 using Managed.Adb.IO;
 using Managed.Adb.Logs;
+#pragma warning disable 1591
 
 // services that are supported by adb: https://github.com/android/platform_system_core/blob/master/adb/SERVICES.TXT
 namespace Managed.Adb
@@ -457,11 +458,10 @@ namespace Managed.Adb
                 try
                     {
                     len = int.Parse(lenStr, System.Globalization.NumberStyles.HexNumber);
-
                     }
                 catch (FormatException)
                     {
-                    Log.e(TAG, "Expected digits, got '{0}' : {1} {2} {3} {4}", lenBuf[0], lenBuf[1], lenBuf[2], lenBuf[3]);
+                    Log.e(TAG, "Expected digits, got '{0}' : {1} {2} {3} {4}", lenStr, lenBuf[0], lenBuf[1], lenBuf[2], lenBuf[3]);
                     Log.e(TAG, "reply was {0}", ReplyToString(reply));
                     break;
                     }
@@ -483,6 +483,30 @@ namespace Managed.Adb
             }
 
         /// <summary>
+        /// Read a newline-terminated line from the socket
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <returns></returns>
+        public string ReadLine(Socket socket)
+            {
+            StringBuilder result = new StringBuilder();
+            for (;;)
+                {
+                byte[] data = new byte[1];
+                if (Read(socket, data))
+                    {
+                    char ch = (char)data[0];
+                    if (ch == '\n')
+                        break;
+                    result.Append(ch);
+                    }
+                else
+                    break;
+                }
+            return result.ToString();
+            }
+
+        /// <summary>
         /// Reads the data from specified socket.
         /// </summary>
         /// <param name="socket">The socket.</param>
@@ -494,7 +518,7 @@ namespace Managed.Adb
                 {
                 Read(socket, data, -1, DdmPreferences.Timeout);
                 }
-            catch (AdbException e)
+            catch (AdbException)
                 {
                 return false;
                 }
@@ -537,7 +561,8 @@ namespace Managed.Adb
                         }
                     else if (count == 0)
                         {
-                        Console.WriteLine("DONE with Read");
+                        // Console.WriteLine("DONE with Read");
+                        throw new AdbException("EOF(2)");  // -rga
                         }
                     else
                         {
@@ -550,7 +575,6 @@ namespace Managed.Adb
                     throw new AdbException(string.Format("No Data to read: {0}", sex.Message));
                     }
                 }
-
             }
 
         /// <summary>
@@ -1138,6 +1162,29 @@ namespace Managed.Adb
             using (ExecuteRawSocketCommand(adbSockAddr, device, request))
                 {
                 // nothing to do...
+                }
+            }
+
+        /// <summary>
+        /// Restarts the adbd daemon in TCPIP mode listening on the indicted port
+        /// </summary>
+        /// <param name="port"></param>
+        /// <param name="adbSockAddr"></param>
+        /// <param name="device"></param>
+        public void TcpIp(int port, IPEndPoint adbSockAddr, Device device)
+            {
+            // Send out the restart request
+            byte [] request = FormAdbRequest(string.Format("tcpip:{0}", port));
+            using (Socket adbChan = ExecuteRawSocketCommand(adbSockAddr, device, request))
+                {
+                // Listen for the positive response. We 
+                string response = ReadLine(adbChan);
+                string expectedResponsePrefix = "restarting in TCP mode".ToLowerInvariant();
+                string responsePrefix         = response.Substring(0, Math.Min(response.Length, expectedResponsePrefix.Length)).ToLowerInvariant();
+                if (string.IsNullOrEmpty(response) || expectedResponsePrefix != responsePrefix)
+                    {
+                    throw new AdbException("device probably failed to restart in TCPIP mode");
+                    }
                 }
             }
 
