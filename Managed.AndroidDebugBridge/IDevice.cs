@@ -197,7 +197,6 @@ namespace Managed.Adb {
 		/// <summary>
 		/// Executes a shell command on the device, and sends the result to a receiver.
 		/// </summary>
-		/// </summary>
 		/// <param name="command">The command to execute</param>
 		/// <param name="receiver">The receiver object getting the result from the command.</param>
 		/// <param name="maxTimeToOutputResponse">The max time to output response.</param>

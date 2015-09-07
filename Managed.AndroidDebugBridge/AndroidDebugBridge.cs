@@ -234,9 +234,10 @@ namespace Managed.Adb {
 
 		/// <summary>
 		/// Creates a {@link AndroidDebugBridge} that is not linked to any particular executable.
-		/// This bridge will expect adb to be running. It will not be able to start/stop/restart</summary>
+		/// This bridge will expect adb to be running. It will not be able to start/stop/restart
 		/// adb.
 		/// If a bridge has already been started, it is directly returned with no changes
+        /// </summary>
 		/// <returns></returns>
 		public static AndroidDebugBridge CreateBridge ( ) {
 			if ( _instance != null ) {
