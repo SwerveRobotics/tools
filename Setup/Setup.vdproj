@@ -112,7 +112,7 @@
                 {
                 "Name" = "8:.NET Framework"
                 "Message" = "8:[VSDNETMSG]"
-                "FrameworkVersion" = "8:.NETFramework,Version=v4.5.2"
+                "FrameworkVersion" = "8:.NETFramework,Version=v4.6"
                 "AllowLaterVersions" = "11:FALSE"
                 "InstallUrl" = "8:http://go.microsoft.com/fwlink/?LinkId=395269"
                 }
@@ -177,7 +177,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Tools"
         "ProductCode" = "8:{FCC614D9-4E3D-4253-A49C-61858B6D4402}"
-        "PackageCode" = "8:{DA5C794B-AA7F-4779-A43C-504C14D41370}"
+        "PackageCode" = "8:{39B880F2-D9EA-4F47-9945-A876DA7E8605}"
         "UpgradeCode" = "8:{E40D1846-E09F-48C2-89E6-BE196A6055E1}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
@@ -726,7 +726,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_C236947AB3B84D81891DB6FB20895951"
             {
-            "SourcePath" = "8:..\\BlueBotBugService\\obj\\Debug\\BlueBotBugService.exe"
+            "SourcePath" = "8:..\\BlueBotBugService\\obj\\Release\\BlueBotBugService.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_E1E005270EBA4CC1BFD6034588882162"
