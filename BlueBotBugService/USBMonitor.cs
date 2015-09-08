@@ -298,12 +298,29 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
         void FindExistingADBDevices()
             {
             string path = GetAdbPath();
-            this.tracer.Trace($"path:{path}");
             AndroidDebugBridge bridge = AndroidDebugBridge.OpenBridge(path, true);
             try {
                 foreach (var device in AdbHelper.Instance.GetDevices(AndroidDebugBridge.SocketAddress))
                     {
-                    // this.tracer.Trace($"   adb device: {device.SerialNumber}\t{device.State}");
+                    this.tracer.Trace($"   adb device: {device.SerialNumber}\t{device.State}");
+                    string ipPattern = "[0-9]{1,3}\\.*[0-9]{1,3}\\.*[0-9]{1,3}\\.*[0-9]{1,3}:[0-9]{1,5}";
+                    if (!device.SerialNumber.IsMatch(ipPattern))
+                        {
+                        // Find the device's IP address
+                        string ipAddress = device.GetProperty("dhcp.wlan0.ipaddress");
+                        this.tracer.Trace($"   device ip:{ipAddress}");
+
+                        // Restart the device listening on a port of interest
+                        this.tracer.Trace($"   restarting adbd in TCPIP mode");
+                        int portNumber = 5555;
+                        AdbHelper.Instance.TcpIp(portNumber, AndroidDebugBridge.SocketAddress, device);
+
+                        // Connect to the TCPIP version of that device
+                        this.tracer.Trace($"   connecting to restarted device");
+                        AdbHelper.Instance.Connect(ipAddress, portNumber, AndroidDebugBridge.SocketAddress);
+
+                        this.tracer.Trace($"   connected");
+                        }
                     }
                 }
             finally
@@ -318,13 +335,13 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
 
         void FindExistingDevices(Guid guidInterface)
             {
-            HashSet<USBDeviceInterface> devices = GetSerialNumbersofDevices(guidInterface);
-            foreach (USBDeviceInterface device in devices)
-                {
-                AddDeviceIfNecessary(device);
-                }
+            //HashSet<USBDeviceInterface> devices = GetSerialNumbersofDevices(guidInterface);
+            //foreach (USBDeviceInterface device in devices)
+            //    {
+            //    AddDeviceIfNecessary(device);
+            //    }
 
-            // FindExistingADBDevices();
+            FindExistingADBDevices();
             }
 
         public string SerialNumberOfDeviceInterface(string path)
@@ -337,9 +354,10 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                 }
             catch (Exception)
                 {
-                this.tracer.Trace("Retrying serial number...");
-                KillAdb();
-                return TrySerialNumberOfDeviceInterface(path);
+                return "(unavailable)";
+                //this.tracer.Trace("Retrying serial number...");
+                //KillAdb();
+                //return TrySerialNumberOfDeviceInterface(path);
                 }
             }
 
