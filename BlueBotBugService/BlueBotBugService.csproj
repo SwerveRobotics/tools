@@ -71,7 +71,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ADBManager.cs" />
     <Compile Include="AndroidDebuggerConfigerator.cs" />
     <Compile Include="BlueBotBugService.cs">
       <SubType>Component</SubType>
@@ -79,7 +78,6 @@
     <Compile Include="BlueBotBugService.Designer.cs">
       <DependentUpon>BlueBotBugService.cs</DependentUpon>
     </Compile>
-    <Compile Include="Process.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="ProjectInstaller.cs">
       <SubType>Component</SubType>

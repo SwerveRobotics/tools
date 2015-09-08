@@ -56,6 +56,8 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
         // USB Notifications
         //------------------------------------------------------------------------------------------
 
+        public readonly static Guid AndroidADBDeviceInterface = new Guid("{F72FE0D4-CBCB-407D-8814-9ED673D0DD6B}");
+
         protected override void OnStart(string[] args)
             {
             this.Trace("starting");
@@ -66,7 +68,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             this.configurator = new AndroidDebuggerConfigerator(this);
             //
             this.usbMonitor = new USBMonitor(this, this, this.ServiceHandle, true);
-            this.usbMonitor.AddDeviceInterfaceOfInterest(AdbWinApi.AndroidADBDeviceInterface);
+            this.usbMonitor.AddDeviceInterfaceOfInterest(AndroidADBDeviceInterface);
             this.usbMonitor.OnDeviceOfInterestArrived += this.configurator.OnAndroidDeviceArrived;
             this.usbMonitor.OnDeviceOfInterestRemoved += this.configurator.OnAndroidDeviceRemoved;
             this.usbMonitor.Start();

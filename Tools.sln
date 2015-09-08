@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlueBotBugService", "BlueBotBugService\BlueBotBugService.csproj", "{98E84E5D-BA98-470B-AA07-A5506267FF78}"
+	ProjectSection(ProjectDependencies) = postProject
+		{65473257-E70F-410B-9269-D0C0F771EA87} = {65473257-E70F-410B-9269-D0C0F771EA87}
+	EndProjectSection
 EndProject
 Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Setup", "Setup\Setup.vdproj", "{07F56415-F04A-49FE-939C-98E7D66A48C1}"
 EndProject
