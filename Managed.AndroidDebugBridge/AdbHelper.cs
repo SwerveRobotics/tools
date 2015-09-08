@@ -10,6 +10,7 @@ using Managed.Adb.Exceptions;
 using MoreLinq;
 using Managed.Adb.IO;
 using Managed.Adb.Logs;
+using static Managed.Adb.Util;
 #pragma warning disable 1591
 
 // services that are supported by adb: https://github.com/android/platform_system_core/blob/master/adb/SERVICES.TXT
@@ -250,7 +251,7 @@ namespace Managed.Adb
                 }
             catch (Exception ex)
                 {
-                Util.ConsoleTrace(ex);
+                Util.ConsoleTraceError(ex);
                 throw;
                 }
             }
@@ -407,7 +408,7 @@ namespace Managed.Adb
                 }
             catch (SocketException sex)
                 {
-                Util.ConsoleTrace(sex);
+                Util.ConsoleTraceError(sex);
                 throw;
                 }
             //}
@@ -450,7 +451,7 @@ namespace Managed.Adb
                 byte[] lenBuf = new byte[4];
                 if (!Read(socket, lenBuf))
                     {
-                    Util.ConsoleTrace("Expected diagnostic string not found");
+                    Util.ConsoleTraceError("Expected diagnostic string not found");
                     break;
                     }
 

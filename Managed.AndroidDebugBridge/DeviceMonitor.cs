@@ -178,7 +178,7 @@ namespace Managed.Adb {
                         if (this.socketMainAdb == null)
                             {
                             this.ConnectionAttemptCount++;
-                            Util.ConsoleTrace("Connection attempts: {0}", this.ConnectionAttemptCount);
+                            Util.ConsoleTraceError("Connection attempts: {0}", this.ConnectionAttemptCount);
                             Log.e(TAG, "Connection attempts: {0}", this.ConnectionAttemptCount);
 
                             if (this.ConnectionAttemptCount > 10)
@@ -186,7 +186,7 @@ namespace Managed.Adb {
                                 if (!this.Bridge.Start())
                                     {
                                     this.RestartAttemptCount++;
-                                    Util.ConsoleTrace("adb restart attempts: {0}", this.RestartAttemptCount);
+                                    Util.ConsoleTraceError("adb restart attempts: {0}", this.RestartAttemptCount);
                                     Log.e(TAG, "adb restart attempts: {0}", this.RestartAttemptCount);
                                     }
                                 else

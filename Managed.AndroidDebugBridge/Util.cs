@@ -22,8 +22,27 @@ namespace Managed.Adb
         bool CloseHandle(IntPtr handle);
 
         public static bool ConsoleTracingEnabled = false;
+        public static string TraceTag = "BlueBotBug: ";
 
-        public static void ConsoleTrace(string format, params object[] arguments) { if (ConsoleTracingEnabled) System.Console.WriteLine(format, arguments); }
-        public static void ConsoleTrace<T>(T t)                                   { if (ConsoleTracingEnabled) System.Console.WriteLine(t); }
+        public static void ConsoleTraceError(string format, params object[] arguments)
+            {
+            if (ConsoleTracingEnabled) System.Console.WriteLine(format, arguments);
+            Trace(format, arguments);
+            }
+        public static void Trace(string format, params object[] arguments)
+            {
+            string s = string.Format(format, arguments);
+            System.Diagnostics.Debug.WriteLine($"{TraceTag}{s}");
+            }
+        public static void ConsoleTraceError(object o)
+            {
+            if (ConsoleTracingEnabled) System.Console.WriteLine(o);
+            Trace(o);
+            }
+        public static void Trace(object o)
+            {
+            string s = o.ToString();
+            System.Diagnostics.Debug.WriteLine($"{TraceTag}{s}");
+            }
         }
     }

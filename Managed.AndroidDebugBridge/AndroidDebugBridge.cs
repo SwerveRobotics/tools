@@ -273,7 +273,7 @@ namespace Managed.Adb {
                 else
                     {
                     // stop the current server
-                    Util.ConsoleTrace("Stopping Current Instance");
+                    Util.ConsoleTraceError("Stopping Current Instance");
                     _instance.Stop();
                     }
                 }
@@ -331,7 +331,7 @@ namespace Managed.Adb {
 			}
 
 			if ( !File.Exists ( osLocation ) ) {
-				Util.ConsoleTrace ( osLocation );
+				Util.ConsoleTraceError ( osLocation );
 				throw new FileNotFoundException ( "unable to locate adb in the specified location" );
 			}
 
@@ -599,7 +599,7 @@ namespace Managed.Adb {
 			VersionCheck = false;
 
 			if (string.IsNullOrEmpty ( AdbOsLocation ) ) {
-				Util.ConsoleTrace ( "AdbOsLocation is Empty" );
+				Util.ConsoleTraceError ( "AdbOsLocation is Empty" );
 				return;
 			}
 

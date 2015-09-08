@@ -360,7 +360,7 @@ namespace Managed.Adb {
 
 			// compute the number of file to move
 			long total = GetTotalRemoteFileSize ( entries, fls );
-			Util.ConsoleTrace ( "total transfer: {0}", total );
+			Util.ConsoleTraceError ( "total transfer: {0}", total );
 
 			// start the monitor
 			monitor.Start ( total );
@@ -424,7 +424,7 @@ namespace Managed.Adb {
 				FileEntry remoteFileEntry = fls.FindFileEntry ( remoteFilepath );
 				totalWork = remoteFileEntry.Size;
 			} catch ( FileNotFoundException ffe ) {
-				Util.ConsoleTrace ( ffe.ToString ( ) );
+				Util.ConsoleTraceError ( ffe.ToString ( ) );
 				Log.w ( "ddms", ffe );
 			}
 			monitor.Start ( totalWork );
@@ -523,7 +523,7 @@ namespace Managed.Adb {
 			byte[] msg;
 
 			int timeOut = DdmPreferences.Timeout;
-			Util.ConsoleTrace ( "Remote File: {0}", remotePath );
+			Util.ConsoleTraceError ( "Remote File: {0}", remotePath );
 			try {
 				byte[] remotePathContent = remotePath.GetBytes ( AdbHelper.DEFAULT_ENCODING );
 
@@ -727,10 +727,10 @@ namespace Managed.Adb {
 					return new SyncResult ( ErrorCodeHelper.RESULT_CONNECTION_ERROR );
 				}
 			} catch ( EncoderFallbackException e ) {
-				Util.ConsoleTrace ( e );
+				Util.ConsoleTraceError ( e );
 				return new SyncResult ( ErrorCodeHelper.RESULT_REMOTE_PATH_ENCODING, e );
 			} catch ( IOException e ) {
-				Util.ConsoleTrace ( e );
+				Util.ConsoleTraceError ( e );
 				return new SyncResult ( ErrorCodeHelper.RESULT_CONNECTION_ERROR, e );
 			}
 
@@ -778,7 +778,7 @@ namespace Managed.Adb {
 						// get the header for the next packet.
 						AdbHelper.Instance.Read ( Channel, pullResult, -1, timeOut );
 					} catch ( IOException e ) {
-						Util.ConsoleTrace ( e );
+						Util.ConsoleTraceError ( e );
 						return new SyncResult ( ErrorCodeHelper.RESULT_CONNECTION_ERROR, e );
 					}
 					// write the content in the file
@@ -794,7 +794,7 @@ namespace Managed.Adb {
 				try {
 					fos.Flush ( );
 				} catch ( IOException e ) {
-					Util.ConsoleTrace ( e );
+					Util.ConsoleTraceError ( e );
 					return new SyncResult ( ErrorCodeHelper.RESULT_FILE_WRITE_ERROR, e );
 				}
 			}

@@ -195,7 +195,7 @@ namespace Managed.Adb {
 			if(m.Success) {
 				return new Device(m.Groups[1].Value, GetStateFromString(m.Groups[2].Value), m.Groups[4].Value, m.Groups[3].Value, m.Groups[5].Value );
 			} else {
-				throw new ArgumentException("Invalid device list data");
+				throw new ArgumentException($"CreateFromAdbData: invalid data: '{data}'");
 			}
 		}
 
@@ -811,7 +811,7 @@ namespace Managed.Adb {
                 // workitem: 19711
                 string remoteFilePath = LinuxPath.Combine(TEMP_DIRECTORY_FOR_INSTALL, packageFileName);
 
-				Util.ConsoleTrace(string.Format("Uploading {0} onto device '{1}'", packageFileName, SerialNumber));
+				Util.ConsoleTraceError(string.Format("Uploading {0} onto device '{1}'", packageFileName, SerialNumber));
 				Log.d(packageFileName, string.Format("Uploading {0} onto device '{1}'", packageFileName, SerialNumber));
 
 				SyncService sync = SyncService;

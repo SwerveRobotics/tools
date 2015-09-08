@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.ComponentModel;
 using System.Threading;
+using System.Diagnostics;
+using System.IO;
 using Managed.Adb;
 using static Org.SwerveRobotics.BlueBotBug.Service.WIN32;
 
@@ -277,6 +279,40 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             }
 
         //-----------------------------------------------------------------------------------------
+        // ADB
+        //-----------------------------------------------------------------------------------------
+
+        void KillAdb()
+            {
+            AdbHelper.Instance.KillAdb(AndroidDebugBridge.SocketAddress);
+            Thread.Sleep(500);
+            }
+
+        string GetAdbPath()
+            {
+            string dir = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
+            string result = Path.Combine(dir, "adb.exe");
+            return result;
+            }
+
+        void FindExistingADBDevices()
+            {
+            string path = GetAdbPath();
+            this.tracer.Trace($"path:{path}");
+            AndroidDebugBridge bridge = AndroidDebugBridge.OpenBridge(path, true);
+            try {
+                foreach (var device in AdbHelper.Instance.GetDevices(AndroidDebugBridge.SocketAddress))
+                    {
+                    // this.tracer.Trace($"   adb device: {device.SerialNumber}\t{device.State}");
+                    }
+                }
+            finally
+                {
+                bridge.StopMonitoring();
+                }
+            }
+
+        //-----------------------------------------------------------------------------------------
         // Scanning
         //-----------------------------------------------------------------------------------------
 
@@ -287,12 +323,8 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                 {
                 AddDeviceIfNecessary(device);
                 }
-            }
 
-        void KillAdb()
-            {
-            AdbHelper.Instance.KillAdb(AndroidDebugBridge.SocketAddress);
-            Thread.Sleep(500);
+            // FindExistingADBDevices();
             }
 
         public string SerialNumberOfDeviceInterface(string path)
