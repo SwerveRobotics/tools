@@ -1311,16 +1311,23 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             }
         public static void ThrowWin32Error()
             {
-            ThrowWin32Error(Marshal.GetLastWin32Error());
+            ThrowWin32Error(Marshal.GetLastWin32Error(), null);
             }
-        public static void ThrowWin32Error(int err)
+        public static void ThrowWin32Error(string message)
+            {
+            ThrowWin32Error(Marshal.GetLastWin32Error(), message);
+            }
+        public static void ThrowWin32Error(int err, string message)
             {
             switch (err)
                 {
             case 0:
                 return;
             default:
-                throw new System.ComponentModel.Win32Exception(err);
+                if (message == null)
+                    throw new System.ComponentModel.Win32Exception(err);
+                else
+                    throw new System.ComponentModel.Win32Exception(err, message);
                 }
             }
 

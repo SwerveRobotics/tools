@@ -290,7 +290,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                 }
             }
 
-        public static string SerialNumberOfDeviceInterface(string path)
+        public string SerialNumberOfDeviceInterface(string path)
         // Given a path to a USB device interface, return the serial number of that device
             {
             string result = null;
@@ -324,7 +324,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                                         cbBuffer *= 2;
                                         }
                                     else
-                                        ThrowWin32Error();
+                                        ThrowWin32Error("WinUsb_GetDescriptor failed");
                                     }
 
                                 result = Marshal.PtrToStringUni(pbBuffer+USB_STRING_DESCRIPTOR.CbOverhead, (cbCopied-USB_STRING_DESCRIPTOR.CbOverhead)/2);
@@ -337,7 +337,9 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                             }
                         }
                     else
-                        ThrowWin32Error();
+                        {
+                        ThrowWin32Error("failed to open WinUsb_Initialize");
+                        }
                     }
                 finally
                     {
@@ -345,7 +347,10 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                     }
                 }
             else
-                ThrowWin32Error();
+                {
+                // This can be caused by ADB getting into a weird state
+                ThrowWin32Error("failed to open device");
+                }
 
             return result;
             }
@@ -401,7 +406,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             if (args.pHeader->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
                 {
                 DEV_BROADCAST_DEVICEINTERFACE_W* pintf = (DEV_BROADCAST_DEVICEINTERFACE_W*)args.pHeader;
-                this.AddDeviceIfNecessary(new USBDeviceInterface(pintf, USBMonitor.SerialNumberOfDeviceInterface(pintf->dbcc_name)));
+                this.AddDeviceIfNecessary(new USBDeviceInterface(pintf, this.SerialNumberOfDeviceInterface(pintf->dbcc_name)));
                 }
             }
 
