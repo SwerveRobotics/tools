@@ -42,6 +42,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
         public const int ERROR_OPERATION_ABORTED        = 995;
         public const int ERROR_IO_INCOMPLETE            = 996;
         public const int ERROR_IO_PENDING               = 997;
+        public const int ERROR_EXCEPTION_IN_SERVICE     = 1064;
         public const int ERROR_SERVICE_SPECIFIC_ERROR   = 1066;
 
         //------------------------------------------------------------------------------
@@ -1322,6 +1323,16 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                 throw new System.ComponentModel.Win32Exception(err);
                 }
             }
+
+        public static int Win32ErrorFromException(Exception e)
+            {
+            if (e is System.ComponentModel.Win32Exception)
+                {
+                return (e as System.ComponentModel.Win32Exception).NativeErrorCode;
+                }
+            return ERROR_SERVICE_SPECIFIC_ERROR;
+            }
+
 
         public static int GetLastError()
             {

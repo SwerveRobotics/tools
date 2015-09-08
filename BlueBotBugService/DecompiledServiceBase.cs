@@ -188,7 +188,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                                 }
                             catch (CannotUnloadAppDomainException exception)
                                 {
-                                this.WriteEventLogEntry(Res.GetString("FailedToUnloadAppDomain", new object[] { AppDomain.CurrentDomain.FriendlyName, exception.Message }), EventLogEntryType.Error);
+                                this.WriteEventLogEntry(Res.GetString("FailedToUnloadAppDomain", AppDomain.CurrentDomain.FriendlyName, exception.Message), EventLogEntryType.Error);
                                 }
                             }
                         }
@@ -196,7 +196,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                 }
             catch (Exception exception2)
                 {
-                this.WriteEventLogEntry(Res.GetString("ShutdownFailed", new object[] { exception2.ToString() }), EventLogEntryType.Error);
+                this.WriteEventLogEntry(Res.GetString("ShutdownFailed", exception2.ToString()), EventLogEntryType.Error);
                 throw;
                 }
             }
@@ -224,7 +224,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                             }
                         catch (CannotUnloadAppDomainException exception)
                             {
-                            this.WriteEventLogEntry(Res.GetString("FailedToUnloadAppDomain", new object[] { AppDomain.CurrentDomain.FriendlyName, exception.Message }), EventLogEntryType.Error);
+                            this.WriteEventLogEntry(Res.GetString("FailedToUnloadAppDomain", AppDomain.CurrentDomain.FriendlyName, exception.Message), EventLogEntryType.Error);
                             }
                         }
                     }
@@ -232,7 +232,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                     {
                     this.status.currentState = currentState;
                     WIN32.SetServiceStatus(this.statusHandle, service_statusRef);
-                    this.WriteEventLogEntry(Res.GetString("StopFailed", new object[] { exception2.ToString() }), EventLogEntryType.Error);
+                    this.WriteEventLogEntry(Res.GetString("StopFailed", exception2.ToString()), EventLogEntryType.Error);
                     throw;
                     }
                 }
@@ -269,9 +269,9 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                 this.status.serviceSpecificExitCode = 0;
                 this.status.checkPoint = 0;
                 this.status.waitHint = 0;
-                this.mainCallback = new WIN32.ServiceMainCallback(this.ServiceMainCallback);
-                this.commandCallback = new WIN32.ServiceControlCallback(this.ServiceCommandCallback);
-                this.commandCallbackEx = new WIN32.ServiceControlCallbackEx(this.ServiceCommandCallbackEx);
+                this.mainCallback       = this.ServiceMainCallback;
+                this.commandCallback    = this.ServiceCommandCallback;
+                this.commandCallbackEx  = this.ServiceCommandCallbackEx;
                 this.handleName = Marshal.StringToHGlobalUni(this.ServiceName);
                 this.initialized = true;
                 }
@@ -384,10 +384,10 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                 zero = (IntPtr)(((long)entry) + (Marshal.SizeOf(typeof(WIN32.SERVICE_TABLE_ENTRY)) * services.Length));
                 Marshal.StructureToPtr(structure, zero, true);
                 bool flag2 = WIN32.StartServiceCtrlDispatcher(entry);
-                string str3 = "";
+                string exceptionMessage = "";
                 if (!flag2)
                     {
-                    str3 = new Win32Exception().Message;
+                    exceptionMessage = new Win32Exception().Message;
                     string str4 = Res.GetString("CantStartFromCommandLine");
                     if (Environment.UserInteractive)
                         {
@@ -404,7 +404,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                     base2.Dispose();
                     if (!flag2 && (base2.EventLog.Source.Length != 0))
                         {
-                        base2.WriteEventLogEntry(Res.GetString("StartFailed", new object[] { str3 }), EventLogEntryType.Error);
+                        base2.WriteEventLogEntry(Res.GetString("StartFailed", new object[] { exceptionMessage }), EventLogEntryType.Error);
                         }
                     }
                 }
@@ -824,6 +824,13 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                 {
                 this.status.win32ExitCode = value;
                 }
+            }
+
+        [ComVisible(false)]
+        public int ServiceSpecificExitCode
+            {
+            get { return this.status.serviceSpecificExitCode; }
+            set { this.status.serviceSpecificExitCode = value; }
             }
 
         private static bool IsRTLResources

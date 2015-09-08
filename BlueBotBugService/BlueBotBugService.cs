@@ -62,16 +62,25 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             {
             this.Trace("starting");
             //
-            WIN32.OleInitialize(IntPtr.Zero);
-            this.oleInitialized = true;
-            //
-            this.configurator = new AndroidDebuggerConfigerator(this);
-            //
-            this.usbMonitor = new USBMonitor(this, this, this.ServiceHandle, true);
-            this.usbMonitor.AddDeviceInterfaceOfInterest(AndroidADBDeviceInterface);
-            this.usbMonitor.OnDeviceOfInterestArrived += this.configurator.OnAndroidDeviceArrived;
-            this.usbMonitor.OnDeviceOfInterestRemoved += this.configurator.OnAndroidDeviceRemoved;
-            this.usbMonitor.Start();
+            try {
+                WIN32.OleInitialize(IntPtr.Zero);
+                this.oleInitialized = true;
+                //
+                this.configurator = new AndroidDebuggerConfigerator(this);
+                //
+                this.usbMonitor = new USBMonitor(this, this, this.ServiceHandle, true);
+                this.usbMonitor.AddDeviceInterfaceOfInterest(AndroidADBDeviceInterface);
+                this.usbMonitor.OnDeviceOfInterestArrived += this.configurator.OnAndroidDeviceArrived;
+                this.usbMonitor.OnDeviceOfInterestRemoved += this.configurator.OnAndroidDeviceRemoved;
+                this.usbMonitor.Start();
+                }
+            catch (Exception e)
+                {
+                this.ExitCode = WIN32.ERROR_EXCEPTION_IN_SERVICE;
+                this.ServiceSpecificExitCode = WIN32.Win32ErrorFromException(e);
+                this.Trace($"exception: {e}");    
+                throw;
+                }
             //
             this.Trace("started");
             }
