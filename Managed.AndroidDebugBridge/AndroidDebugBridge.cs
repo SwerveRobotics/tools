@@ -418,7 +418,7 @@ namespace Managed.Adb {
             if (!StopMonitoring())
                 return false;
 
-            if (!StopAdb())
+            if (!KillAdb())
                 return false;
 
             Started = false;
@@ -458,7 +458,7 @@ namespace Managed.Adb {
 				return false;
 			}
 			lock ( this ) {
-				StopAdb ( );
+				KillAdb ( );
 
 				bool restart = StartAdb ( );
 
@@ -736,7 +736,7 @@ namespace Managed.Adb {
 		/// Stops the adb host side server.
 		/// </summary>
 		/// <returns>true if success</returns>
-		private bool StopAdb ( ) {
+		private bool KillAdb ( ) {
 			if ( string.IsNullOrEmpty ( AdbOsLocation ) ) {
 				Log.e ( ADB, "Cannot stop adb when AndroidDebugBridge is created without the location of adb." );
 				return false;

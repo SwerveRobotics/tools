@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
+using Managed.Adb;
 using static Org.SwerveRobotics.BlueBotBug.Service.WIN32;
 
 namespace Org.SwerveRobotics.BlueBotBug.Service
@@ -290,7 +289,29 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                 }
             }
 
+        void KillAdb()
+            {
+            AdbHelper.Instance.KillAdb(AndroidDebugBridge.SocketAddress);
+            Thread.Sleep(500);
+            }
+
         public string SerialNumberOfDeviceInterface(string path)
+            {
+            // ADB when running holds on to the USB devices in a mode that prevents us from opening them.
+            // So...we nuke it if we're having troubles
+            try
+                {
+                return TrySerialNumberOfDeviceInterface(path);
+                }
+            catch (Exception)
+                {
+                this.tracer.Trace("Retrying serial number...");
+                KillAdb();
+                return TrySerialNumberOfDeviceInterface(path);
+                }
+            }
+
+        string TrySerialNumberOfDeviceInterface(string path)
         // Given a path to a USB device interface, return the serial number of that device
             {
             string result = null;

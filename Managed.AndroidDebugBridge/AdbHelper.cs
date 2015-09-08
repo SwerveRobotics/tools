@@ -118,6 +118,7 @@ namespace Managed.Adb
         /// <summary>
         /// Kills the running adb server.
         /// </summary>
+        /// <remarks>Note that the server isn't guaranteed to be dead by the time this returns.</remarks>
         /// <param name="address">The address.</param>
         /// <returns>0 for success; -1 for failure.</returns>
         /// <exception cref="System.IO.IOException">failed asking to kill adb</exception>
