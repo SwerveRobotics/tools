@@ -94,7 +94,8 @@ namespace Managed.Adb {
 		/// <value>
 		/// The main adb connection.
 		/// </value>
-		private Socket MainAdbConnection { get; set; }
+		private Socket socketMainAdb { get; set; }
+        private Thread deviceMonitorThread;
 
 		/// <summary>
 		/// Adds the client to drop and reopen.
@@ -110,105 +111,154 @@ namespace Managed.Adb {
 			}
 		}
 
-		/// <summary>
-		/// Starts the monitoring
-		/// </summary>
-		public void Start( ) {
-			Thread t = new Thread ( new ThreadStart ( DeviceMonitorLoop ) );
-			t.Name = "Device List Monitor";
-			t.Start ( );
-		}
+        /// <summary>
+        /// Starts the monitoring
+        /// </summary>
+        public void Start()
+            {
+            Stop();
 
-		/// <summary>
-		/// Stops the monitoring
-		/// </summary>
-		public void Stop( ) {
-			IsRunning = false;
+            this.deviceMonitorThread = new Thread(new ThreadStart(DeviceMonitorLoop));
+            this.deviceMonitorThread.Name = "Device List Monitor";
+            this.deviceMonitorThread.Start();
+            lock (this.deviceMonitorStarted)
+                {
+                Monitor.Wait(this.deviceMonitorStarted);
+                }
+            }
 
-			// wakeup the main loop thread by closing the main connection to adb.
-			try {
-				if ( MainAdbConnection != null ) {
-					MainAdbConnection.Close ( );
-				}
-			} catch ( IOException ) {
-			}
+        object deviceMonitorStarted = new object();
 
-			// wake up the secondary loop by closing the selector.
-			/*if ( Selector != null ) {
-				Selector.WakeUp ( );
-			}*/
-		}
+        ReaderWriterLock socketLock = new ReaderWriterLock();
+        void AcquireSocketLock()
+            {
+            this.socketLock.AcquireWriterLock(-1);
+            }
+        void ReleaseSocketLock()
+            {
+            this.socketLock.ReleaseWriterLock();
+            }
 
-		/// <summary>
-		/// Monitors the devices. This connects to the Debug Bridge
-		/// </summary>
-		private void DeviceMonitorLoop( ) {
-			IsRunning = true;
-			do {
-				try {
-					if ( MainAdbConnection == null ) {
-						Log.d ( TAG, "Opening adb connection" );
-						MainAdbConnection = OpenAdbConnection ( );
+        /// <summary>
+        /// Stops the monitoring
+        /// </summary>
+        public void Stop()
+            {
+            if (this.IsRunning)
+                {
+                this.IsRunning = false;
+                this.AcquireSocketLock();
+                this.socketMainAdb?.Disconnect(false);
+                this.ReleaseSocketLock();
+                this.deviceMonitorThread.Interrupt();
+                }
+            }
 
-						if ( MainAdbConnection == null ) {
-							ConnectionAttemptCount++;
-							Console.WriteLine ( "Connection attempts: {0}", ConnectionAttemptCount );
-							Log.e ( TAG, "Connection attempts: {0}", ConnectionAttemptCount );
+        /// <summary>
+        /// Monitors the devices. This connects to the Debug Bridge
+        /// </summary>
+        private void DeviceMonitorLoop()
+            {
+            this.IsRunning = true;
+            lock (this.deviceMonitorStarted)
+                {
+                Monitor.PulseAll(this.deviceMonitorStarted);
+                }
+            do
+                {
+                try
+                    {
+                    this.AcquireSocketLock();
 
-							if ( ConnectionAttemptCount > 10 ) {
-								if ( this.Bridge.Start ( ) == false ) {
-									RestartAttemptCount++;
-									Console.WriteLine ( "adb restart attempts: {0}", RestartAttemptCount );
-									Log.e ( TAG, "adb restart attempts: {0}", RestartAttemptCount );
-								} else {
-									RestartAttemptCount = 0;
-								}
-							}
-							WaitBeforeContinue ( );
-						} else {
-							Log.d ( TAG, "Connected to adb for device monitoring" );
-							ConnectionAttemptCount = 0;
-						}
-					}
-					if ( MainAdbConnection != null && !IsMonitoring && MainAdbConnection.Connected ) {
-						IsMonitoring = SendDeviceListMonitoringRequest ( );
-					}
+                    if (this.socketMainAdb == null)
+                        {
+                        Log.d(TAG, "Opening adb connection");
+                        this.socketMainAdb = OpenAdbConnection();
 
-					if ( IsMonitoring ) {
-						// read the length of the incoming message
-						int length = ReadLength ( MainAdbConnection, LengthBuffer );
+                        if (this.socketMainAdb == null)
+                            {
+                            this.ConnectionAttemptCount++;
+                            Util.ConsoleTrace("Connection attempts: {0}", this.ConnectionAttemptCount);
+                            Log.e(TAG, "Connection attempts: {0}", this.ConnectionAttemptCount);
 
-						if ( length >= 0 ) {
-							// read the incoming message
-							ProcessIncomingDeviceData ( length );
+                            if (this.ConnectionAttemptCount > 10)
+                                {
+                                if (!this.Bridge.Start())
+                                    {
+                                    this.RestartAttemptCount++;
+                                    Util.ConsoleTrace("adb restart attempts: {0}", this.RestartAttemptCount);
+                                    Log.e(TAG, "adb restart attempts: {0}", this.RestartAttemptCount);
+                                    }
+                                else
+                                    {
+                                    this.RestartAttemptCount = 0;
+                                    }
+                                }
+                            this.ReleaseSocketLock();
+                            WaitBeforeContinue();
+                            if (!this.IsRunning) return;
+                            this.AcquireSocketLock();
+                            }
+                        else
+                            {
+                            Log.d(TAG, "Connected to adb for device monitoring");
+                            ConnectionAttemptCount = 0;
+                            }
+                        }
+                    this.ReleaseSocketLock();
 
-							// flag the fact that we have build the list at least once.
-							HasInitialDeviceList = true;
-						}
-					}
-				} catch ( IOException ioe ) {
-					if ( !IsRunning ) {
-						Log.e ( TAG, "Adb connection Error: ", ioe );
-						IsMonitoring = false;
-						if ( MainAdbConnection != null ) {
-							try {
-								MainAdbConnection.Close ( );
-							} catch ( IOException ) {
-								// we can safely ignore that one.
-							}
-							MainAdbConnection = null;
-						}
-					}
-				} catch ( Exception ) {
-					//Console.WriteLine ( ex );
-				}
-			} while ( IsRunning );
-		}
+                    if (this.socketMainAdb != null && !this.IsMonitoring && this.socketMainAdb.Connected)
+                        {
+                        this.IsMonitoring = SendDeviceListMonitoringRequest();
+                        }
 
-		/// <summary>
-		/// Waits before continuing.
-		/// </summary>
-		private void WaitBeforeContinue( ) {
+                    if (this.IsMonitoring)
+                        {
+                        // read the length of the incoming message
+                        int length = ReadLength(this.socketMainAdb, LengthBuffer);
+
+                        if (length >= 0)
+                            {
+                            // read the incoming message
+                            ProcessIncomingDeviceData(length);
+
+                            // flag the fact that we have build the list at least once.
+                            HasInitialDeviceList = true;
+                            }
+                        }
+                    }
+                catch (IOException ioe)
+                    {
+                    if (!this.IsRunning)
+                        {
+                        Log.e(TAG, "Adb connection Error: ", ioe);
+                        this.IsMonitoring = false;
+                        if (this.socketMainAdb != null)
+                            {
+                            try
+                                {
+                                this.socketMainAdb.Close();
+                                }
+                            catch (IOException)
+                                {
+                                // we can safely ignore that one.
+                                }
+                            this.socketMainAdb = null;
+                            }
+                        }
+                    }
+                catch (Exception)
+                    {
+                    if (!this.IsRunning)
+                        return;
+                    }
+                } while (this.IsRunning);
+            }
+
+        /// <summary>
+        /// Waits before continuing.
+        /// </summary>
+        private void WaitBeforeContinue( ) {
 			Thread.Sleep ( 1000 );
 		}
 
@@ -219,17 +269,17 @@ namespace Managed.Adb {
 		private bool SendDeviceListMonitoringRequest( ) {
 			byte[] request = AdbHelper.Instance.FormAdbRequest ( "host:track-devices" );
 
-			if ( AdbHelper.Instance.Write ( MainAdbConnection, request ) == false ) {
+			if ( AdbHelper.Instance.Write ( this.socketMainAdb, request ) == false ) {
 				Log.e ( TAG, "Sending Tracking request failed!" );
-				MainAdbConnection.Close ( );
+				this.socketMainAdb.Close ( );
 				throw new IOException ( "Sending Tracking request failed!" );
 			}
 
-			AdbResponse resp = AdbHelper.Instance.ReadAdbResponse ( MainAdbConnection, false /* readDiagString */);
+			AdbResponse resp = AdbHelper.Instance.ReadAdbResponse ( this.socketMainAdb, false /* readDiagString */);
 
 			if ( !resp.IOSuccess ) {
 				Log.e ( TAG, "Failed to read the adb response!" );
-				MainAdbConnection.Close ( );
+				this.socketMainAdb.Close ( );
 				throw new IOException ( "Failed to read the adb response!" );
 			}
 
@@ -251,7 +301,7 @@ namespace Managed.Adb {
             if (length > 0)
                 {
                 byte[] buffer = new byte[length];
-                string result = Read(MainAdbConnection, buffer);
+                string result = Read(this.socketMainAdb, buffer);
                 string[] devices = result.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
                 devices.ForEach(d => 
                     {

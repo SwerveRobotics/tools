@@ -273,7 +273,7 @@ namespace Managed.Adb {
                 else
                     {
                     // stop the current server
-                    Console.WriteLine("Stopping Current Instance");
+                    Util.ConsoleTrace("Stopping Current Instance");
                     _instance.Stop();
                     }
                 }
@@ -331,7 +331,7 @@ namespace Managed.Adb {
 			}
 
 			if ( !File.Exists ( osLocation ) ) {
-				Console.WriteLine ( osLocation );
+				Util.ConsoleTrace ( osLocation );
 				throw new FileNotFoundException ( "unable to locate adb in the specified location" );
 			}
 
@@ -409,35 +409,45 @@ namespace Managed.Adb {
 			return true;
 		}
 
-		/// <summary>
-		/// Kills the debug bridge, and the adb host server.
-		/// </summary>
-		/// <returns><c>true</c> if success.</returns>
-		private bool Stop ( ) {
-			// if we haven't started we return false;
-			if ( !Started ) {
-				return false;
-			}
+        /// <summary>
+        /// Kills the debug bridge, and the adb host server.
+        /// </summary>
+        /// <returns><c>true</c> if success.</returns>
+        private bool Stop()
+            {
+            if (!StopMonitoring())
+                return false;
 
-			// kill the monitoring services
-			if ( DeviceMonitor != null ) {
-				DeviceMonitor.Stop ( );
-				DeviceMonitor = null;
-			}
+            if (!StopAdb())
+                return false;
 
-			if ( !StopAdb ( ) ) {
-				return false;
-			}
+            Started = false;
+            return true;
+            }
 
-			Started = false;
-			return true;
-		}
+        public bool StopMonitoring()
+            {
+            // if we haven't started we return false;
+            if (!Started)
+                {
+                return false;
+                }
 
-		/// <summary>
-		/// Restarts adb, but not the services around it.
-		/// </summary>
-		/// <returns><c>true</c> if success.</returns>
-		public bool Restart ( ) {
+            // kill the monitoring services
+            if (DeviceMonitor != null)
+                {
+                DeviceMonitor.Stop();
+                DeviceMonitor = null;
+                }
+
+            return true;
+            }
+
+        /// <summary>
+        /// Restarts adb, but not the services around it.
+        /// </summary>
+        /// <returns><c>true</c> if success.</returns>
+        public bool Restart ( ) {
 			if ( string.IsNullOrEmpty ( AdbOsLocation ) ) {
 				Log.e ( ADB, "Cannot restart adb when AndroidDebugBridge is created without the location of adb." );
 				return false;
@@ -589,7 +599,7 @@ namespace Managed.Adb {
 			VersionCheck = false;
 
 			if (string.IsNullOrEmpty ( AdbOsLocation ) ) {
-				Console.WriteLine ( "AdbOsLocation is Empty" );
+				Util.ConsoleTrace ( "AdbOsLocation is Empty" );
 				return;
 			}
 

@@ -12,7 +12,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
     public interface ITracer
         { 
         void Trace(string format, params object[] args);
-        void Trace(string message, USBDeviceInterface device);
+        void Log(string format, params object[] args);
         }
 
     public unsafe class DeviceEventArgs : EventArgs

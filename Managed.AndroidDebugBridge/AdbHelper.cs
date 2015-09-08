@@ -249,7 +249,7 @@ namespace Managed.Adb
                 }
             catch (Exception ex)
                 {
-                Console.WriteLine(ex);
+                Util.ConsoleTrace(ex);
                 throw;
                 }
             }
@@ -406,7 +406,7 @@ namespace Managed.Adb
                 }
             catch (SocketException sex)
                 {
-                Console.WriteLine(sex);
+                Util.ConsoleTrace(sex);
                 throw;
                 }
             //}
@@ -449,7 +449,7 @@ namespace Managed.Adb
                 byte[] lenBuf = new byte[4];
                 if (!Read(socket, lenBuf))
                     {
-                    Console.WriteLine("Expected diagnostic string not found");
+                    Util.ConsoleTrace("Expected diagnostic string not found");
                     break;
                     }
 
@@ -563,7 +563,7 @@ namespace Managed.Adb
                         }
                     else if (count == 0)
                         {
-                        // Console.WriteLine("DONE with Read");
+                        // Util.ConsoleTrace("DONE with Read");
                         throw new AdbException("EOF(2)");  // -rga
                         }
                     else
@@ -1180,10 +1180,6 @@ namespace Managed.Adb
                 {
                 // Listen for the positive response. We 
                 string response = ReadLine(adbChan);
-
-                if (response.Length > 0)
-                    System.Console.WriteLine(response);     // TODO: remove this
-
                 string expectedResponsePrefix = "restarting in TCP mode".ToLowerInvariant();
                 string responsePrefix         = response.Substring(0, Math.Min(response.Length, expectedResponsePrefix.Length)).ToLowerInvariant();
                 if (string.IsNullOrEmpty(response) || expectedResponsePrefix != responsePrefix)

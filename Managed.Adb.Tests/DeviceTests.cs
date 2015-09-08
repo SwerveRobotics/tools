@@ -13,10 +13,5 @@ namespace Managed.Adb.Tests {
 			Assert.True ( device.CanBackup ( ) );
 		}
 
-		[Fact]
-		public void BackupTest ( ) {
-			var device = GetFirstDevice ( );
-			device.Backup ( );
-		}
 	}
 }

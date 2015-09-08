@@ -274,23 +274,12 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                 }
             }
 
-        void Log(string format, params object[] args)
+        public void Log(string format, params object[] args)
             {
-            string message = String.Format(format, args);
+            string message = string.Format(format, args);
             this.eventLog.WriteEntry(message);
             //
             this.Trace(format, args);
             }
-
-        public void Trace(string message, USBDeviceInterface device)
-            {
-            lock (traceLock)
-                {
-                this.Trace("{0}: ", message);
-                this.Trace("    name={0}", device.DeviceInterfacePath);
-                this.Trace("    guid={0}", device.GuidDeviceInterface);
-                }
-            }
-
         }
     }

@@ -92,11 +92,11 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             try
                 {
                 this.OnCustomCommand(command);
-                this.WriteEventLogEntry(Res.GetString("CommandSuccessful"));
+                this.WriteEventLogEntry(Res.GetString($"Command({command}):successful"));
                 }
             catch (Exception exception)
                 {
-                this.WriteEventLogEntry(Res.GetString("CommandFailed", new object[] { exception.ToString() }), EventLogEntryType.Error);
+                this.WriteEventLogEntry(Res.GetString($"Command{command}:failed", new object[] { exception.ToString() }), EventLogEntryType.Error);
                 throw;
                 }
             }
@@ -106,11 +106,11 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             try
                 {
                 this.OnCustomCommandEx(command, eventType, eventData, eventContext);
-                this.WriteEventLogEntry(Res.GetString("CommandSuccessful"));
+                this.WriteEventLogEntry(Res.GetString($"Command({command}):successful"));
                 }
             catch (Exception exception)
                 {
-                this.WriteEventLogEntry(Res.GetString("CommandFailed", new object[] { exception.ToString() }), EventLogEntryType.Error);
+                this.WriteEventLogEntry(Res.GetString($"Command({command}):failed", new object[] { exception.ToString() }), EventLogEntryType.Error);
                 throw;
                 }
             }
@@ -914,14 +914,14 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                 return name;
                 }
             StringBuilder format = new StringBuilder();
-            format.Append(string.Format("{0}: ", name));
+            format.Append($"{name}: ");
             for (int i = 0; i < args.Length; i++)
                 {
                 if (i > 0) format.Append(", ");
                 format.Append("{");
-                format.Append(string.Format("{0}",i));
+                format.Append($"{i}");
                 format.Append("}");
-                string str2 = args[i] as string;
+                string str2 = args[i].ToString();
                 if ((str2 != null) && (str2.Length > 0x400))
                     {
                     args[i] = str2.Substring(0, 0x3fd) + "...";

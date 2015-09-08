@@ -32,7 +32,7 @@ namespace Managed.Adb {
 					if (string.IsNullOrEmpty ( line ) || line.StartsWith ( "#" ) || line.StartsWith("$") ) {
 						continue;
 					}
-					Console.WriteLine ( line );
+					Util.ConsoleTrace ( line );
 				}
 			}
 	}
