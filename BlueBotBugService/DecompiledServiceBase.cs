@@ -19,6 +19,7 @@ using System.Runtime.InteropServices;
 using System.Security.Permissions;
 using System.Threading;
 using System.ServiceProcess;
+using System.Text;
 using Org.SwerveRobotics.BlueBotBug.Service;
 
 namespace Org.SwerveRobotics.BlueBotBug.Service
@@ -908,20 +909,25 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
 
         public static string GetString(string name, params object[] args)
             {
-            string format = name;
             if ((args == null) || (args.Length == 0))
                 {
-                return format;
+                return name;
                 }
+            StringBuilder format = new StringBuilder();
+            format.Append(string.Format("{0}: ", name));
             for (int i = 0; i < args.Length; i++)
                 {
+                if (i > 0) format.Append(", ");
+                format.Append("{");
+                format.Append(string.Format("{0}",i));
+                format.Append("}");
                 string str2 = args[i] as string;
                 if ((str2 != null) && (str2.Length > 0x400))
                     {
                     args[i] = str2.Substring(0, 0x3fd) + "...";
                     }
                 }
-            return string.Format(CultureInfo.CurrentCulture, format, args);
+            return string.Format(CultureInfo.CurrentCulture, format.ToString(), args);
             }
 
         }
