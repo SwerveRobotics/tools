@@ -55,13 +55,36 @@ namespace MadBee.Console
                         break;
                     case Actions.Experiment:
                         {
+                        bridge.DeviceChanged += delegate (object sender, DeviceEventArgs e)
+                            {
+                            System.Console.WriteLine("Changed: {0}\t{1}", e.Device.SerialNumber, e.Device.State);
+                            };
+                        bridge.DeviceConnected += delegate (object sender, DeviceEventArgs e)
+                            {
+                            System.Console.WriteLine("{0}\t{1}", e.Device.SerialNumber, e.Device.State);
+                            };
+                        bridge.DeviceDisconnected += delegate (object sender, DeviceEventArgs e)
+                            {
+                            System.Console.WriteLine("{0}\t{1}", e.Device.SerialNumber, e.Device.State);
+                            };
+
                         List<Device> devices = AdbHelper.Instance.GetDevices(AndroidDebugBridge.SocketAddress);
                         foreach (Device device in devices)
                             {
-                            AdbHelper.Instance.TcpIp(5555, AndroidDebugBridge.SocketAddress, device);
-                            // "service.adb.tcp.port"
-                            // bridge.ExecuteRawSocketCommand(address, "host:devices-l")
-                            // AdbHelper.Instance.SetDevice(, device);
+                            // Find the device's IP address
+                            string ipAddress = device.GetProperty("dhcp.wlan0.ipaddress");
+
+                            // Restart the device listening on a port of interest
+                            int portNumber = 5555;
+                            AdbHelper.Instance.TcpIp(portNumber, AndroidDebugBridge.SocketAddress, device);
+
+                            // Sleep for a moment?
+                            System.Threading.Thread.Sleep(1000);
+
+                            for (;;) { }
+
+                            // Connect to the TCPIP version of that device
+                            // AdbHelper.Instance.Connect(ipAddress, portNumber, AndroidDebugBridge.SocketAddress);
                             }
                         }
                         break;
@@ -88,7 +111,6 @@ namespace MadBee.Console
 
         private static void StartServer()
             {
-
             }
 
 

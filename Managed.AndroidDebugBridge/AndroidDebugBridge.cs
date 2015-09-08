@@ -350,9 +350,7 @@ namespace Managed.Adb {
 		/// </summary>
 		/// <param name="e">The <see cref="Managed.Adb.AndroidDebugBridgeEventArgs"/> instance containing the event data.</param>
 		internal void OnBridgeChanged ( AndroidDebugBridgeEventArgs e ) {
-			if ( this.BridgeChanged != null ) {
-				this.BridgeChanged ( this, e );
-			}
+            this.BridgeChanged?.Invoke(this, e);
 		}
 
 		/// <summary>
@@ -360,9 +358,7 @@ namespace Managed.Adb {
 		/// </summary>
 		/// <param name="e">The <see cref="Managed.Adb.ClientEventArgs"/> instance containing the event data.</param>
 		internal void OnClientChanged ( ClientEventArgs e ) {
-			if ( this.ClientChanged != null ) {
-				this.ClientChanged ( this, e );
-			}
+            this.ClientChanged?.Invoke(this, e);
 		}
 
 		/// <summary>
@@ -370,9 +366,7 @@ namespace Managed.Adb {
 		/// </summary>
 		/// <param name="e">The <see cref="Managed.Adb.DeviceEventArgs"/> instance containing the event data.</param>
 		internal void OnDeviceChanged ( DeviceEventArgs e ) {
-			if ( this.DeviceChanged != null ) {
-				this.DeviceChanged ( this, e );
-			}
+            this.DeviceChanged?.Invoke(this, e);
 		}
 
 		/// <summary>
@@ -380,9 +374,7 @@ namespace Managed.Adb {
 		/// </summary>
 		/// <param name="e">The <see cref="Managed.Adb.DeviceEventArgs"/> instance containing the event data.</param>
 		internal void OnDeviceConnected ( DeviceEventArgs e ) {
-			if ( this.DeviceConnected != null ) {
-				this.DeviceConnected ( this, e );
-			}
+            this.DeviceConnected?.Invoke(this, e);
 		}
 
 		/// <summary>
@@ -390,9 +382,7 @@ namespace Managed.Adb {
 		/// </summary>
 		/// <param name="e">The <see cref="Managed.Adb.DeviceEventArgs"/> instance containing the event data.</param>
 		internal void OnDeviceDisconnected ( DeviceEventArgs e ) {
-			if ( this.DeviceDisconnected != null ) {
-				this.DeviceDisconnected ( this, e );
-			}
+            this.DeviceDisconnected?.Invoke(this, e);
 		}
 		#endregion
 

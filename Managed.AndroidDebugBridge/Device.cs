@@ -442,50 +442,63 @@ namespace Managed.Adb {
 		}
 
 
-		/// <summary>
-		/// Refreshes the mount points.
-		/// </summary>
-		public void RefreshMountPoints() {
-			if(!IsOffline) {
-				try {
-					this.ExecuteShellCommand(MountPointReceiver.MOUNT_COMMAND, new MountPointReceiver(this));
-				} catch(AdbException) {
+        /// <summary>
+        /// Refreshes the mount points.
+        /// </summary>
+        public void RefreshMountPoints()
+            {
+            if (!this.IsOffline)
+                {
+                try
+                    {
+                    this.ExecuteShellCommand(MountPointReceiver.MOUNT_COMMAND, new MountPointReceiver(this));
+                    }
+                catch (AdbException)
+                    {
+                    }
+                }
+            }
 
-				}
-			}
-		}
+        /// <summary>
+        /// Refreshes the environment variables.
+        /// </summary>
+        public void RefreshEnvironmentVariables()
+            {
+            if (!this.IsOffline)
+                {
+                try
+                    {
+                    this.ExecuteShellCommand(EnvironmentVariablesReceiver.ENV_COMMAND, new EnvironmentVariablesReceiver(this));
+                    }
+                catch (AdbException)
+                    {
+                    }
+                }
+            }
 
-		/// <summary>
-		/// Refreshes the environment variables.
-		/// </summary>
-		public void RefreshEnvironmentVariables() {
-			if(!IsOffline) {
-				try {
-					this.ExecuteShellCommand(EnvironmentVariablesReceiver.ENV_COMMAND, new EnvironmentVariablesReceiver(this));
-				} catch(AdbException) {
+        /// <summary>
+        /// Refreshes the properties.
+        /// </summary>
+        public void RefreshProperties()
+            {
+            if (!this.IsOffline)
+                {
+                try
+                    {
+                    this.ExecuteShellCommand(GetPropReceiver.GETPROP_COMMAND, new GetPropReceiver(this));
+                    }
+                catch (AdbException aex)
+                    {
+                    Log.w(LOG_TAG, aex);
+                    }
+                }
+            }
 
-				}
-			}
-		}
-
-		/// <summary>
-		/// Refreshes the properties.
-		/// </summary>
-		public void RefreshProperties() {
-			if(!IsOffline) {
-				try {
-					this.ExecuteShellCommand(GetPropReceiver.GETPROP_COMMAND, new GetPropReceiver(this));
-				} catch(AdbException aex) {
-					Log.w(LOG_TAG, aex);
-				}
-			}
-		}
-
-		/// <summary>
-		/// Reboots the device in to the specified state
-		/// </summary>
-		/// <param name="into">The reboot state</param>
-		public void Reboot(string into) {
+        /// <summary>
+        /// Reboots the device in to the specified state
+        /// </summary>
+        /// <param name="into">The reboot state</param>
+        public void Reboot(string into) {
 			AdbHelper.Instance.Reboot(into, AndroidDebugBridge.SocketAddress, this);
 		}
 
@@ -880,9 +893,7 @@ namespace Managed.Adb {
 		/// </summary>
 		/// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
 		internal void OnStateChanged(EventArgs e) {
-			if(this.StateChanged != null) {
-				this.StateChanged(this, e);
-			}
+            this.StateChanged?.Invoke(this, e);
 		}
 
 		/// <summary>
@@ -890,9 +901,7 @@ namespace Managed.Adb {
 		/// </summary>
 		/// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
 		internal void OnBuildInfoChanged(EventArgs e) {
-			if(this.BuildInfoChanged != null) {
-				this.BuildInfoChanged(this, e);
-			}
+            this.BuildInfoChanged?.Invoke(this, e);
 		}
 
 		/// <summary>
@@ -900,9 +909,7 @@ namespace Managed.Adb {
 		/// </summary>
 		/// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
 		internal void OnClientListChanged(EventArgs e) {
-			if(this.ClientListChanged != null) {
-				this.ClientListChanged(this, e);
-			}
+            this.ClientListChanged?.Invoke(this, e);
 		}
 	}
 }

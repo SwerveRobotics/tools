@@ -28,24 +28,25 @@ namespace Managed.Adb {
 		private byte[] LengthBuffer2 = null;
 
 
-		/// <summary>
-		/// Initializes a new instance of the <see cref="DeviceMonitor"/> class.
-		/// </summary>
-		/// <param name="bridge">The bridge.</param>
-		public DeviceMonitor( AndroidDebugBridge bridge ) {
-			Server = bridge;
-			Devices = new List<Device> ( );
-			DebuggerPorts = new List<int> ( );
-			ClientsToReopen = new Dictionary<IClient, int> ( );
-			DebuggerPorts.Add ( DdmPreferences.DebugPortBase );
-			LengthBuffer = new byte[4];
-			LengthBuffer2 = new byte[4];
-		}
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DeviceMonitor"/> class.
+        /// </summary>
+        /// <param name="bridge">The bridge.</param>
+        public DeviceMonitor(AndroidDebugBridge bridge)
+            {
+            this.Bridge = bridge;
+            Devices = new List<Device>();
+            DebuggerPorts = new List<int>();
+            ClientsToReopen = new Dictionary<IClient, int>();
+            DebuggerPorts.Add(DdmPreferences.DebugPortBase);
+            LengthBuffer = new byte[4];
+            LengthBuffer2 = new byte[4];
+            }
 
-		/// <summary>
-		/// Gets the devices.
-		/// </summary>
-		public IList<Device> Devices { get; private set; }
+        /// <summary>
+        /// Gets the devices.
+        /// </summary>
+        public IList<Device> Devices { get; private set; }
 		/// <summary>
 		/// Gets the debugger ports.
 		/// </summary>
@@ -55,9 +56,9 @@ namespace Managed.Adb {
 		/// </summary>
 		public Dictionary<IClient, int> ClientsToReopen { get; private set; }
 		/// <summary>
-		/// Gets the server.
+		/// Gets the bridge server.
 		/// </summary>
-		public AndroidDebugBridge Server { get; private set; }
+		public AndroidDebugBridge Bridge { get; private set; }
 		/// <summary>
 		/// Gets a value indicating whether this instance is monitoring.
 		/// </summary>
@@ -155,7 +156,7 @@ namespace Managed.Adb {
 							Log.e ( TAG, "Connection attempts: {0}", ConnectionAttemptCount );
 
 							if ( ConnectionAttemptCount > 10 ) {
-								if ( Server.Start ( ) == false ) {
+								if ( this.Bridge.Start ( ) == false ) {
 									RestartAttemptCount++;
 									Console.WriteLine ( "adb restart attempts: {0}", RestartAttemptCount );
 									Log.e ( TAG, "adb restart attempts: {0}", RestartAttemptCount );
@@ -240,146 +241,163 @@ namespace Managed.Adb {
 			return resp.Okay;
 		}
 
-		/// <summary>
-		/// Processes the incoming device data.
-		/// </summary>
-		/// <param name="length">The length.</param>
-		private void ProcessIncomingDeviceData( int length ) {
-			List<Device> list = new List<Device> ( );
+        /// <summary>
+        /// Processes the incoming device data.
+        /// </summary>
+        /// <param name="length">The length.</param>
+        private void ProcessIncomingDeviceData(int length)
+            {
+            List<Device> list = new List<Device>();
+            if (length > 0)
+                {
+                byte[] buffer = new byte[length];
+                string result = Read(MainAdbConnection, buffer);
+                string[] devices = result.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+                devices.ForEach(d => 
+                    {
+                    try
+                        {
+                        var dv = Device.CreateFromAdbData(d);
+                        if (dv != null)
+                            {
+                            list.Add(dv);
+                            }
+                        }
+                    catch (ArgumentException ae)
+                        {
+                        Log.e(TAG, ae);
+                        }
+                    });
+                }
 
-			if ( length > 0 ) {
-				byte[] buffer = new byte[length];
-                string result = Read ( MainAdbConnection, buffer );
+            // now merge the new devices with the old ones.
+            UpdateDevices(list);
+            }
 
-                string[] devices = result.Split ( new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries );
-				devices.ForEach ( d => {
-					try {
-						var dv = Device.CreateFromAdbData ( d );
-						if ( dv != null ) {
-							list.Add ( dv );
-						}
-					} catch ( ArgumentException ae ) {
-						Log.e ( TAG, ae );
-					}
-				} );
-			}
+        private void UpdateDevices(List<Device> newDevices)
+            {
+            // because we are going to call mServer.deviceDisconnected which will acquire this lock
+            // we lock it first, so that the AndroidDebugBridge lock is always locked first.
+            lock (AndroidDebugBridge.GetLock())
+                {
+                lock (Devices)
+                    {
+                    // For each device in the current list, we look for a matching the new list.
+                    // * if we find it, we update the current object with whatever new information
+                    //   there is
+                    //   (mostly state change, if the device becomes ready, we query for build info).
+                    //   We also remove the device from the new list to mark it as "processed"
+                    // * if we do not find it, we remove it from the current list.
+                    //
+                    // Once this is done, the new list contains device we aren't monitoring yet, so we
+                    // add them to the list, and start monitoring them.
 
-			// now merge the new devices with the old ones.
-			UpdateDevices ( list );
-		}
+                    for (int d = 0; d < Devices.Count;)
+                        {
+                        Device device = Devices[d];
 
-		private void UpdateDevices( List<Device> list ) {
-			// because we are going to call mServer.deviceDisconnected which will acquire this lock
-			// we lock it first, so that the AndroidDebugBridge lock is always locked first.
-			lock ( AndroidDebugBridge.GetLock ( ) ) {
-				lock ( Devices ) {
-					// For each device in the current list, we look for a matching the new list.
-					// * if we find it, we update the current object with whatever new information
-					//   there is
-					//   (mostly state change, if the device becomes ready, we query for build info).
-					//   We also remove the device from the new list to mark it as "processed"
-					// * if we do not find it, we remove it from the current list.
-					// Once this is done, the new list contains device we aren't monitoring yet, so we
-					// add them to the list, and start monitoring them.
+                        // look for a similar device in the new list.
+                        int count = newDevices.Count;
+                        bool foundMatch = false;
+                        for (int dd = 0; dd < count; dd++)
+                            {
+                            Device newDevice = newDevices[dd];
+                            // see if it matches in id and serial number.
+                            if (newDevice.SerialNumber.ToLowerInvariant() == device.SerialNumber.ToLowerInvariant())
+                                {
+                                foundMatch = true;
 
-					for ( int d = 0; d < Devices.Count; ) {
-						Device device = Devices[d];
+                                // update the state if needed.
+                                if (device.State != newDevice.State)
+                                    {
+                                    device.State = newDevice.State;
+                                    device.OnStateChanged(EventArgs.Empty);
 
-						// look for a similar device in the new list.
-						int count = list.Count;
-						bool foundMatch = false;
-						for ( int dd = 0; dd < count; dd++ ) {
-							Device newDevice = list[dd];
-							// see if it matches in id and serial number.
-							if (string.Compare ( newDevice.SerialNumber, device.SerialNumber, true ) == 0 ) {
-								foundMatch = true;
+                                    // if the device just got ready/online, we need to start monitoring it.
+                                    if (device.IsOnline)
+                                        {
+                                        OnDeviceTransitionToOnline(device);
+                                        }
+                                    }
 
-								// update the state if needed.
-								if ( device.State != newDevice.State ) {
-									device.State = newDevice.State;
-									device.OnStateChanged ( EventArgs.Empty );
+                                // remove the new device from the list since it's been used
+                                newDevices.RemoveAt(dd);
+                                break;
+                                }
+                            }
 
-									// if the device just got ready/online, we need to start
-									// monitoring it.
-									if ( device.IsOnline ) {
-										if ( AndroidDebugBridge.ClientSupport ) {
-											if ( StartMonitoringDevice ( device ) == false ) {
-												Log.e ( TAG, "Failed to start monitoring {0}", device.SerialNumber );
-											}
-										}
+                        if (!foundMatch)
+                            {
+                            // the device is gone, we need to remove it, and keep current index to process the next one.
+                            RemoveDevice(device);
+                            if (device.State == DeviceState.Online)
+                                {
+                                device.State = DeviceState.Offline;
+                                device.OnStateChanged(EventArgs.Empty);
+                                this.Bridge?.OnDeviceDisconnected(new DeviceEventArgs(device));
+                                }
+                            }
+                        else
+                            {
+                            // process the next one
+                            d++;
+                            }
+                        }
 
-										if ( device.Properties.Count == 0 ) {
-											QueryNewDeviceForInfo ( device );
-										}
-									}
-								}
+                    // At this point we should still have some new devices in newList, so we process them.
+                    // These are the devices that we are not yet monitoring
+                    foreach (Device newDevice in newDevices)
+                        {
+                        this.Devices.Add(newDevice);
+                        if (newDevice.State == DeviceState.Online)
+                            {
+                            OnDeviceTransitionToOnline(newDevice);
+                            }
+                        }
+                    }
+                }
+            newDevices.Clear();
+            }
 
-								// remove the new device from the list since it's been used
-								list.RemoveAt ( dd );
-								break;
-							}
-						}
+        void OnDeviceTransitionToOnline(Device device)
+            {
+            this.Bridge?.OnDeviceConnected(new DeviceEventArgs(device));
 
-						if ( foundMatch == false ) {
-							// the device is gone, we need to remove it, and keep current index
-							// to process the next one.
-							RemoveDevice ( device );
-							device.State = DeviceState.Offline;
-							device.OnStateChanged ( EventArgs.Empty );
-							Server.OnDeviceDisconnected ( new DeviceEventArgs ( device ) );
-						} else {
-							// process the next one
-							d++;
-						}
-					}
+            if (AndroidDebugBridge.ClientSupport)
+                {
+                if (!StartMonitoringDevice(device))
+                    {
+                    Log.e(TAG, "Failed to start monitoring {0}", device.SerialNumber);
+                    }
+                }
 
-					// at this point we should still have some new devices in newList, so we
-					// process them.
-					foreach ( Device newDevice in list ) {
-						// add them to the list
-						Devices.Add ( newDevice );
-						if ( Server != null ) {
-							newDevice.State = DeviceState.Online;
-							newDevice.OnStateChanged ( EventArgs.Empty );
-							Server.OnDeviceConnected ( new DeviceEventArgs ( newDevice ) );
-						}
+            QueryNewDeviceForInfo(device);
+            }
 
-						// start monitoring them.
-						if ( AndroidDebugBridge.ClientSupport ) {
-							if ( newDevice.IsOnline ) {
-								StartMonitoringDevice ( newDevice );
-							}
-						}
+        /// <summary>
+        /// Removes the device.
+        /// </summary>
+        /// <param name="device">The device.</param>
+        private void RemoveDevice(Device device)
+            {
+            //device.Clients.Clear ( );
+            Devices.Remove(device);
 
-						// look for their build info.
-						if ( newDevice.IsOnline ) {
-							QueryNewDeviceForInfo ( newDevice );
-						}
-					}
-				}
-			}
-			list.Clear ( );
-		}
+            Socket channel = device.ClientMonitoringSocket;
+            if (channel != null)
+                {
+                try
+                    {
+                    channel.Close();
+                    }
+                catch (IOException)
+                    {
+                    // doesn't really matter if the close fails.
+                    }
+                }
+            }
 
-		/// <summary>
-		/// Removes the device.
-		/// </summary>
-		/// <param name="device">The device.</param>
-		private void RemoveDevice( Device device ) {
-			//device.Clients.Clear ( );
-			Devices.Remove ( device );
-
-			Socket channel = device.ClientMonitoringSocket;
-			if ( channel != null ) {
-				try {
-					channel.Close ( );
-				} catch ( IOException ) {
-					// doesn't really matter if the close fails.
-				}
-			}
-		}
-
-		private void QueryNewDeviceForInfo( Device device ) {
+        private void QueryNewDeviceForInfo( Device device ) {
 			// TODO: do this in a separate thread.
 			try {
 				// first get the list of properties.
