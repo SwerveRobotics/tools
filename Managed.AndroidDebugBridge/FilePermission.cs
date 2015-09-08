@@ -119,7 +119,7 @@ namespace Managed.Adb {
 		/// </value>
 		public bool CanDelete { get; private set; }
 
-		public string ToString ( ) {
+		public override string ToString ( ) {
 			StringBuilder perm = new StringBuilder ( );
 			return perm.AppendFormat ( "{0}", CanRead ? "r" : "-" ).AppendFormat ( "{0}", CanWrite ? "w" : "-" ).AppendFormat ( "{0}", CanExecute ? CanDelete ? "x" : "t" : "-" ).ToString ( );
 		}

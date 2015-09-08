@@ -46,7 +46,6 @@ namespace Managed.Adb {
 
 		public void Read ( ) {
 			throw new NotImplementedException ( );
-			int count;
 
 			/*if ( mReadBuffer.position ( ) == mReadBuffer.capacity ( ) ) {
 				if ( mReadBuffer.capacity ( ) * 2 > MAX_BUF_SIZE ) {

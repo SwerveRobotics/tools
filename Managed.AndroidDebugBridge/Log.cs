@@ -104,7 +104,7 @@ namespace Managed.Adb {
 		/// Outputs a Info level message.
 		/// </summary>
 		/// <param name="tag">The tag associated with the message.</param>
-		/// <param name="format">The message to output.</param>
+		/// <param name="message">The message to output.</param>
 		public static void i (string tag, string message ) {
 			WriteLine ( LogLevel.Info, tag, message );
 		}

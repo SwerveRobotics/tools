@@ -117,6 +117,7 @@
     </DocumentationFile>
     <Prefer32Bit>false</Prefer32Bit>
     <OutputPath>..\bin\debug\</OutputPath>
+    <NoWarn>CS1591,CS1584,CS1587,CS1574</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <DefineConstants>$(PlatformConstant);TRACE</DefineConstants>

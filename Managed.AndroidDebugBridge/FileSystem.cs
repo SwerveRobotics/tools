@@ -83,7 +83,7 @@ namespace Managed.Adb {
 				try {
 					FileEntry fe = Device.FileListingService.FindFileEntry ( path );
 					return fe != null;
-				} catch ( FileNotFoundException e ) {
+				} catch ( FileNotFoundException ) {
 					return false;
 				}
 			} else {

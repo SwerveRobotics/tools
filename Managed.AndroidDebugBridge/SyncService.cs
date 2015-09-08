@@ -806,7 +806,7 @@ namespace Managed.Adb {
 		/// </summary>
 		/// <param name="entries"></param>
 		/// <param name="localPath"></param>
-		/// <param name="fls"></param>
+		/// <param name="fileListingService"></param>
 		/// <param name="monitor"></param>
 		/// <returns></returns>
 		/// <exception cref="System.IO.IOException">Throws if unable to create a file or folder</exception>
@@ -896,13 +896,13 @@ namespace Managed.Adb {
 		/// <summary>
 		/// compute the recursive file size of all the files in the list. Folders have a weight of 1.
 		/// </summary>
-		/// <param name="files">The local files / folders</param>
+		/// <param name="fsInfos">The local files / folders</param>
 		/// <returns>The total number of bytes</returns>
 		/// <remarks>This does not check for circular links.</remarks>
-		private long GetTotalLocalFileSize ( IEnumerable<FileSystemInfo> fsis ) {
+		private long GetTotalLocalFileSize ( IEnumerable<FileSystemInfo> fsInfos ) {
 			long count = 0;
 
-			foreach ( FileSystemInfo fsi in fsis ) {
+			foreach ( FileSystemInfo fsi in fsInfos ) {
 				if ( fsi.Exists ) {
 					if ( fsi is DirectoryInfo ) {
 						return GetTotalLocalFileSize ( ( fsi as DirectoryInfo ).GetFileSystemInfos ( ) ) + 1;

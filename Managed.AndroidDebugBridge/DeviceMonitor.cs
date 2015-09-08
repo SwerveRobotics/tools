@@ -199,7 +199,7 @@ namespace Managed.Adb {
 							MainAdbConnection = null;
 						}
 					}
-				} catch ( Exception ex ) {
+				} catch ( Exception ) {
 					//Console.WriteLine ( ex );
 				}
 			} while ( IsRunning );
@@ -471,7 +471,7 @@ namespace Managed.Adb {
 					try {
 						// attempt to close the socket if needed.
 						socket.Close ( );
-					} catch ( IOException e1 ) {
+					} catch ( IOException ) {
 						// we can ignore that one. It may already have been closed.
 					}
 					Log.d ( TAG, "Connection Failure when starting to monitor device '{0}' : {1}", device, e.Message );
@@ -575,7 +575,7 @@ namespace Managed.Adb {
 									}
 							}
 					}*/
-				} catch ( IOException e ) {
+				} catch ( IOException ) {
 					if ( !IsRunning ) {
 
 					}
@@ -744,7 +744,7 @@ namespace Managed.Adb {
 				try {
 					int len = int.Parse ( msg, System.Globalization.NumberStyles.HexNumber );
 					return len;
-				} catch ( FormatException nfe ) {
+				} catch ( FormatException ) {
 					// we'll throw an exception below.
 				}
 			}

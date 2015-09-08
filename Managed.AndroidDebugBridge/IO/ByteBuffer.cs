@@ -323,7 +323,7 @@ namespace Managed.Adb.IO {
 			return reader.ReadBoolean ( );
 		}
 
-		public virtual string ToString ( ) {
+		public override string ToString ( ) {
 			System.Text.StringBuilder buf = new System.Text.StringBuilder ( );
 
 			byte[] arr = ToArray ( );

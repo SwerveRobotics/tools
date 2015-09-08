@@ -120,7 +120,6 @@ namespace Managed.Adb {
 		/// 
 		/// </summary>
 		private string _avdName;
-		private IPEndPoint _endpoint;
 		private bool _canSU = false;
 		private BatteryInfo _lastBatteryInfo = null;
 		private DateTime _lastBatteryCheckTime = DateTime.MinValue;
@@ -208,13 +207,6 @@ namespace Managed.Adb {
 		/// </returns>
 		public bool CanBackup() {
 			return this.FileSystem.Exists("/system/bin/bu");
-		}
-
-		/// <summary>
-		/// Backups this device.
-		/// </summary>
-		public void Backup() {
-			AdbHelper.Instance.Backup(AndroidDebugBridge.SocketAddress);
 		}
 
 		/// <summary>
@@ -648,6 +640,7 @@ namespace Managed.Adb {
 		/// </summary>
 		/// <param name="command">The command.</param>
 		/// <param name="receiver">The receiver.</param>
+		/// <param name="timeout"></param>
 		public void ExecuteRootShellCommand(string command, IShellOutputReceiver receiver, int timeout) {
 			ExecuteRootShellCommand(command, receiver, timeout, new object[] { });
 		}
@@ -719,7 +712,6 @@ namespace Managed.Adb {
 		/// Removes a port forwarding between a local and a remote port.
 		/// </summary>
 		/// <param name="localPort">the local port to forward</param>
-		/// <param name="remotePort">the remote port.</param>
 		/// <returns><code>true</code> if success.</returns>
 		public bool RemoveForward(int localPort) {
 			try {
