@@ -30,36 +30,47 @@ namespace Managed.Adb {
 		public Device Device { get; set; }
 
 
-		/// <summary>
-		/// Processes the new lines.
-		/// </summary>
-		/// <param name="lines">The lines.</param>
-		protected override void ProcessNewLines ( string[] lines ) {
-			// We receive an array of lines. We're expecting
-			// to have the build info in the first line, and the build
-			// date in the 2nd line. There seems to be an empty line
-			// after all that.
+        /// <summary>
+        /// Processes the new lines.
+        /// </summary>
+        /// <param name="lines">The lines.</param>
+        protected override void ProcessNewLines(string[] lines)
+            {
+            // We receive an array of lines. We're expecting
+            // to have the build info in the first line, and the build
+            // date in the 2nd line. There seems to be an empty line
+            // after all that.
 
-			foreach (string line in lines ) {
-				if (string.IsNullOrEmpty ( line ) || line.StartsWith ( "#" ) || line.StartsWith("$") ) {
-					continue;
-				}
-				var m = line.Match ( GETPROP_PATTERN, RegexOptions.Compiled );
-				if ( m.Success ) {
-                    string label = m.Groups[1].Value.Trim ( );
-                    string value = m.Groups[2].Value.Trim ( );
+            foreach (string line in lines)
+                {
+                if (string.IsNullOrEmpty(line) || line.StartsWith("#") || line.StartsWith("$"))
+                    {
+                    continue;
+                    }
+                var m = line.Match(GETPROP_PATTERN, RegexOptions.Compiled);
+                if (m.Success)
+                    {
+                    string label = m.Groups[1].Value.Trim();
+                    string value = m.Groups[2].Value.Trim();
 
-					if ( label.Length > 0 ) {
-						Device.Properties.Add ( label, value );
-					}
-				}
-			}
-		}
+                    if (label.Length > 0)
+                        {
+                        if (Device.Properties.ContainsKey(label))
+                            {
+                            System.Diagnostics.Debugger.Break();
+                            throw new Managed.Adb.Exceptions.AdbException($"property already present:{label}");
+                            }
+                        else
+                            Device.Properties.Add(label, value);
+                        }
+                    }
+                }
+            }
 
-		/// <summary>
-		/// Finishes the receiver
-		/// </summary>
-		protected override void Done ( ) {
+        /// <summary>
+        /// Finishes the receiver
+        /// </summary>
+        protected override void Done ( ) {
 			this.Device.OnBuildInfoChanged ( EventArgs.Empty );
 			base.Done ( );
 		}
