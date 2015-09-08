@@ -42,7 +42,7 @@ namespace Managed.Adb {
                     string block = m.Groups[1].Value.Trim ( ).Replace ( "//", "/" );
                     string name = m.Groups[2].Value.Trim ( );
                     string fs = m.Groups[3].Value.Trim ( );
-					bool ro = string.Compare ( "ro", m.Groups[4].Value.Trim ( ), false ) == 0;
+					bool ro = Util.equals ( "ro", m.Groups[4].Value.Trim ( ) );
 					MountPoint mnt = new MountPoint ( block, name, fs, ro );
                     string key = name.Substring ( 1 );
 					// currently does not support multiple mounts to the same location...

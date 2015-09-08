@@ -382,7 +382,7 @@ namespace Managed.Adb {
 			foreach ( var pathItem in entriesString ) {
 				FileEntry[] entries = GetChildren ( current, true, null );
 				foreach ( var e in entries ) {
-					if (string.Compare ( e.Name, pathItem, false ) == 0 ) {
+					if (Util.equals ( e.Name, pathItem)) {
 						current = e;
 						break;
 					}
@@ -390,10 +390,10 @@ namespace Managed.Adb {
 			}
 
 			// better checking if the file is the "same" based on the link or the reference
-			if ( (string.Compare ( current.FullPath, path, false ) == 0 ||
-                string.Compare ( current.FullResolvedPath, path, false ) == 0 ||
-                string.Compare ( current.FullPath, rpath, false ) == 0 ||
-                string.Compare ( current.FullResolvedPath, rpath, false ) == 0 ) ) {
+			if ( (Util.equals ( current.FullPath, path) ||
+                Util.equals ( current.FullResolvedPath, path) ||
+                Util.equals ( current.FullPath, rpath) ||
+                Util.equals ( current.FullResolvedPath, rpath) ) ) {
 				return current;
 			} else {
 				throw new FileNotFoundException (string.Format ( "Unable to locate {0}", path ) );

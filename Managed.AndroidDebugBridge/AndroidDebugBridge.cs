@@ -209,7 +209,7 @@ namespace Managed.Adb {
 		public static AndroidDebugBridge Instance {
 			get {
 				if ( _instance == null ) {
-					_instance = CreateBridge ( );
+					_instance = OpenBridge ( );
 				}
 				return _instance;
 			}
@@ -239,7 +239,7 @@ namespace Managed.Adb {
 		/// If a bridge has already been started, it is directly returned with no changes
         /// </summary>
 		/// <returns></returns>
-		public static AndroidDebugBridge CreateBridge ( ) {
+		public static AndroidDebugBridge OpenBridge ( ) {
 			if ( _instance != null ) {
 				return _instance;
 			}
@@ -256,58 +256,66 @@ namespace Managed.Adb {
 			return _instance;
 		}
 
-		/// <summary>
-		/// Creates a new debug bridge from the location of the command line tool.
-		/// </summary>
-		/// <param name="osLocation">the location of the command line tool 'adb'</param>
-		/// <param name="forceNewBridge">force creation of a new bridge even if one with the same location
-		/// already exists.</param>
-		/// <returns>a connected bridge.</returns>
-		/// <remarks>Any existing server will be disconnected, unless the location is the same and
-		/// <code>forceNewBridge</code> is set to false.
-		/// </remarks>
-		public static AndroidDebugBridge CreateBridge (string osLocation, bool forceNewBridge ) {
+        /// <summary>
+        /// Creates a new debug bridge from the location of the command line tool.
+        /// </summary>
+        /// <param name="osLocation">the location of the command line tool 'adb'</param>
+        /// <param name="forceNewBridge">force creation of a new bridge even if one with the same location
+        /// already exists.</param>
+        /// <returns>a connected bridge.</returns>
+        /// <remarks>Any existing server will be disconnected, unless the location is the same and
+        /// <code>forceNewBridge</code> is set to false.
+        /// </remarks>
+        public static AndroidDebugBridge OpenBridge(string osLocation, bool forceNewBridge)
+            {
+            if (_instance != null)
+                {
+                if (!string.IsNullOrEmpty(AdbOsLocation) && Util.equalsIgnoreCase(AdbOsLocation, osLocation) && !forceNewBridge)
+                    {
+                    return _instance;
+                    }
+                else
+                    {
+                    // stop the current server
+                    Console.WriteLine("Stopping Current Instance");
+                    _instance.Stop();
+                    }
+                }
 
-			if ( _instance != null ) {
-				if ( !string.IsNullOrEmpty ( AdbOsLocation ) && string.Compare ( AdbOsLocation, osLocation, true ) == 0 && !forceNewBridge ) {
-					return _instance;
-				} else {
-					// stop the current server
-					Console.WriteLine ( "Stopping Current Instance" );
-					_instance.Stop ( );
-				}
-			}
+            try
+                {
+                _instance = new AndroidDebugBridge(osLocation);
+                _instance.Start();
+                _instance.OnBridgeChanged(new AndroidDebugBridgeEventArgs(_instance));
+                }
+            catch (ArgumentException)
+                {
+                _instance.OnBridgeChanged(new AndroidDebugBridgeEventArgs(null));
+                _instance = null;
+                }
 
-			try {
-				_instance = new AndroidDebugBridge ( osLocation );
-				_instance.Start ( );
-				_instance.OnBridgeChanged ( new AndroidDebugBridgeEventArgs ( _instance ) );
-			} catch ( ArgumentException ) {
-				_instance.OnBridgeChanged ( new AndroidDebugBridgeEventArgs ( null ) );
-				_instance = null;
-			}
+            return _instance;
+            }
 
-			return _instance;
-		}
+        /// <summary>
+        /// Disconnects the current debug bridge, and destroy the object.
+        /// </summary>
+        /// <remarks>This also stops the current adb host server.</remarks>
+        public static void CloseBridge()
+            {
+            if (_instance != null)
+                {
+                _instance.Stop();
+                _instance.OnBridgeChanged(new AndroidDebugBridgeEventArgs(null));
+                _instance = null;
+                }
+            }
 
-		/// <summary>
-		/// Disconnects the current debug bridge, and destroy the object.
-		/// </summary>
-		/// <remarks>This also stops the current adb host server.</remarks>
-		public static void DisconnectBridge ( ) {
-			if ( _instance != null ) {
-				_instance.Stop ( );
-
-				_instance.OnBridgeChanged ( new AndroidDebugBridgeEventArgs ( null ) );
-				_instance = null;
-			}
-		}
-
-		/// <summary>
-		/// Gets the lock.
-		/// </summary>
-		/// <returns></returns>
-		public static object GetLock ( ) {
+        /// <summary>
+        /// Gets the lock.
+        /// </summary>
+        /// <returns></returns>
+        public static object GetLock ( ) {
 			return Instance;
 		}
 

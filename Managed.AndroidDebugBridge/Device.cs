@@ -167,7 +167,7 @@ namespace Managed.Adb {
 		private static DeviceState GetStateFromString(string state) {
             string tstate = state;
 
-			if(string.Compare(state, "device", false) == 0) {
+			if(Util.equals(state, "device")) {
 				tstate = "online";
 			}
 
@@ -175,7 +175,7 @@ namespace Managed.Adb {
 				return (DeviceState)Enum.Parse(typeof(DeviceState), tstate, true);
 			} else {
 				foreach(var fi in typeof(DeviceState).GetFields()) {
-					if(string.Compare(fi.Name, tstate, true) == 0) {
+					if(Util.equalsIgnoreCase(fi.Name, tstate)) {
 						return (DeviceState)fi.GetValue(null);
 					}
 				}

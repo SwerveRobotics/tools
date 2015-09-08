@@ -21,7 +21,7 @@ namespace MadBee.Console
         static void Main(string[] arguments)
             {
             var args = new Arguments(arguments);
-            AndroidDebugBridge bridge = AndroidDebugBridge.CreateBridge(@"e:\ftc\tools\bin\debug\adb.exe", true);
+            AndroidDebugBridge bridge = AndroidDebugBridge.OpenBridge(@"e:\ftc\tools\bin\debug\adb.exe", true);
             foreach (var item in Enum.GetNames(typeof(Actions)))
                 {
                 var actionName = item.Replace('_', '-').ToLower().Trim();
@@ -81,10 +81,8 @@ namespace MadBee.Console
                             // Sleep for a moment?
                             System.Threading.Thread.Sleep(1000);
 
-                            for (;;) { }
-
                             // Connect to the TCPIP version of that device
-                            // AdbHelper.Instance.Connect(ipAddress, portNumber, AndroidDebugBridge.SocketAddress);
+                            AdbHelper.Instance.Connect(ipAddress, portNumber, AndroidDebugBridge.SocketAddress);
                             }
                         }
                         break;
@@ -93,7 +91,7 @@ namespace MadBee.Console
                         }
                     try
                         {
-                        AndroidDebugBridge.DisconnectBridge();
+                        AndroidDebugBridge.CloseBridge();
                         bridge.Stop();
                         }
                     catch (IOException e)

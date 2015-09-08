@@ -1053,7 +1053,7 @@ namespace Managed.Adb
                 AdbResponse resp = ReadAdbResponse(adbChan, false /* readDiagString */, true /*supress logging*/);
                 if (!resp.Okay)
                     {
-                    if (string.Compare("device not found", resp.Message, true) == 0)
+                    if (Util.equalsIgnoreCase("device not found", resp.Message))
                         {
                         throw new DeviceNotFoundException(device.SerialNumber);
                         }
@@ -1180,7 +1180,9 @@ namespace Managed.Adb
                 {
                 // Listen for the positive response. We 
                 string response = ReadLine(adbChan);
-                System.Console.WriteLine(response);
+
+                if (response.Length > 0)
+                    System.Console.WriteLine(response);     // TODO: remove this
 
                 string expectedResponsePrefix = "restarting in TCP mode".ToLowerInvariant();
                 string responsePrefix         = response.Substring(0, Math.Min(response.Length, expectedResponsePrefix.Length)).ToLowerInvariant();

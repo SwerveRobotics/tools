@@ -85,10 +85,10 @@ namespace Managed.Adb {
 		/// </summary>
 		/// <param name="linuxPermissions">The linux permissions.</param>
 		public FilePermission ( string linuxPermissions ) {
-			this.CanRead = string.Compare ( linuxPermissions.Substring ( 0, 1 ), "r", false ) == 0;
-			this.CanWrite = string.Compare ( linuxPermissions.Substring ( 1, 1 ), "w", false ) == 0;
-			this.CanExecute = string.Compare ( linuxPermissions.Substring ( 2, 1 ), "x", false ) == 0 || string.Compare ( linuxPermissions.Substring ( 2, 1 ), "t", false ) == 0;
-			this.CanDelete = this.CanWrite && string.Compare ( linuxPermissions.Substring ( 2, 1 ), "t", false ) != 0;
+			this.CanRead = Util.equals ( linuxPermissions.Substring ( 0, 1 ), "r");
+			this.CanWrite = Util.equals ( linuxPermissions.Substring ( 1, 1 ), "w");
+			this.CanExecute = Util.equals ( linuxPermissions.Substring ( 2, 1 ), "x") || Util.equals ( linuxPermissions.Substring ( 2, 1 ), "t");
+			this.CanDelete = this.CanWrite && !Util.equals ( linuxPermissions.Substring ( 2, 1 ), "t");
 		}
 
 		/// <summary>

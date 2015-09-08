@@ -60,17 +60,17 @@ namespace Managed.Adb {
 
 				match = line.Match ( AC_POWER, REOPTIONS );
 				if ( match.Success ) {
-					BatteryInfo.ACPowered = string.Compare ( match.Groups[1].Value, bool.TrueString, true ) == 0;
+					BatteryInfo.ACPowered = Util.equalsIgnoreCase ( match.Groups[1].Value, bool.TrueString);
 				}
 
 				match = line.Match ( USB_POWER, REOPTIONS );
 				if ( match.Success ) {
-					BatteryInfo.UsbPowered = string.Compare ( match.Groups[1].Value, bool.TrueString, true ) == 0;
+					BatteryInfo.UsbPowered = Util.equalsIgnoreCase ( match.Groups[1].Value, bool.TrueString);
 				}
 
 				match = line.Match ( PRESENT, REOPTIONS );
 				if ( match.Success ) {
-					BatteryInfo.Present = string.Compare ( match.Groups[1].Value, bool.TrueString, true ) == 0;
+					BatteryInfo.Present = Util.equalsIgnoreCase ( match.Groups[1].Value, bool.TrueString);
 				}
 
 				match = line.Match ( STATUS, REOPTIONS );

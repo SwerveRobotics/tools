@@ -80,7 +80,7 @@ namespace Managed.Adb {
 				// check if this path exists in the path already
 				if ( Device.EnvironmentVariables.ContainsKey ( "PATH" ) ) {
 					var paths = Device.EnvironmentVariables["PATH"].Split ( ':' );
-					var found = paths.Where ( p => string.Compare ( p, BUSYBOX_BIN, false ) == 0 ).Count ( ) > 0;
+					var found = paths.Where ( p => Util.equals( p, BUSYBOX_BIN ) ).Count ( ) > 0;
 
 					// we didnt find it, so add it.
 					if ( !found ) {
@@ -180,7 +180,7 @@ namespace Managed.Adb {
 				CheckForBusyBox ( );
 			}
 
-			return Commands.Where( c => string.Compare(c,command,false) == 0).FirstOrDefault() != null;
+			return Commands.Where( c => Util.equals(c,command)).FirstOrDefault() != null;
 		}
 
 		/// <summary>

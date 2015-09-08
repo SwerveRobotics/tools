@@ -286,7 +286,7 @@ namespace Managed.Adb {
 		/// <param name="name">the name of the child to return.</param>
 		/// <return>the FileEntry matching the name or null.</return>
 		public FileEntry FindChild (string name ) {
-			var entry = Children.Where ( e => string.Compare ( e.Name, name, false ) == 0 ).FirstOrDefault ( );
+			var entry = Children.Where ( e => Util.equals( e.Name, name )).FirstOrDefault ( );
 
 			return entry;
 		}
@@ -384,11 +384,11 @@ namespace Managed.Adb {
 
             string[] segments = PathSegments;
 			if ( this.Type == FileListingService.FileTypes.File && segments.Length == 3 && IsApplicationFileName ) {
-				IsApplicationPackage = string.Compare ( FileListingService.DIRECTORY_APP, segments[1], false ) == 0 &&
-						(string.Compare ( FileListingService.DIRECTORY_SYSTEM, segments[0], false ) == 0 ||
-                        string.Compare ( FileListingService.DIRECTORY_DATA, segments[0], false ) == 0 ||
-                        string.Compare ( FileListingService.DIRECTORY_SD, segments[0], false ) == 0 ||
-                        string.Compare ( FileListingService.DIRECTORY_SDEXT, segments[0], false ) == 0 );
+				IsApplicationPackage = Util.equals( FileListingService.DIRECTORY_APP, segments[1]) &&
+						(Util.equals ( FileListingService.DIRECTORY_SYSTEM, segments[0]) ||
+                        Util.equals ( FileListingService.DIRECTORY_DATA, segments[0]) ||
+                        Util.equals ( FileListingService.DIRECTORY_SD, segments[0]) ||
+                        Util.equals ( FileListingService.DIRECTORY_SDEXT, segments[0]));
 			}
 		}
 

@@ -303,7 +303,7 @@ namespace Managed.Adb {
                             {
                             Device newDevice = newDevices[dd];
                             // see if it matches in id and serial number.
-                            if (newDevice.SerialNumber.ToLowerInvariant() == device.SerialNumber.ToLowerInvariant())
+                            if (Util.equalsIgnoreCase(newDevice.SerialNumber, device.SerialNumber))
                                 {
                                 foundMatch = true;
 

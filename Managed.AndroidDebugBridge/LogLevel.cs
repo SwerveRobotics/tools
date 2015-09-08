@@ -70,7 +70,7 @@ namespace Managed.Adb {
 		public static LogLevelInfo GetByString (string value ) {
 
 			foreach ( LogLevelInfo item in Values ) {
-				if (string.Compare ( item.Value, value, true ) == 0 ) {
+				if (Util.equalsIgnoreCase ( item.Value, value ) ) {
 					return item;
 				}
 			}

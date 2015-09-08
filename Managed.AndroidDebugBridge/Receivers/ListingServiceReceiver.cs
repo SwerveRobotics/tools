@@ -69,7 +69,7 @@ namespace Managed.Adb {
                 // get the name
                 string name = m.Groups[9].Value;
 
-				if (string.Compare ( name, ".", true ) == 0 || string.Compare ( name, "..", true ) == 0 ) {
+				if (Util.equalsIgnoreCase( name, "." ) || Util.equalsIgnoreCase( name, ".." ) ) {
 					// we don't care if the entry is a "." or ".."
 					continue;
 				}
@@ -78,7 +78,7 @@ namespace Managed.Adb {
                 string permissions = m.Groups[1].Value;
                 string owner = m.Groups[2].Value;
                 string group = m.Groups[3].Value;
-				bool isExec = string.Compare ( m.Groups[10].Value, "*", true ) == 0;
+				bool isExec = Util.equalsIgnoreCase( m.Groups[10].Value, "*" );
 				long size = 0;
                 string sizeData = m.Groups[4].Value.Trim ( );
 				long.TryParse (string.IsNullOrEmpty ( sizeData ) ? "0" : sizeData, out size );
@@ -144,7 +144,7 @@ namespace Managed.Adb {
 						if ( pathSegments.Length == 1 ) {
 							// the link is to something in the same directory,
 							// unless the link is ..
-							if (string.Compare ( "..", pathSegments[0], false ) == 0 ) {
+							if (Util.equals ( "..", pathSegments[0] ) ) {
 								// set the type and we're done.
 								objectType = FileListingService.FileTypes.DirectoryLink;
 							} else {
@@ -208,7 +208,7 @@ namespace Managed.Adb {
 				// check that the item is not null.
 				if ( e != null ) {
 					// compare per name, case-sensitive.
-					if ( string.Compare ( name, e.Name, false ) == 0 ) {
+					if ( Util.equals( name, e.Name ) ) {
 						// erase from the list
 						CurrentChildren[i] = null;
 						// and return the object
