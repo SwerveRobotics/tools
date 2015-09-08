@@ -273,7 +273,7 @@ namespace Managed.Adb {
                 else
                     {
                     // stop the current server
-                    Util.ConsoleTraceError("Stopping Current Instance");
+                    Util.ConsoleTraceError("stopping current ADB server");
                     _instance.Stop();
                     }
                 }
@@ -284,10 +284,11 @@ namespace Managed.Adb {
                 _instance.Start();
                 _instance.OnBridgeChanged(new AndroidDebugBridgeEventArgs(_instance));
                 }
-            catch (ArgumentException)
+            catch (Exception)
                 {
                 _instance.OnBridgeChanged(new AndroidDebugBridgeEventArgs(null));
                 _instance = null;
+                throw;
                 }
 
             return _instance;

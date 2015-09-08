@@ -41,55 +41,6 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
         event EventHandler<EventArgs>             DeviceDevNodesChanged;
         }
 
-
-    public class USBDeviceInterface
-        {
-        //-----------------------------------------------------------------------------------------
-        // State
-        //-----------------------------------------------------------------------------------------
-
-        public Guid    GuidDeviceInterface;
-        public string  DeviceInterfacePath;
-        public string  SerialNumber; 
-
-        //-----------------------------------------------------------------------------------------
-        // Construction
-        //-----------------------------------------------------------------------------------------
-
-        public USBDeviceInterface()
-            {
-            this.GuidDeviceInterface = Guid.Empty;
-            this.DeviceInterfacePath = null;
-            this.SerialNumber        = null;
-            }
-
-        public USBDeviceInterface(Guid interfaceGuid, string deviceInterfacePath, string serialNumber)
-            {
-            this.GuidDeviceInterface = interfaceGuid;
-            this.DeviceInterfacePath = deviceInterfacePath.ToLowerInvariant();
-            this.SerialNumber        = serialNumber;
-            }
-
-        public unsafe USBDeviceInterface(DEV_BROADCAST_DEVICEINTERFACE_W* pintf, string serialNumber)
-            {
-            this.GuidDeviceInterface = pintf->dbcc_classguid;
-            this.DeviceInterfacePath = pintf->dbcc_name.ToLowerInvariant();
-            this.SerialNumber        = serialNumber;
-            }
-
-        public override bool Equals(object obj)
-            {
-            if (obj is USBDeviceInterface)
-                return this.DeviceInterfacePath == (obj as USBDeviceInterface).DeviceInterfacePath;
-            else
-                return false;
-            }
-        public override int GetHashCode()
-            {
-            return this.DeviceInterfacePath.GetHashCode() ^ 1398713;
-            }
-        }
-
     public class USBMonitor : IDisposable
         {
         //-----------------------------------------------------------------------------------------
@@ -101,15 +52,11 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
         bool                started     = false;
         IntPtr              notificationHandle;
         bool                notificationHandleIsService;
-        readonly object     traceLock = new object();
 
         readonly object     theLock = new object();
-        HashSet<USBDeviceInterface>     currentDevices = null;
-        List<Guid>                      deviceInterfacesOfInterest = null;
-        List<IntPtr>                    deviceNotificationHandles = null;
-
-        public EventHandler<USBDeviceInterface> OnDeviceOfInterestArrived;
-        public EventHandler<USBDeviceInterface> OnDeviceOfInterestRemoved;
+        List<Guid>          deviceInterfacesOfInterest = null;
+        List<IntPtr>        deviceNotificationHandles = null;
+        AndroidDebugBridge  bridge = null;
 
         //-----------------------------------------------------------------------------------------
         // Construction
@@ -139,7 +86,6 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             {
             lock (theLock)
                 {
-                this.currentDevices = new HashSet<USBDeviceInterface>();
                 this.deviceInterfacesOfInterest = new List<Guid>();
                 this.deviceNotificationHandles = new List<IntPtr>();
                 }
@@ -170,12 +116,11 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
 
             if (this.started)
                 {
-                GetDeviceNotificationsFor(guid);
-                FindExistingDevices(guid);
+                GetUSBDeviceNotificationsFor(guid);
                 }
             }
 
-        void GetDeviceNotificationsFor(Guid guidDevInterface)
+        void GetUSBDeviceNotificationsFor(Guid guidDevInterface)
             {
             lock (theLock)
                 {
@@ -205,14 +150,22 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             {
             try
                 {
+                string path = GetAdbPath();
+                this.bridge = AndroidDebugBridge.OpenBridge(path, true);
+                this.bridge.DeviceConnected += (object sender, Managed.Adb.DeviceEventArgs e) =>
+                    {
+                    EnsureAdbDevicesAreOnTCPIP("ADB device connected notification");
+                    };
+
                 this.eventRaiser.DeviceArrived        += OnDeviceArrived;
                 this.eventRaiser.DeviceRemoveComplete += OnDeviceRemoveComplete;
 
                 foreach (Guid guid in this.deviceInterfacesOfInterest)
                     {
-                    GetDeviceNotificationsFor(guid);
-                    FindExistingDevices(guid);
+                    GetUSBDeviceNotificationsFor(guid);
                     }
+
+                EnsureAdbDevicesAreOnTCPIP("start");
                 
                 this.started = true;
                 }
@@ -232,240 +185,86 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
 
             this.eventRaiser.DeviceArrived        -= OnDeviceArrived;
             this.eventRaiser.DeviceRemoveComplete -= OnDeviceRemoveComplete;
-            }
 
-
-        //-----------------------------------------------------------------------------------------
-        // Device Management
-        //-----------------------------------------------------------------------------------------
-
-        public bool AddDeviceIfNecessary(USBDeviceInterface device)
-            {
-            bool result = false;
-            lock (theLock)
-                {
-                if (this.deviceInterfacesOfInterest.Contains(device.GuidDeviceInterface))
-                    {
-                    if (this.currentDevices.Add(device))
-                        {
-                        result = true;
-                        Trace("added", device);
-                        }
-                    }
-                }
-            return result;
-            }
-
-        public bool RemoveDeviceIfNecessary(USBDeviceInterface device)
-            {
-            bool result = false;
-            lock (theLock)
-                {
-                foreach (USBDeviceInterface him in this.currentDevices)
-                    {
-                    if (him.DeviceInterfacePath == device.DeviceInterfacePath)
-                        {
-                        device.SerialNumber = him.SerialNumber;
-                        break;
-                        }
-                    }
-                if (this.currentDevices.Remove(device))
-                    {
-                    result = true;
-                    Trace("removed", device);
-                    }
-                }
-            return result;
+            this.bridge?.StopMonitoring();
+            this.bridge = null;
             }
 
         //-----------------------------------------------------------------------------------------
         // ADB
         //-----------------------------------------------------------------------------------------
 
-        void KillAdb()
-            {
-            AdbHelper.Instance.KillAdb(AndroidDebugBridge.SocketAddress);
-            Thread.Sleep(500);
-            }
-
         string GetAdbPath()
+        // Return the path to the ADB.EXE executable that we are to use
             {
             string dir = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
             string result = Path.Combine(dir, "adb.exe");
             return result;
             }
 
-        void FindExistingADBDevices()
+        object ensureAdbDevicesAreOnTCPIPLock = new object();
+
+        void EnsureAdbDevicesAreOnTCPIP(string reason)
+        // Iterate over all the extant Android devices (that ADB knows about) and make sure that each
+        // one of them is listening on TCPIP. This method is idempotent, so you can call it as often
+        // and as frequently as you like.
             {
-            string path = GetAdbPath();
-            AndroidDebugBridge bridge = AndroidDebugBridge.OpenBridge(path, true);
-            try {
-                foreach (var device in AdbHelper.Instance.GetDevices(AndroidDebugBridge.SocketAddress))
+            // We synchronize for paranoid reasons: we're not SURE we can be be called on
+            // a whole range of threads, possibly simultaneously, but why take the chance?
+            lock (ensureAdbDevicesAreOnTCPIPLock)
+                {
+                this.tracer.Trace("------");
+                this.tracer.Trace($"EnsureAdbDevicesAreOnTCPIP({reason})");
+
+                // Keep track of which devices are already listening as we want them to be
+                HashSet<string> ipAddressesAlreadyListening = new HashSet<string>(); 
+
+                // Get ourselves the list of extant devices
+                List<Device> devices = AdbHelper.Instance.GetDevices(AndroidDebugBridge.SocketAddress);
+
+                // A regular expression that matches an IP address
+                const string ipPattern = "[0-9]{1,3}\\.*[0-9]{1,3}\\.*[0-9]{1,3}\\.*[0-9]{1,3}:[0-9]{1,5}";
+
+                // Iterate over that list, finding out who is already listening
+                this.tracer.Trace($"   current devices:");
+                foreach (Device device in devices)
                     {
-                    this.tracer.Trace($"   adb device: {device.SerialNumber}\t{device.State}");
-                    string ipPattern = "[0-9]{1,3}\\.*[0-9]{1,3}\\.*[0-9]{1,3}\\.*[0-9]{1,3}:[0-9]{1,5}";
-                    if (!device.SerialNumber.IsMatch(ipPattern))
-                        {
-                        // Find the device's IP address
-                        string ipAddress = device.GetProperty("dhcp.wlan0.ipaddress");
-                        this.tracer.Trace($"   device ip:{ipAddress}");
+                    // If the device doesn't have an IP address, we can't do anything
+                    if (device.IpAddress() == null)
+                        continue;
 
-                        // Restart the device listening on a port of interest
-                        this.tracer.Trace($"   restarting adbd in TCPIP mode");
-                        int portNumber = 5555;
-                        AdbHelper.Instance.TcpIp(portNumber, AndroidDebugBridge.SocketAddress, device);
+                    this.tracer.Trace($"      serialNumber:{device.SerialNumber}");
 
-                        // Connect to the TCPIP version of that device
-                        this.tracer.Trace($"   connecting to restarted device");
-                        AdbHelper.Instance.Connect(ipAddress, portNumber, AndroidDebugBridge.SocketAddress);
-
-                        this.tracer.Trace($"   connected");
-                        }
+                    // Is this guy already listening as we want him to?
+                    if (device.SerialNumber.IsMatch(ipPattern))
+                        ipAddressesAlreadyListening.Add(device.IpAddress());
                     }
-                }
-            finally
-                {
-                bridge.StopMonitoring();
-                }
-            }
 
-        //-----------------------------------------------------------------------------------------
-        // Scanning
-        //-----------------------------------------------------------------------------------------
-
-        void FindExistingDevices(Guid guidInterface)
-            {
-            //HashSet<USBDeviceInterface> devices = GetSerialNumbersofDevices(guidInterface);
-            //foreach (USBDeviceInterface device in devices)
-            //    {
-            //    AddDeviceIfNecessary(device);
-            //    }
-
-            FindExistingADBDevices();
-            }
-
-        public string SerialNumberOfDeviceInterface(string path)
-            {
-            // ADB when running holds on to the USB devices in a mode that prevents us from opening them.
-            // So...we nuke it if we're having troubles
-            try
-                {
-                return TrySerialNumberOfDeviceInterface(path);
-                }
-            catch (Exception)
-                {
-                return "(unavailable)";
-                //this.tracer.Trace("Retrying serial number...");
-                //KillAdb();
-                //return TrySerialNumberOfDeviceInterface(path);
-                }
-            }
-
-        string TrySerialNumberOfDeviceInterface(string path)
-        // Given a path to a USB device interface, return the serial number of that device
-            {
-            string result = null;
-            IntPtr h = CreateFile(path, GENERIC_READ | GENERIC_WRITE,
-                                  FILE_SHARE_READ | FILE_SHARE_WRITE,
-                                  IntPtr.Zero, OPEN_EXISTING,
-                                  FILE_FLAG_OVERLAPPED, IntPtr.Zero);
-            if (h != INVALID_HANDLE_VALUE)
-                {
-                try
+                // Iterate again over that list, ensuring that any that are not listening start to do so
+                foreach (Device device in devices)
                     {
-                    // Convert the file handle to a WinUSB handle
-                    IntPtr usbHandle;
-                    if (WinUsb_Initialize(h, out usbHandle))
-                        {
-                        try {
-                            // Get the device descriptor; that will give us a serial number 'index'
-                            int cbCopied;
-                            USB_DEVICE_DESCRIPTOR usbDeviceDescriptor = new USB_DEVICE_DESCRIPTOR();
-                            if (WinUsb_GetDescriptor(usbHandle, USB_DEVICE_DESCRIPTOR_TYPE, 0, 0, ref usbDeviceDescriptor, Marshal.SizeOf(usbDeviceDescriptor), out cbCopied))
-                                {
-                                // Exchange that 'index' for a string. Unfortunately, WinUsb_GetDescriptor wont ever tell us how big of 
-                                // buffer it actually needs, so we just grow until we get big enough
-                                int cbBuffer = 64;
-                                IntPtr pbBuffer = Marshal.AllocCoTaskMem(cbBuffer);
-                                while (!WinUsb_GetDescriptor(usbHandle, USB_STRING_DESCRIPTOR_TYPE, usbDeviceDescriptor.iSerialNumber, 0x409, pbBuffer, cbBuffer, out cbCopied))
-                                    {
-                                    if (GetLastError()==ERROR_INSUFFICIENT_BUFFER)
-                                        {
-                                        Marshal.FreeCoTaskMem(pbBuffer);
-                                        cbBuffer *= 2;
-                                        }
-                                    else
-                                        ThrowWin32Error("WinUsb_GetDescriptor failed");
-                                    }
+                    string ipAddress = device.IpAddress();
 
-                                result = Marshal.PtrToStringUni(pbBuffer+USB_STRING_DESCRIPTOR.CbOverhead, (cbCopied-USB_STRING_DESCRIPTOR.CbOverhead)/2);
-                                Marshal.FreeCoTaskMem(pbBuffer);
-                                }
-                            }
-                        finally
-                            {
-                            WinUsb_Free(usbHandle);
-                            }
-                        }
-                    else
-                        {
-                        ThrowWin32Error("failed to open WinUsb_Initialize");
-                        }
-                    }
-                finally
-                    {
-                    CloseHandle(h);
+                    // If the device doesn't have an IP address, we can't do anything
+                    if (ipAddress == null)
+                        continue;
+
+                    // If he's already listening, we're good
+                    if (ipAddressesAlreadyListening.Contains(ipAddress))
+                        continue;
+
+                    // Restart the device listening on a port of interest
+                    this.tracer.Trace($"   restarting {ipAddress} in TCPIP mode");
+                    int portNumber = 5555;
+                    AdbHelper.Instance.TcpIp(portNumber, AndroidDebugBridge.SocketAddress, device);
+
+                    // Connect to the TCPIP version of that device
+                    this.tracer.Trace($"   connecting to restarted {ipAddress} device");
+                    AdbHelper.Instance.Connect(ipAddress, portNumber, AndroidDebugBridge.SocketAddress);
+
+                    this.tracer.Trace($"   connected to {ipAddress}");
                     }
                 }
-            else
-                {
-                // This can be caused by ADB getting into a weird state
-                ThrowWin32Error("failed to open device");
-                }
-
-            return result;
-            }
-
-        HashSet<USBDeviceInterface> GetSerialNumbersofDevices(Guid guidInterfaceClass)
-        // Return the set of serial numbers of currently connected USB devices which have the indicated interface class
-            {
-            HashSet<USBDeviceInterface> result = new HashSet<USBDeviceInterface>();
-
-            // Get a set consisting of the USB devices that have the device interface of interest
-            IntPtr hDeviceInfoSet = SetupDiGetClassDevsW(ref guidInterfaceClass, IntPtr.Zero, IntPtr.Zero, DIGCF_PRESENT | DIGCF_DEVICEINTERFACE);
-            if (hDeviceInfoSet != INVALID_HANDLE_VALUE)
-                {
-                try {
-                    SP_DEVICE_INTERFACE_DATA deviceInterfaceData = SP_DEVICE_INTERFACE_DATA.Construct();
-                    for (int iDevice=0 ;; iDevice++)
-                        {
-                        // Iterate over that device interface set
-                        if (SetupDiEnumDeviceInterfaces(hDeviceInfoSet, IntPtr.Zero, ref guidInterfaceClass, iDevice, ref deviceInterfaceData))
-                            {
-                            // Get the path to the next device
-                            SP_DEVICE_INTERFACE_DETAIL_DATA_MANAGED detail = SP_DEVICE_INTERFACE_DETAIL_DATA_MANAGED.Construct();
-                            int cbRequired;
-                            if (SetupDiGetDeviceInterfaceDetail(hDeviceInfoSet, ref deviceInterfaceData, ref detail, Marshal.SizeOf(detail), out cbRequired, IntPtr.Zero))
-                                {
-                                // From that path, retrieve the USB serial number
-                                string serialNumber = SerialNumberOfDeviceInterface(detail.DevicePath);
-                                result.Add(new USBDeviceInterface(guidInterfaceClass, detail.DevicePath, serialNumber));
-                                }
-                            else
-                                ThrowWin32Error();
-                            }
-                        else if (GetLastError() == ERROR_NO_MORE_ITEMS)
-                            break;
-                        else
-                            ThrowWin32Error();
-                        }
-                    }
-                finally
-                    { 
-                    SetupDiDestroyDeviceInfoList(hDeviceInfoSet);
-                    }
-                }
-            return result;
             }
 
         //-----------------------------------------------------------------------------------------
@@ -477,7 +276,8 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             if (args.pHeader->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
                 {
                 DEV_BROADCAST_DEVICEINTERFACE_W* pintf = (DEV_BROADCAST_DEVICEINTERFACE_W*)args.pHeader;
-                this.AddDeviceIfNecessary(new USBDeviceInterface(pintf, this.SerialNumberOfDeviceInterface(pintf->dbcc_name)));
+                Trace("added", pintf);
+                EnsureAdbDevicesAreOnTCPIP("OnDeviceArrived");
                 }
             }
 
@@ -486,29 +286,15 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             if (args.pHeader->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
                 {
                 DEV_BROADCAST_DEVICEINTERFACE_W* pintf = (DEV_BROADCAST_DEVICEINTERFACE_W*)args.pHeader;
-                this.RemoveDeviceIfNecessary(new USBDeviceInterface(pintf, null));
+                Trace("removed", pintf);
                 }
             }
 
-        unsafe void Trace(DEV_BROADCAST_DEVICEINTERFACE_W* pintf)
+        unsafe void Trace(string message, DEV_BROADCAST_DEVICEINTERFACE_W* pintf)
             {
-            lock (traceLock)
-                {
-                this.tracer.Trace("    pintf->size={0}",        pintf->dbcc_size);
-                this.tracer.Trace("    pintf->DevicePath={0}",  pintf->dbcc_name);
-                this.tracer.Trace("    pintf->guid={0}",        pintf->dbcc_classguid);
-                }
-            }
-
-        void Trace(string message, USBDeviceInterface device)
-            {
-            lock (traceLock)
-                {
-                this.tracer.Trace("{0}: ", message);
-                this.tracer.Trace("    devicePath={0}",     device.DeviceInterfacePath);
-                this.tracer.Trace("    guid={0}",           device.GuidDeviceInterface);
-                this.tracer.Trace("    serialNumber={0}",   device.SerialNumber);
-                }
+            this.tracer.Trace("{0}: ", message);
+            this.tracer.Trace("    devicePath={0}",     pintf->dbcc_name);
+            this.tracer.Trace("    guid={0}",           pintf->dbcc_classguid);
             }
         }
     }

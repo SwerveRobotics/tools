@@ -24,7 +24,6 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
 
         private bool                        oleInitialized = false;
         private USBMonitor                  usbMonitor     = null;
-        private AndroidDebuggerConfigerator configurator   = null;
 
         //------------------------------------------------------------------------------------------
         // Construction
@@ -66,12 +65,8 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                 WIN32.OleInitialize(IntPtr.Zero);
                 this.oleInitialized = true;
                 //
-                this.configurator = new AndroidDebuggerConfigerator(this);
-                //
                 this.usbMonitor = new USBMonitor(this, this, this.ServiceHandle, true);
                 this.usbMonitor.AddDeviceInterfaceOfInterest(AndroidADBDeviceInterface);
-                this.usbMonitor.OnDeviceOfInterestArrived += this.configurator.OnAndroidDeviceArrived;
-                this.usbMonitor.OnDeviceOfInterestRemoved += this.configurator.OnAndroidDeviceRemoved;
                 this.usbMonitor.Start();
                 }
             catch (Exception e)
@@ -92,13 +87,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             if (null != this.usbMonitor)
                 {
                 this.usbMonitor.Stop();
-                this.usbMonitor.OnDeviceOfInterestArrived -= this.configurator.OnAndroidDeviceArrived;
-                this.usbMonitor.OnDeviceOfInterestRemoved -= this.configurator.OnAndroidDeviceRemoved;
                 this.usbMonitor = null;
-                }
-            if (null != this.configurator)
-                {
-                this.configurator = null;
                 }
             this.OleUninitialize();
             //
@@ -208,65 +197,70 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                 {
             // pHeader is non-NULL
             case WIN32.DBT_DEVICEARRIVAL: 
-                Trace("device arrived: {0}", pHeader->DeviceTypeName);   
+                TraceEvent("device arrived: {0}", pHeader->DeviceTypeName);   
                 RaiseDeviceEvent(DeviceArrived, pHeader);
                 break;
             case WIN32.DBT_DEVICEQUERYREMOVE: 
-                Trace("query device remove: {0}", pHeader->DeviceTypeName);   
+                TraceEvent("query device remove: {0}", pHeader->DeviceTypeName);   
                 cancel = RaiseDeviceEvent(DeviceQueryRemove, pHeader);
                 result = cancel ? WIN32.BROADCAST_QUERY_DENY : WIN32.TRUE;
                 break;
             case WIN32.DBT_DEVICEQUERYREMOVEFAILED: 
-                Trace("query device remove failed: {0}", pHeader->DeviceTypeName);   
+                TraceEvent("query device remove failed: {0}", pHeader->DeviceTypeName);   
                 RaiseDeviceEvent(DeviceQueryRemoveFailed, pHeader);
                 break;
             case WIN32.DBT_DEVICEREMOVEPENDING: 
-                Trace("device remove pending: {0}", pHeader->DeviceTypeName);   
+                TraceEvent("device remove pending: {0}", pHeader->DeviceTypeName);   
                 RaiseDeviceEvent(DeviceRemovePending, pHeader);
                 break;
             case WIN32.DBT_DEVICEREMOVECOMPLETE: 
-                Trace("device remove complete: {0}", pHeader->DeviceTypeName);   
+                TraceEvent("device remove complete: {0}", pHeader->DeviceTypeName);   
                 RaiseDeviceEvent(DeviceRemoveComplete, pHeader);
                 break;
 
             case WIN32.DBT_DEVICETYPESPECIFIC: 
-                Trace("device type specific: {0}", pHeader->DeviceTypeName);   
+                TraceEvent("device type specific: {0}", pHeader->DeviceTypeName);   
                 RaiseDeviceEvent(DeviceTypeSpecific, pHeader);
                 break;
             case WIN32.DBT_CUSTOMEVENT:
-                Trace("device custom: {0}", pHeader->DeviceTypeName);   
+                TraceEvent("device custom: {0}", pHeader->DeviceTypeName);   
                 RaiseDeviceEvent(DeviceCustomEvent, pHeader);
                 break;
             case WIN32.DBT_USERDEFINED:
-                Trace("device user defined: {0}", pHeader->DeviceTypeName);   
+                TraceEvent("device user defined: {0}", pHeader->DeviceTypeName);   
                 RaiseDeviceEvent(DeviceUserDefined, pHeader);
                 break;
 
             // pHeader is NULL
             case WIN32.DBT_QUERYCHANGECONFIG:
-                Trace("device query change config: {0}", pHeader->DeviceTypeName);   
+                TraceEvent("device query change config: {0}", pHeader->DeviceTypeName);   
                 cancel = RaiseDeviceEvent(DeviceQueryChangeConfig);
                 result = cancel ? WIN32.BROADCAST_QUERY_DENY : WIN32.TRUE;
                 break;
             case WIN32.DBT_CONFIGCHANGED:
-                Trace("device config changed: {0}", pHeader->DeviceTypeName);   
+                TraceEvent("device config changed: {0}", pHeader->DeviceTypeName);   
                 RaiseDeviceEvent(DeviceConfigChanged);
                 break;
             case WIN32.DBT_CONFIGCHANGECANCELED:
-                Trace("device config change cancelled: {0}", pHeader->DeviceTypeName);   
+                TraceEvent("device config change cancelled: {0}", pHeader->DeviceTypeName);   
                 RaiseDeviceEvent(DeviceConfigChangeCancelled);
                 break;
             case WIN32.DBT_DEVNODES_CHANGED:
-                Trace("device devnodes changed: {0}", pHeader->DeviceTypeName);   
+                TraceEvent("device devnodes changed: {0}", pHeader->DeviceTypeName);   
                 RaiseDeviceEvent(DeviceDevNodesChanged);
                 break;
 
             default: 
-                Trace("unknown device event: {0}", eventType);
+                TraceEvent("unknown device event: {0}", eventType);
                 break;
                 }
 
             return result;
+            }
+
+        void TraceEvent(string format, params object[] arguments)
+            {
+            // Trace(format, arguments);
             }
 
         //------------------------------------------------------------------------------------------

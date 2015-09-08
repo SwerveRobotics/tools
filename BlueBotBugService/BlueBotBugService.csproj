@@ -71,7 +71,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AndroidDebuggerConfigerator.cs" />
     <Compile Include="BlueBotBugService.cs">
       <SubType>Component</SubType>
     </Compile>

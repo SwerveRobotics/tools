@@ -408,8 +408,13 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             }
 
         //--------------------------------------------------------------------------------------------
-        // Other
+        // Misc
         //--------------------------------------------------------------------------------------------
+
+        public static string IpAddress(this Managed.Adb.IDevice device)
+            {
+            return device.GetProperty("dhcp.wlan0.ipaddress");
+            }
 
         public static string[] Lines(this string str, StringSplitOptions options = StringSplitOptions.None)
         // Split the string into its various lines, being careful about the various forms of 
