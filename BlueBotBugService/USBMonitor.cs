@@ -257,6 +257,10 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
                     this.tracer.Trace($"   restarting {ipAddress} in TCPIP mode");
                     int portNumber = 5555;
                     AdbHelper.Instance.TcpIp(portNumber, AndroidDebugBridge.SocketAddress, device);
+                    
+                    // Give it a chance to restart. The actual time used here is a total guess, but
+                    // it does seem to work. Mostly (?).
+                    Thread.Sleep(1000);
 
                     // Connect to the TCPIP version of that device
                     this.tracer.Trace($"   connecting to restarted {ipAddress} device");
