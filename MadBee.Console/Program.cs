@@ -14,7 +14,7 @@ namespace MadBee.Console
             Devices,
             Monitor,
             Kill_Server,
-            ConnectViaTCPIP,
+            TCPIP,
             }
 
         static void Main(string[] arguments)
@@ -62,7 +62,7 @@ namespace MadBee.Console
                                 // ignore
                                 }
                             break;
-                        case Actions.ConnectViaTCPIP:
+                        case Actions.TCPIP:
                             {
                             bridge.DeviceChanged += delegate (object sender, DeviceEventArgs e)
                                 {
@@ -78,17 +78,22 @@ namespace MadBee.Console
                                 };
 
                             List<Device> devices = AdbHelper.Instance.GetDevices(AndroidDebugBridge.SocketAddress);
+
                             foreach (Device device in devices)
                                 {
-                                // Find the device's IP address
-                                string ipAddress = device.GetProperty("dhcp.wlan0.ipaddress");
+                                string ipPattern = "[0-9]{1,3}\\.*[0-9]{1,3}\\.*[0-9]{1,3}\\.*[0-9]{1,3}:[0-9]{1,5}";
+                                if (!device.SerialNumber.IsMatch(ipPattern))
+                                    {
+                                    // Find the device's IP address
+                                    string ipAddress = device.GetProperty("dhcp.wlan0.ipaddress");
 
-                                // Restart the device listening on a port of interest
-                                int portNumber = 5555;
-                                AdbHelper.Instance.TcpIp(portNumber, AndroidDebugBridge.SocketAddress, device);
+                                    // Restart the device listening on a port of interest
+                                    int portNumber = 5555;
+                                    AdbHelper.Instance.TcpIp(portNumber, AndroidDebugBridge.SocketAddress, device);
 
-                                // Connect to the TCPIP version of that device
-                                AdbHelper.Instance.Connect(ipAddress, portNumber, AndroidDebugBridge.SocketAddress);
+                                    // Connect to the TCPIP version of that device
+                                    AdbHelper.Instance.Connect(ipAddress, portNumber, AndroidDebugBridge.SocketAddress);
+                                    }
                                 }
                             }
                             break;
