@@ -417,7 +417,7 @@ namespace Managed.Adb {
 		/// Kills the debug bridge, and the adb host server.
 		/// </summary>
 		/// <returns><c>true</c> if success.</returns>
-		public bool Stop ( ) {
+		private bool Stop ( ) {
 			// if we haven't started we return false;
 			if ( !Started ) {
 				return false;

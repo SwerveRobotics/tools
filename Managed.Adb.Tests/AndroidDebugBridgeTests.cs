@@ -19,7 +19,7 @@ namespace Managed.Adb.Tests {
 					Console.WriteLine ( "{0}\t{1}", d.SerialNumber, d.State );
 				} );
 
-				adb.Stop ( );
+				AndroidDebugBridge.CloseBridge ( );
 			} catch ( Exception ex ) {
 				Console.WriteLine ( ex.ToString ( ) );
 				throw;

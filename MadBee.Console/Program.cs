@@ -13,9 +13,8 @@ namespace MadBee.Console
             {
             Devices,
             Monitor,
-            Start_Server,
             Kill_Server,
-            Experiment,
+            ConnectViaTCPIP,
             }
 
         static void Main(string[] arguments)
@@ -31,7 +30,10 @@ namespace MadBee.Console
                     switch (action)
                         {
                     case Actions.Devices:
-                        GetDevices();
+                        foreach (var device in AdbHelper.Instance.GetDevices(AndroidDebugBridge.SocketAddress))
+                            {
+                            System.Console.WriteLine("{0}\t{1}", device.SerialNumber, device.State);
+                            }
                         break;
                     case Actions.Monitor:
                         bridge.DeviceChanged += delegate (object sender, DeviceEventArgs e)
@@ -48,12 +50,18 @@ namespace MadBee.Console
                             };
                         System.Console.ReadLine();
                         break;
-                    case Actions.Start_Server:
-                        StartServer();
-                        break;
                     case Actions.Kill_Server:
+                        try
+                            {
+                            AndroidDebugBridge.CloseBridge();
+                            }
+                        catch (IOException e)
+                            {
+                            System.Console.WriteLine(e.ToString());
+                            // ignore
+                            }
                         break;
-                    case Actions.Experiment:
+                    case Actions.ConnectViaTCPIP:
                         {
                         bridge.DeviceChanged += delegate (object sender, DeviceEventArgs e)
                             {
@@ -89,16 +97,6 @@ namespace MadBee.Console
                     default:
                         break;
                         }
-                    try
-                        {
-                        AndroidDebugBridge.CloseBridge();
-                        bridge.Stop();
-                        }
-                    catch (IOException e)
-                        {
-                        System.Console.WriteLine(e.ToString());
-                        // ignore
-                        }
 
                     return;
                     }
@@ -107,24 +105,10 @@ namespace MadBee.Console
             PrintUsage();
             }
 
-        private static void StartServer()
-            {
-            }
-
 
         private static void PrintUsage()
             {
             System.Console.WriteLine("Print Usage: ");
             }
-
-        private static void GetDevices()
-            {
-            foreach (var device in AdbHelper.Instance.GetDevices(AndroidDebugBridge.SocketAddress))
-                {
-                System.Console.WriteLine("{0}\t{1}", device.SerialNumber, device.State);
-                }
-            }
-
-
         }
     }
