@@ -418,8 +418,9 @@ namespace Managed.Adb
         /// </summary>
         /// <param name="socket">The socket.</param>
         /// <param name="readDiagString">if set to <c>true</c> [read diag string].</param>
+        /// <param name="suppressLogging">if true, failures are not logged</param>
         /// <returns></returns>
-        public AdbResponse ReadAdbResponse(Socket socket, bool readDiagString)
+        public AdbResponse ReadAdbResponse(Socket socket, bool readDiagString, bool suppressLogging=false)
             {
 
             AdbResponse resp = new AdbResponse();
@@ -474,7 +475,8 @@ namespace Managed.Adb
                     }
 
                 resp.Message = ReplyToString(msg);
-                Log.e(TAG, "Got reply '{0}', diag='{1}'", ReplyToString(reply), resp.Message);
+                if (!suppressLogging)
+                    Log.e(TAG, "Got reply '{0}', diag='{1}'", ReplyToString(reply), resp.Message);
 
                 break;
                 }
@@ -1048,7 +1050,7 @@ namespace Managed.Adb
                     throw new AdbException("failed submitting device (" + device + ") request to ADB");
                     }
 
-                AdbResponse resp = ReadAdbResponse(adbChan, false /* readDiagString */);
+                AdbResponse resp = ReadAdbResponse(adbChan, false /* readDiagString */, true /*supress logging*/);
                 if (!resp.Okay)
                     {
                     if (string.Compare("device not found", resp.Message, true) == 0)
