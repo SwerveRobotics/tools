@@ -19,8 +19,10 @@ namespace MadBee.Console
 
         static void Main(string[] arguments)
             {
+            Log.Level = LogLevel.Verbose;
+
             var args = new Arguments(arguments);
-            AndroidDebugBridge bridge = AndroidDebugBridge.OpenBridge(@"e:\ftc\tools\bin\debug\adb.exe", true);
+            AndroidDebugBridge bridge = AndroidDebugBridge.OpenBridge(@"e:\ftc\tools\bin\debug\adb.exe", false);
             try {
                 foreach (var item in Enum.GetNames(typeof(Actions)))
                     {
@@ -37,17 +39,30 @@ namespace MadBee.Console
                                 }
                             break;
                         case Actions.Monitor:
-                            bridge.DeviceChanged += delegate (object sender, DeviceEventArgs e)
+                            bridge.DeviceChanged += (sender, e) =>
                                 {
                                 System.Console.WriteLine("Changed: {0}\t{1}", e.Device.SerialNumber, e.Device.State);
                                 };
-                            bridge.DeviceConnected += delegate (object sender, DeviceEventArgs e)
+                            bridge.DeviceConnected += (sender, e) =>
                                 {
                                 System.Console.WriteLine("{0}\t{1}", e.Device.SerialNumber, e.Device.State);
                                 };
-                            bridge.DeviceDisconnected += delegate (object sender, DeviceEventArgs e)
+                            bridge.DeviceDisconnected += (sender, e) =>
                                 {
                                 System.Console.WriteLine("{0}\t{1}", e.Device.SerialNumber, e.Device.State);
+                                };
+                            bridge.BridgeChanged += (sender, e) =>
+                                {
+                                if (e.Bridge == null)
+                                    System.Console.WriteLine("null bridge");
+                                else
+                                    {
+                                    System.Console.WriteLine("-----");
+                                    foreach (var device in e.Bridge.Devices)
+                                        {
+                                        System.Console.WriteLine($"   device: {device.SerialNumber}");
+                                        }
+                                    }
                                 };
                             System.Console.ReadLine();
                             break;

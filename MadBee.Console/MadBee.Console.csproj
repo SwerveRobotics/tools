@@ -36,6 +36,7 @@
     <Prefer32Bit>false</Prefer32Bit>
     <OutputPath>..\bin\debug\</OutputPath>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <UseVSHostingProcess>true</UseVSHostingProcess>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
     <DefineConstants>$(PlatformConstant);TRACE</DefineConstants>
