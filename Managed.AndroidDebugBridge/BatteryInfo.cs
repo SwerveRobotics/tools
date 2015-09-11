@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using MoreLinq;
 
 namespace Managed.Adb {
 	/// <summary>
@@ -149,22 +148,23 @@ namespace Managed.Adb {
 			}
 		}
 
-		/// <summary>
-		/// Returns a <see cref="System.String" /> that represents this instance.
-		/// </summary>
-		/// <returns>
-		/// A <see cref="System.String" /> that represents this instance.
-		/// </returns>
-		public override string ToString ( ) {
-			var sb = new StringBuilder ( );
+        /// <summary>
+        /// Returns a <see cref="System.String" /> that represents this instance.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="System.String" /> that represents this instance.
+        /// </returns>
+        public override string ToString()
+            {
+            StringBuilder sb = new StringBuilder();
 
-			this.GetType ( ).GetProperties ( BindingFlags.Instance | BindingFlags.Public | BindingFlags.SetProperty | BindingFlags.GetProperty | BindingFlags.IgnoreCase ).ForEach ( p => {
-				var n = p.Name;
-				var v = p.GetValue ( this, null );
-				sb.AppendLine (string.Format ( "{0}:{1}", n, v ) );
-			} );
+            PropertyInfo[] collection = this.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.SetProperty | BindingFlags.GetProperty | BindingFlags.IgnoreCase);
+            foreach (PropertyInfo p in collection)
+                {
+                sb.AppendLine($"{p.Name}:{p.GetValue(this, null)}");
+                }
 
-			return sb.ToString ( );
-		}
-	}
+            return sb.ToString();
+            }
+        }
 }

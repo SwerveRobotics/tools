@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using Managed.Adb.Exceptions;
-using MoreLinq;
 
 namespace Managed.Adb {
 	/// <summary>
@@ -47,36 +46,47 @@ namespace Managed.Adb {
 		/// Processes the new lines.
 		/// </summary>
 		/// <param name="lines">The lines.</param>
-		protected override void ProcessNewLines ( string[] lines ) {
-			PackageManager.Packages.Clear ( );
-			lines.ForEach ( line => {
-				if ( line.Trim ( ).Length > 0 ) {
-					var m = line.Match ( PackageManagerReceiver.PM_PACKAGE_PATTERN, RegexOptions.Compiled );
-					if ( m.Success ) {
-						// get the children with that path
-						FileEntry entry = null;
-						if ( PackageManager.Packages.ContainsKey ( m.Groups[2].Value ) ) {
-							entry = PackageManager.Packages[m.Groups[1].Value];
-							if ( entry != null ) {
-								entry.Info = m.Groups[2].Value;
-							}
-						} else {
-							try {
-								entry = FileEntry.Find ( Device, m.Groups[1].Value );
-								entry.Info = m.Groups[2].Value;
-								PackageManager.Packages.Add ( m.Groups[2].Value, entry );
-							} catch ( PermissionDeniedException ) {
-								// root required for device packages
-								entry = FileEntry.CreateNoPermissions ( Device, m.Groups[1].Value );
-								entry.Info = m.Groups[2].Value;
-								PackageManager.Packages.Add ( m.Groups[2].Value, entry );
-							}
-						}
-					}
-				}
-			} );
+		protected override void ProcessNewLines ( string[] lines )
+            {
+            PackageManager.Packages.Clear();
+            foreach (string line in lines)
+                {
+                if (line.Trim().Length > 0)
+                    {
+                    Match m = line.Match(PackageManagerReceiver.PM_PACKAGE_PATTERN, RegexOptions.Compiled);
+                    if (m.Success)
+                        {
+                        // get the children with that path
+                        FileEntry entry = null;
+                        if (PackageManager.Packages.ContainsKey(m.Groups[2].Value))
+                            {
+                            entry = PackageManager.Packages[m.Groups[1].Value];
+                            if (entry != null)
+                                {
+                                entry.Info = m.Groups[2].Value;
+                                }
+                            }
+                        else
+                            {
+                            try
+                                {
+                                entry = FileEntry.Find(Device, m.Groups[1].Value);
+                                entry.Info = m.Groups[2].Value;
+                                PackageManager.Packages.Add(m.Groups[2].Value, entry);
+                                }
+                            catch (PermissionDeniedException)
+                                {
+                                // root required for device packages
+                                entry = FileEntry.CreateNoPermissions(Device, m.Groups[1].Value);
+                                entry.Info = m.Groups[2].Value;
+                                PackageManager.Packages.Add(m.Groups[2].Value, entry);
+                                }
+                            }
+                        }
+                    }
+                }
 
-			/*
+            /*
 			foreach ( String line in lines ) {
 				if ( line.Length > 0 ) {
 					// get the filepath and package from the line
@@ -104,8 +114,8 @@ namespace Managed.Adb {
 					}
 				}
 			}*/
-		}
-	}
+            }
+        }
 
 	/// <summary>
 	/// 

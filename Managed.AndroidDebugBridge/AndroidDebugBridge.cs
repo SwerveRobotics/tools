@@ -264,7 +264,7 @@ namespace Managed.Adb
             return false;
             }
 
-        private bool StartServer()
+        public bool StartServer()
             {
             int status = -1;
 

@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.IO;
 using System.Net.Sockets;
 using System.Threading;
-using MoreLinq;
 
 namespace Managed.Adb
     {
@@ -21,12 +21,11 @@ namespace Managed.Adb
 
         public IList<Device>                Devices                 { get; private set; }
         public bool                         IsTrackingDevices       { get; private set; }
-        public int                          ADBConnectionAttempts   { get; private set; }
-        public int                          BridgeRestartAttempts   { get; private set; }
         public bool                         HasDeviceList           { get; private set; }
 
         private readonly AndroidDebugBridge bridge;
         private bool                        started                 { get; set; }
+        private int                         adbFailedOpens          { get; set; }
         private bool                        stopRequested           { get; set; }
         private Socket                      socketTrackDevices      { get; set; }
         private Thread                      deviceTrackingThread;
@@ -42,7 +41,7 @@ namespace Managed.Adb
         public DeviceTracker(AndroidDebugBridge bridge)
             {
             this.bridge        = bridge;
-            this.Devices            = new List<Device>();
+            this.Devices       = new List<Device>();
             this.lengthBuffer  = new byte[4];
             this.started       = false;
             this.stopRequested = false;
@@ -54,7 +53,7 @@ namespace Managed.Adb
             StopDeviceTracking();
 
             // Start the monitor thread a-going
-            this.deviceTrackingThread = new Thread(new ThreadStart(DeviceTrackingThreadLoop));
+            this.deviceTrackingThread = new Thread(new ThreadStart(DeviceTrackingThread));
             this.deviceTrackingThread.Name = "Device List Monitor";
             this.deviceTrackingThread.Start();
 
@@ -77,7 +76,7 @@ namespace Managed.Adb
                 // Close the socket to get him out of Receive() if he's there
                 this.AcquireSocketWriteLock();
                 try {
-                    this.socketTrackDevices?.Disconnect(false);
+                    this.socketTrackDevices?.Close();
                     }
                 finally
                     {
@@ -93,7 +92,47 @@ namespace Managed.Adb
                 }
             }
 
-        void DeviceTrackingThreadLoop()
+        void OpenSocketIfNecessary()
+        // Get ourselves a socket to our ADB server, restarting it as needed
+            {
+            this.AcquireSocketWriteLock();
+            try
+                {
+                // If we haven't a socket, try to open one
+                if (this.socketTrackDevices == null)
+                    {
+                    Debug.Assert(!this.stopRequested);
+                    this.socketTrackDevices = ConnectToServer();
+                    //
+                    if (this.socketTrackDevices == null)
+                        {
+                        // Connect attempt failed. Restart the server if we can
+                        this.adbFailedOpens++;
+                        if (this.adbFailedOpens > 10)
+                            {
+                            this.bridge.KillServer();
+                            this.bridge.StartServer();
+                            }
+
+                        // Wait a bit before attempting another socket open
+                        this.ReleaseSocketWriteLock();
+                        Thread.Sleep(1000);
+                        this.AcquireSocketWriteLock();
+                        }
+                    else
+                        {
+                        Log.d(loggingTag, "Connected to adb for device monitoring");
+                        this.adbFailedOpens = 0;
+                        }
+                    }
+                }
+            finally
+                {
+                this.ReleaseSocketWriteLock();
+                }
+            }
+
+        void DeviceTrackingThread()
             {
             // Right here we know that Start() hasn't yet returned
             this.started = true;
@@ -104,52 +143,7 @@ namespace Managed.Adb
                 {
                 try
                     {
-                    //---------------------------------------------------------------
-                    // Get ourselves a socket to ADB (re)starting it as necessary
-                    
-                    this.AcquireSocketWriteLock();
-
-                    // If we haven't a socket, try to open one
-                    if (this.socketTrackDevices == null)
-                        {
-                        this.socketTrackDevices = OpenADBSocket();
-                        if (this.socketTrackDevices == null)
-                            {
-                            // Open attempt failed. Restart ADB if we should
-                            this.ADBConnectionAttempts++;
-                            if (this.ADBConnectionAttempts > 10)
-                                {
-                                // BUG: This also starts a new device monitor
-                                if (!this.bridge.StartTracking())
-                                    {
-                                    this.BridgeRestartAttempts++;
-                                    }
-                                else
-                                    {
-                                    this.BridgeRestartAttempts = 0;
-                                    }
-                                }
-
-                            // Wait a bit before attempting another socket open
-                            this.ReleaseSocketWriteLock();
-                            WaitBeforeContinue();
-
-                            // Get out if we've been asked to
-                            if (this.stopRequested)
-                                return;
-
-                            // Get the lock to re-establish state
-                            this.AcquireSocketWriteLock();
-                            }
-                        else
-                            {
-                            Log.d(loggingTag, "Connected to adb for device monitoring");
-                            this.ADBConnectionAttempts = 0;
-                            }
-                        }
-                    this.ReleaseSocketWriteLock();
-                    //
-                    // ---------------------------------------------------------------
+                    OpenSocketIfNecessary();
 
                     // Post a request to track the devices if we havent already done so
                     if (this.socketTrackDevices != null && !this.IsTrackingDevices && this.socketTrackDevices.Connected)
@@ -185,7 +179,6 @@ namespace Managed.Adb
                                 }
                             catch (IOException)
                                 {
-                                // we can safely ignore that one.
                                 }
                             this.socketTrackDevices = null;
                             }
@@ -197,11 +190,6 @@ namespace Managed.Adb
                         return;
                     }
                 } 
-            }
-
-        void WaitBeforeContinue()
-            {
-            Thread.Sleep(1000);
             }
 
         //---------------------------------------------------------------------------------------------------------------
@@ -251,7 +239,7 @@ namespace Managed.Adb
                 byte[] buffer = new byte[length];
                 string result = Read(this.socketTrackDevices, buffer);
                 string[] devices = result.Split(new string[] {"\r\n", "\n"}, StringSplitOptions.RemoveEmptyEntries);
-                devices.ForEach(deviceData =>
+                foreach (string deviceData in devices)
                     {
                     try
                         {
@@ -265,7 +253,7 @@ namespace Managed.Adb
                         {
                         Log.e(loggingTag, ae);
                         }
-                    });
+                    }
                 }
 
             UpdateDevices(currentDevices);
@@ -528,7 +516,7 @@ namespace Managed.Adb
          *
          * @return  a connected socket, or null a connection could not be obtained
          */
-        private Socket OpenADBSocket()
+        private Socket ConnectToServer()
             {
             Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             try

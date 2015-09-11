@@ -7,7 +7,6 @@ using System.Net;
 using System.IO;
 using System.Threading;
 using Managed.Adb.Exceptions;
-using MoreLinq;
 using Managed.Adb.IO;
 using Managed.Adb.Logs;
 using static Managed.Adb.Util;
@@ -127,7 +126,7 @@ namespace Managed.Adb
         public int KillAdb(IPEndPoint address)
             {
             byte[] request = FormAdbRequest("host:kill");
-            using (var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
+            using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
                 {
                 socket.Connect(address);
                 socket.Blocking = true;
@@ -135,7 +134,7 @@ namespace Managed.Adb
                     {
                     throw new IOException("failed asking to kill adb");
                     }
-                var resp = ReadAdbResponse(socket, false);
+                AdbResponse resp = ReadAdbResponse(socket, false);
                 if (!resp.IOSuccess || !resp.Okay)
                     {
                     Log.e(TAG, "Got timeout or unhappy response from ADB req: " + resp.Message);
@@ -158,7 +157,7 @@ namespace Managed.Adb
         public void Backup(IPEndPoint address)
             {
             byte[] request = FormAdbRequest("backup:all");
-            using (var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
+            using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
                 {
                 socket.Connect(address);
                 socket.Blocking = true;
@@ -166,7 +165,7 @@ namespace Managed.Adb
                     {
                     throw new IOException("failed asking to backup device");
                     }
-                var resp = ReadAdbResponse(socket, false);
+                AdbResponse resp = ReadAdbResponse(socket, false);
                 if (!resp.IOSuccess || !resp.Okay)
                     {
                     Log.e(TAG, "Got timeout or unhappy response from ADB req: " + resp.Message);
@@ -174,7 +173,7 @@ namespace Managed.Adb
                     return;
                     }
 
-                var data = new byte[6000];
+                byte[] data = new byte[6000];
                 int count = -1;
                 while (count != 0)
                     {
@@ -662,7 +661,7 @@ namespace Managed.Adb
         /// <returns></returns>
         public bool RemoveForward(IPEndPoint address, Device device, int localPort)
             {
-            using (var socket = ExecuteRawSocketCommand(address, device, "host-serial:{0}:killforward:tcp:{1}".With(device.SerialNumber, localPort)))
+            using (Socket socket = ExecuteRawSocketCommand(address, device, "host-serial:{0}:killforward:tcp:{1}".With(device.SerialNumber, localPort)))
                 {
                 // do nothing...
                 return true;
@@ -677,7 +676,7 @@ namespace Managed.Adb
         /// <returns></returns>
         public bool RemoveAllForward(IPEndPoint address, Device device)
             {
-            using (var socket = ExecuteRawSocketCommand(address, device, "host-serial:{0}:killforward-all".With(device.SerialNumber)))
+            using (Socket socket = ExecuteRawSocketCommand(address, device, "host-serial:{0}:killforward-all".With(device.SerialNumber)))
                 {
                 // do nothing...
                 return true;
@@ -725,7 +724,7 @@ namespace Managed.Adb
         public List<Device> GetDevices(IPEndPoint address)
             {
             // -l will return additional data
-            using (var socket = ExecuteRawSocketCommand(address, "host:devices-l"))
+            using (Socket socket = ExecuteRawSocketCommand(address, "host:devices-l"))
                 {
                 byte[] reply = new byte[4];
 
@@ -746,11 +745,11 @@ namespace Managed.Adb
 
                 List<Device> s = new List<Device>();
                 string[] data = reply.GetString(Encoding.Default).Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
-                data.ForEach(item =>
-                {
-                    var device = Device.CreateFromAdbData(item);
+                foreach (string item in data)
+                    {
+                    Device device = Device.CreateFromAdbData(item);
                     s.Add(device);
-                });
+                    }
 
                 return s;
                 }
@@ -916,7 +915,7 @@ namespace Managed.Adb
         public void ExecuteRemoteCommand(IPEndPoint endPoint, string command, Device device, IShellOutputReceiver rcvr, int maxTimeToOutputResponse)
             {
 
-            using (var socket = ExecuteRawSocketCommand(endPoint, device, "shell:{0}".With(command)))
+            using (Socket socket = ExecuteRawSocketCommand(endPoint, device, "shell:{0}".With(command)))
                 {
                 socket.ReceiveTimeout = maxTimeToOutputResponse;
                 socket.SendTimeout = maxTimeToOutputResponse;
@@ -946,7 +945,7 @@ namespace Managed.Adb
                             string[] cmd = command.Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                             string sdata = data.GetString(0, count, AdbHelper.DEFAULT_ENCODING);
 
-                            var sdataTrimmed = sdata.Trim();
+                            string sdataTrimmed = sdata.Trim();
                             if (sdataTrimmed.EndsWith(string.Format("{0}: not found", cmd[0])))
                                 {
                                 Log.w(TAG, "The remote execution returned: '{0}: not found'", cmd[0]);
@@ -1089,10 +1088,10 @@ namespace Managed.Adb
         /// <exception cref="Managed.Adb.Exceptions.AdbCommandRejectedException"></exception>
         public void RunLogService(IPEndPoint address, Device device, string logName, LogReceiver rcvr)
             {
-            using (var socket = ExecuteRawSocketCommand(address, device, "log:{0}".With(logName)))
+            using (Socket socket = ExecuteRawSocketCommand(address, device, "log:{0}".With(logName)))
                 {
                 byte[] data = new byte[16384];
-                using (var ms = new MemoryStream(data))
+                using (MemoryStream ms = new MemoryStream(data))
                     {
                     int offset = 0;
 
@@ -1103,7 +1102,7 @@ namespace Managed.Adb
                             {
                             break;
                             }
-                        var buffer = new byte[4 * 1024];
+                        byte[] buffer = new byte[4 * 1024];
 
                         count = socket.Receive(buffer);
                         if (count < 0)
@@ -1126,7 +1125,7 @@ namespace Managed.Adb
                             offset += count;
                             if (rcvr != null)
                                 {
-                                var d = ms.ToArray();
+                                byte[] d = ms.ToArray();
                                 rcvr.ParseNewData(d, 0, d.Length);
                                 }
                             }
@@ -1196,7 +1195,7 @@ namespace Managed.Adb
             {
             string addressAndPort = string.Format("{0}:{1}", hostNameOrAddress, port);
             byte[] request = FormAdbRequest(string.Format("host:connect:{0}", addressAndPort));
-            using (var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
+            using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
                 {
                 socket.Connect(adbSockAddr);
                 socket.Blocking = true;

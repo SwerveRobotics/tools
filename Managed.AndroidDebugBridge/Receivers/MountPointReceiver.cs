@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using MoreLinq;
 
 namespace Managed.Adb {
 	/// <summary>
@@ -33,25 +32,28 @@ namespace Managed.Adb {
 		/// </summary>
 		/// <param name="lines">The lines.</param>
 		/// <workitem id="16001">Bug w/ MountPointReceiver.cs/ProcessNewLines()</workitem>
-		protected override void ProcessNewLines ( string[] lines ) {
-			Device.MountPoints.Clear ( );
-
-			lines.ForEach ( line => {
-				var m = line.Match ( RE_MOUNTPOINT_PATTERN, RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace );
-				if ( m.Success ) {
-                    string block = m.Groups[1].Value.Trim ( ).Replace ( "//", "/" );
-                    string name = m.Groups[2].Value.Trim ( );
-                    string fs = m.Groups[3].Value.Trim ( );
-					bool ro = Util.equals ( "ro", m.Groups[4].Value.Trim ( ) );
-					MountPoint mnt = new MountPoint ( block, name, fs, ro );
-                    string key = name.Substring ( 1 );
-					// currently does not support multiple mounts to the same location...
-					if ( !Device.MountPoints.ContainsKey ( name ) ) {
-						Device.MountPoints.Add ( name, mnt );
-					}
-				}
-			} );
-			/*
+		protected override void ProcessNewLines(string[] lines)
+            {
+            Device.MountPoints.Clear();
+            foreach (string line in lines)
+                {
+                Match m = line.Match(RE_MOUNTPOINT_PATTERN, RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
+                if (m.Success)
+                    {
+                    string block = m.Groups[1].Value.Trim().Replace("//", "/");
+                    string name = m.Groups[2].Value.Trim();
+                    string fs = m.Groups[3].Value.Trim();
+                    bool ro = Util.equals("ro", m.Groups[4].Value.Trim());
+                    MountPoint mnt = new MountPoint(block, name, fs, ro);
+                    string key = name.Substring(1);
+                    // currently does not support multiple mounts to the same location...
+                    if (!Device.MountPoints.ContainsKey(name))
+                        {
+                        Device.MountPoints.Add(name, mnt);
+                        }
+                    }
+                }
+            /*
 			foreach ( var line in lines ) {
 				Match m = Regex.Match ( line, RE_MOUNTPOINT_PATTERN, RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace );
 				if ( m.Success ) {
@@ -67,12 +69,12 @@ namespace Managed.Adb {
 					}
 				}
 			}*/
-		}
+            }
 
-		/// <summary>
-		/// Finishes the receiver
-		/// </summary>
-		protected override void Done ( ) {
+        /// <summary>
+        /// Finishes the receiver
+        /// </summary>
+        protected override void Done ( ) {
 			this.Device.OnBuildInfoChanged ( EventArgs.Empty );
 			base.Done ( );
 		}

@@ -6,7 +6,6 @@ using System.Threading;
 using System.IO;
 using System.Text.RegularExpressions;
 using Managed.Adb.IO;
-using MoreLinq;
 
 namespace Managed.Adb {
 	/// <summary>
@@ -219,93 +218,105 @@ namespace Managed.Adb {
 		public bool ForceBusyBox { get; set; }
 
 
-		/// <summary>
-		/// Gets the children.
-		/// </summary>
-		/// <param name="entry">The entry.</param>
-		/// <param name="useCache">if set to <c>true</c> [use cache].</param>
-		/// <param name="receiver">The receiver.</param>
-		/// <returns></returns>
-		public FileEntry[] GetChildren ( FileEntry entry, bool useCache, IListingReceiver receiver ) {
-			// first thing we do is check the cache, and if we already have a recent
-			// enough children list, we just return that.
-			if ( useCache && !entry.NeedFetch ) {
-				return entry.Children.ToArray ( );
-			}
+        /// <summary>
+        /// Gets the children.
+        /// </summary>
+        /// <param name="entry">The entry.</param>
+        /// <param name="useCache">if set to <c>true</c> [use cache].</param>
+        /// <param name="receiver">The receiver.</param>
+        /// <returns></returns>
+        public FileEntry[] GetChildren(FileEntry entry, bool useCache, IListingReceiver receiver)
+            {
+            // first thing we do is check the cache, and if we already have a recent
+            // enough children list, we just return that.
+            if (useCache && !entry.NeedFetch)
+                {
+                return entry.Children.ToArray();
+                }
 
-			// if there's no receiver, then this is a synchronous call, and we
-			// return the result of ls
-			if ( receiver == null ) {
-				DoLS ( entry );
-				return entry.Children.ToArray ( );
-			}
+            // if there's no receiver, then this is a synchronous call, and we
+            // return the result of ls
+            if (receiver == null)
+                {
+                DoLS(entry);
+                return entry.Children.ToArray();
+                }
 
-			// this is a asynchronous call.
-			// we launch a thread that will do ls and give the listing
-			// to the receiver
-			Thread t = new Thread ( new ParameterizedThreadStart ( delegate ( object stateData ) {
-				var state = stateData as ThreadState;
+            // this is a asynchronous call.
+            // we launch a thread that will do ls and give the listing
+            // to the receiver
+            Thread t = new Thread(new ParameterizedThreadStart(delegate (object stateData)
+                {
+                ThreadState state = stateData as ThreadState;
 
-				DoLS ( entry );
+                DoLS(entry);
 
-				receiver.SetChildren ( state.Entry, state.Entry.Children.ToArray ( ) );
+                receiver.SetChildren(state.Entry, state.Entry.Children.ToArray());
 
-				FileEntry[] children = state.Entry.Children.ToArray ( );
-				if ( children.Length > 0 && children[0].IsApplicationPackage ) {
-					var map = new Dictionary<string, FileEntry> ( );
-
-					children.ForEach ( child => {
-						map.Add ( child.FullPath, child );
-					} );
+                FileEntry[] children = state.Entry.Children.ToArray();
+                if (children.Length > 0 && children[0].IsApplicationPackage)
+                    {
+                    Dictionary<string, FileEntry> map = new Dictionary<string, FileEntry>();
+                    foreach (FileEntry child in children)
+                        {
+                        map.Add(child.FullPath, child);
+                        }
 
                     // call pm.
                     string command = PM_FULL_LISTING;
-					try {
-						this.Device.ExecuteShellCommand ( command, new PackageManagerListingReceiver ( map, receiver ) );
-					} catch ( IOException e ) {
-						// adb failed somehow, we do nothing.
-						Log.e ( "FileListingService", e );
-					}
-				}
+                    try
+                        {
+                        this.Device.ExecuteShellCommand(command, new PackageManagerListingReceiver(map, receiver));
+                        }
+                    catch (IOException e)
+                        {
+                        // adb failed somehow, we do nothing.
+                        Log.e("FileListingService", e);
+                        }
+                    }
 
 
-				// if another thread is pending, launch it
-				lock ( Threads ) {
-					// first remove ourselves from the list
-					Threads.Remove ( state.Thread );
+                // if another thread is pending, launch it
+                lock (Threads)
+                    {
+                    // first remove ourselves from the list
+                    Threads.Remove(state.Thread);
 
-					// then launch the next one if applicable.
-					if ( Threads.Count > 0 ) {
-						Thread ct = Threads[0];
-						ct.Start ( new ThreadState { Thread = ct, Entry = entry } );
-					}
-				}
+                    // then launch the next one if applicable.
+                    if (Threads.Count > 0)
+                        {
+                        Thread ct = Threads[0];
+                        ct.Start(new ThreadState { Thread = ct, Entry = entry });
+                        }
+                    }
 
-			} ) );
-			t.Name = "ls " + entry.FullPath;
+                }));
+            t.Name = "ls " + entry.FullPath;
 
-			// we don't want to run multiple ls on the device at the same time, so we
-			// store the thread in a list and launch it only if there's no other thread running.
-			// the thread will launch the next one once it's done.
-			lock ( Threads ) {
-				// add to the list
-				Threads.Add ( t );
+            // we don't want to run multiple ls on the device at the same time, so we
+            // store the thread in a list and launch it only if there's no other thread running.
+            // the thread will launch the next one once it's done.
+            lock (Threads)
+                {
+                // add to the list
+                Threads.Add(t);
 
-				// if it's the only one, launch it.
-				if ( Threads.Count == 1 ) {
-					t.Start ( new ThreadState { Thread = t } );
-				}
-			}
+                // if it's the only one, launch it.
+                if (Threads.Count == 1)
+                    {
+                    t.Start(new ThreadState { Thread = t });
+                    }
+                }
 
-			// and we return null.
-			return null;
-		}
+            // and we return null.
+            return null;
+            }
 
-		/// <summary>
-		/// Gets or sets the threads.
-		/// </summary>
-		/// <value>The threads.</value>
-		private List<Thread> Threads { get; set; }
+        /// <summary>
+        /// Gets or sets the threads.
+        /// </summary>
+        /// <value>The threads.</value>
+        private List<Thread> Threads { get; set; }
 
 		/// <summary>
 		/// Does the LS.
@@ -374,14 +385,14 @@ namespace Managed.Adb {
 		/// <param name="path">The path.</param>
 		/// <returns></returns>
 		public FileEntry FindFileEntry ( FileEntry parent, string path ) {
-			var rpath = Device.FileSystem.ResolveLink ( path );
-			var entriesString = rpath.Split ( new char[] { LinuxPath.DirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries );
+			string rpath = Device.FileSystem.ResolveLink ( path );
+			string[] entriesString = rpath.Split ( new char[] { LinuxPath.DirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries );
 			FileEntry current = parent;
 
 
-			foreach ( var pathItem in entriesString ) {
+			foreach ( string pathItem in entriesString ) {
 				FileEntry[] entries = GetChildren ( current, true, null );
-				foreach ( var e in entries ) {
+				foreach ( FileEntry e in entries ) {
 					if (Util.equals ( e.Name, pathItem)) {
 						current = e;
 						break;
