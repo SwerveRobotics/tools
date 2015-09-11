@@ -27,7 +27,7 @@ namespace Managed.Adb.Tests {
 		}
 
 		private AndroidDebugBridge CreateBridge ( String location ) {
-			AndroidDebugBridge adb = AndroidDebugBridge.OpenBridge ( location, false );
+			AndroidDebugBridge adb = AndroidDebugBridge.OpenBridge ( location);
 			return adb;
 		}
 	}

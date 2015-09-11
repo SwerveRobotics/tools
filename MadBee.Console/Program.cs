@@ -22,7 +22,7 @@ namespace MadBee.Console
             Log.Level = LogLevel.Verbose;
 
             var args = new Arguments(arguments);
-            AndroidDebugBridge bridge = AndroidDebugBridge.OpenBridge(@"e:\ftc\tools\bin\debug\adb.exe", false);
+            AndroidDebugBridge bridge = AndroidDebugBridge.OpenBridge(@"e:\ftc\tools\bin\debug\adb.exe");
             try {
                 foreach (var item in Enum.GetNames(typeof(Actions)))
                     {

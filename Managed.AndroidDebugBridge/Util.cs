@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -43,6 +44,11 @@ namespace Managed.Adb
             {
             string s = o.ToString();
             System.Diagnostics.Debug.WriteLine($"{TraceTag}{s}");
+            }
+
+        public static bool FileExists(string fileName)
+            {
+            return fileName != null && (new FileInfo(fileName)).Exists;
             }
         }
     }

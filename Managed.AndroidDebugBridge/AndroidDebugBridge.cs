@@ -7,6 +7,8 @@ using System.Text.RegularExpressions;
 using System.IO;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.Win32;
+using static Managed.Adb.Util;
 
 namespace Managed.Adb
     {
@@ -56,30 +58,9 @@ namespace Managed.Adb
         /// </summary>
         private const int ADB_VERSION_MICRO_MAX = -1;
 
-
-        /// <summary>
-        /// The regex pattern for getting the adb version
-        /// </summary>
+        /** The regex pattern for getting the adb version. */
         private const string ADB_VERSION_PATTERN = "^.*(\\d+)\\.(\\d+)\\.(\\d+)$";
 
-#if LINUX
-		/// <summary>
-		/// The ADB executive
-		/// </summary>
-		public const String ADB = "adb";
-		/// <summary>
-		/// The DDMS executive
-		/// </summary>
-		public const String DDMS = "monitor";
-		/// <summary>
-		/// The hierarchy viewer
-		/// </summary>
-		public const String HIERARCHYVIEWER = "hierarchyviewer";
-		/// <summary>
-		/// The AAPT executive
-		/// </summary>
-		public const String AAPT = "aapt";
-#else
         /// <summary>
         /// The ADB executive
         /// </summary>
@@ -97,8 +78,6 @@ namespace Managed.Adb
         /// </summary>
         public const string AAPT = "aapt.exe";
 
-#endif
-
 
         // Where to find the ADB bridge.
         /// <summary>
@@ -106,12 +85,55 @@ namespace Managed.Adb
         /// </summary>
         public const int ADB_PORT = 5037;
 
+        /** Filename of the adb executable */
+        public const string ADB_EXE = "ADB.EXE";
+
+        /**
+         * Returns the full pathname of the ADB executable.
+         *
+         * @exception   FileNotFoundException   thrown when the we can't find ADB by any of our strategies
+         *
+         * @return  the path to adb.exe
+         */
+        public static string AdbPath
+            {
+            get
+                {
+                // Look in the Android Studio configuration
+                string file = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Android Studio")?.GetValue(@"SdkPath") as string;
+                if (FileExists(file))
+                    return file;
+                
+                // Find the Android SDK, look in platform-tools therein
+                string sdk = Environment.GetEnvironmentVariable(@"ANDROID_SDK_HOME");
+                if (sdk != null)
+                    {
+                    file = Path.Combine(sdk, @"platform-tools", ADB_EXE);
+                    if (FileExists(file))
+                        return file;
+                    }
+
+                // Let the system try to resolve it
+                Process.Creeat
+                
+                // Use the one that shipped with our code
+                string dir = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
+                file = Path.Combine(dir, ADB_EXE);
+                if (FileExists(file))
+                    return file;
+
+                // Can't find it
+                throw new FileNotFoundException($"unable to locate '{ADB_EXE}'");
+                }
+            }
+        
+
 
         #region statics
         /// <summary>
         /// 
         /// </summary>
-        private static AndroidDebugBridge _instance;
+        private static AndroidDebugBridge g_instance;
 
         /// <summary>
         /// Gets or sets the socket address.
@@ -221,11 +243,11 @@ namespace Managed.Adb
             {
             get
                 {
-                if (_instance == null)
+                if (g_instance == null)
                     {
-                    _instance = OpenBridge();
+                    g_instance = OpenBridge();
                     }
-                return _instance;
+                return g_instance;
                 }
             }
 
@@ -262,66 +284,61 @@ namespace Managed.Adb
         /// <returns></returns>
         public static AndroidDebugBridge OpenBridge()
             {
-            if (_instance != null)
+            if (g_instance != null)
                 {
-                return _instance;
+                return g_instance;
                 }
 
+            g_instance = new AndroidDebugBridge();
             try
                 {
-                _instance = new AndroidDebugBridge();
-                _instance.Start();
-                _instance.OnBridgeChanged(new AndroidDebugBridgeEventArgs(_instance));
+                g_instance.Start();
+                g_instance.OnBridgeChanged(new AndroidDebugBridgeEventArgs(g_instance));
                 }
             catch (ArgumentException)
                 {
-                _instance.OnBridgeChanged(new AndroidDebugBridgeEventArgs(null));
-                _instance = null;
+                g_instance.OnBridgeChanged(new AndroidDebugBridgeEventArgs(null));
+                g_instance = null;
                 }
 
-            return _instance;
+            return g_instance;
             }
 
-        /// <summary>
-        /// Creates a new debug bridge from the location of the command line tool.
-        /// </summary>
-        /// <param name="osLocation">the location of the command line tool 'adb'</param>
-        /// <param name="forceNewBridge">force creation of a new bridge even if one with the same location
-        /// already exists.</param>
-        /// <returns>a connected bridge.</returns>
-        /// <remarks>Any existing server will be disconnected, unless the location is the same and
-        /// <code>forceNewBridge</code> is set to false.
-        /// </remarks>
-        public static AndroidDebugBridge OpenBridge(string osLocation, bool forceNewBridge)
+        /**
+         * Creates a new debug bridge from the location of the command line tool.
+         *
+         * @param   pathToAdbExe    the location of the command line tool 'adb'.
+         *
+         * @return  a connected bridge.
+         */
+        public static AndroidDebugBridge OpenBridge(string pathToAdbExe)
             {
-            if (_instance != null)
+            if (g_instance != null)
                 {
-                if (!string.IsNullOrEmpty(AdbOsLocation) && Util.equalsIgnoreCase(AdbOsLocation, osLocation) && !forceNewBridge)
+                if (!string.IsNullOrEmpty(AdbOsLocation) && Util.equalsIgnoreCase(AdbOsLocation, pathToAdbExe))
                     {
-                    return _instance;
+                    return g_instance;
                     }
-                else
-                    {
-                    // stop the current server
-                    Util.ConsoleTraceError("stopping current ADB server");
-                    _instance.Stop();
-                    }
+
+                // stop the current server
+                Util.ConsoleTraceError("stopping current ADB server");
+                g_instance.Stop();
                 }
 
+            g_instance = new AndroidDebugBridge(pathToAdbExe);
             try
                 {
-                _instance = new AndroidDebugBridge(osLocation);
-                _instance.Start();
-                _instance.OnBridgeChanged(new AndroidDebugBridgeEventArgs(_instance));
+                g_instance.Start();
+                g_instance.OnBridgeChanged(new AndroidDebugBridgeEventArgs(g_instance));
                 }
             catch (Exception)
                 {
-                _instance.OnBridgeChanged(new AndroidDebugBridgeEventArgs(null));
-                _instance = null;
+                g_instance.OnBridgeChanged(new AndroidDebugBridgeEventArgs(null));
+                g_instance = null;
                 throw;
                 }
 
-            return _instance;
+            return g_instance;
             }
 
         /// <summary>
@@ -330,11 +347,11 @@ namespace Managed.Adb
         /// <remarks>This also stops the current adb host server.</remarks>
         public static void CloseBridge()
             {
-            if (_instance != null)
+            if (g_instance != null)
                 {
-                _instance.Stop();
-                _instance.OnBridgeChanged(new AndroidDebugBridgeEventArgs(null));
-                _instance = null;
+                g_instance.Stop();
+                g_instance.OnBridgeChanged(new AndroidDebugBridgeEventArgs(null));
+                g_instance = null;
                 }
             }
 

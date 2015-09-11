@@ -422,7 +422,7 @@ namespace Managed.Adb
         /// <param name="readDiagString">if set to <c>true</c> [read diag string].</param>
         /// <param name="suppressLogging">if true, failures are not logged</param>
         /// <returns></returns>
-        public AdbResponse ReadAdbResponse(Socket socket, bool readDiagString, bool suppressLogging=false)
+        public AdbResponse ReadAdbResponse(Socket socket, bool readDiagString, bool suppressLogging = false)
             {
 
             AdbResponse resp = new AdbResponse();
@@ -1177,13 +1177,13 @@ namespace Managed.Adb
         /// <param name="device"></param>
         public void TcpIp(int port, IPEndPoint adbSockAddr, Device device)
             {
-            byte [] request = FormAdbRequest(string.Format("tcpip:{0}", port));
+            byte[] request = FormAdbRequest(string.Format("tcpip:{0}", port));
             using (Socket adbChan = ExecuteRawSocketCommand(adbSockAddr, device, request))
                 {
                 // Listen for the positive response. We 
                 string response = ReadLine(adbChan);
                 string expectedResponsePrefix = "restarting in TCP mode".ToLowerInvariant();
-                string responsePrefix         = response.Substring(0, Math.Min(response.Length, expectedResponsePrefix.Length)).ToLowerInvariant();
+                string responsePrefix = response.Substring(0, Math.Min(response.Length, expectedResponsePrefix.Length)).ToLowerInvariant();
                 if (string.IsNullOrEmpty(response) || expectedResponsePrefix != responsePrefix)
                     {
                     // We don't reliably get a response?
@@ -1195,7 +1195,7 @@ namespace Managed.Adb
         public void Connect(string hostNameOrAddress, int port, IPEndPoint adbSockAddr)
             {
             string addressAndPort = string.Format("{0}:{1}", hostNameOrAddress, port);
-            byte [] request = FormAdbRequest(string.Format("host:connect:{0}", addressAndPort));
+            byte[] request = FormAdbRequest(string.Format("host:connect:{0}", addressAndPort));
             using (var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
                 {
                 socket.Connect(adbSockAddr);
