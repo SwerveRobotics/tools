@@ -210,7 +210,7 @@
     <Compile Include="Receivers\ConsoleOutputReceiver.cs" />
     <Compile Include="DdmPreferences.cs" />
     <Compile Include="DebugPortManager.cs" />
-    <Compile Include="DeviceMonitor.cs" />
+    <Compile Include="DeviceTracker.cs" />
     <Compile Include="Receivers\EnvironmentVariablesReceiver.cs" />
     <Compile Include="Exceptions\AdbException.cs" />
     <Compile Include="Exceptions\DeviceNotFoundException.cs" />

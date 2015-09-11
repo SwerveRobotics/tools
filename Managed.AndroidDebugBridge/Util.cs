@@ -48,7 +48,7 @@ namespace Managed.Adb
 
         public static bool FileExists(string fileName)
             {
-            return fileName != null && (new FileInfo(fileName)).Exists;
+            return fileName != null && File.Exists(fileName);
             }
         }
     }

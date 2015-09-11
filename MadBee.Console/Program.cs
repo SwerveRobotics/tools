@@ -21,9 +21,8 @@ namespace MadBee.Console
             {
             Log.Level = LogLevel.Verbose;
 
-            string adbPath = AndroidDebugBridge.AdbPath;
             var args = new Arguments(arguments);
-            AndroidDebugBridge bridge = AndroidDebugBridge.OpenBridge(adbPath);
+            AndroidDebugBridge bridge = AndroidDebugBridge.Create();
             try {
                 foreach (var item in Enum.GetNames(typeof(Actions)))
                     {
@@ -53,12 +52,11 @@ namespace MadBee.Console
                         case Actions.Kill_Server:
                             try
                                 {
-                                AndroidDebugBridge.CloseBridge();
+                                AndroidDebugBridge.Create()?.KillServer();
                                 }
                             catch (IOException e)
                                 {
                                 System.Console.WriteLine(e.ToString());
-                                // ignore
                                 }
                             break;
                         case Actions.TCPIP:
@@ -104,7 +102,7 @@ namespace MadBee.Console
                 }
             finally
                 {
-                bridge.StopMonitoring();
+                bridge.StopTracking();
                 }
             }
         }

@@ -184,166 +184,97 @@ namespace Managed.Adb {
 		}
 
 
-		/// <summary>
-		/// Create a device from Adb Device list data
-		/// </summary>
-		/// <param name="data">the line data for the device</param>
-		/// <returns></returns>
-		public static Device CreateFromAdbData(string data) {
-			Regex re = new Regex(RE_DEVICELIST_INFO, RegexOptions.Compiled | RegexOptions.IgnoreCase);
-			Match m = re.Match(data);
-			if(m.Success) {
-				return new Device(m.Groups[1].Value, GetStateFromString(m.Groups[2].Value), m.Groups[4].Value, m.Groups[3].Value, m.Groups[5].Value );
-			} else {
-				throw new ArgumentException($"CreateFromAdbData: invalid data: '{data}'");
-			}
-		}
+		public static Device CreateFromAdbData(string deviceData)
+		    {
+		    Regex re = new Regex(RE_DEVICELIST_INFO, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		    Match m = re.Match(deviceData);
+		    if (m.Success)
+		        {
+		        return new Device(m.Groups[1].Value, GetStateFromString(m.Groups[2].Value), m.Groups[4].Value, m.Groups[3].Value, m.Groups[5].Value);
+		        }
+		    else
+		        {
+		        throw new ArgumentException($"CreateFromAdbData: invalid data: '{deviceData}'");
+		        }
+		    }
 
-		/// <summary>
-		/// Determines whether this device can perform a backup.
-		/// </summary>
-		/// <returns>
-		///   <c>true</c> if this device can perform a backup; otherwise, <c>false</c>.
-		/// </returns>
-		public bool CanBackup() {
-			return this.FileSystem.Exists("/system/bin/bu");
-		}
+		public bool CanBackup()
+		    {
+		    return this.FileSystem.Exists("/system/bin/bu");
+		    }
 
-		/// <summary>
-		/// Determines whether this instance can use the SU shell.
-		/// </summary>
-		/// <returns>
-		///   <c>true</c> if this instance can use the SU shell; otherwise, <c>false</c>.
-		/// </returns>
-		public bool CanSU() {
-			if(_canSU) {
-				return _canSU;
-			}
+	    public bool CanSU()
+	        {
+	        if (_canSU)
+	            {
+	            return _canSU;
+	            }
 
-			try {
-				// workitem: 16822
-				// this now checks if permission was denied and accounts for that. 
-				// The nulloutput receiver is fine here because it doesn't need to send the output anywhere,
-				// the execute command can still handle the output with the null output receiver.
-				this.ExecuteRootShellCommand("echo \\\"I can haz root\\\"", NullOutputReceiver.Instance);
-				_canSU = true;
-			} catch(PermissionDeniedException) {
-				_canSU = false;
-			} catch(FileNotFoundException) {
-				_canSU = false;
-			}
+	        try
+	            {
+	            // workitem: 16822
+	            // this now checks if permission was denied and accounts for that. 
+	            // The nulloutput receiver is fine here because it doesn't need to send the output anywhere,
+	            // the execute command can still handle the output with the null output receiver.
+	            this.ExecuteRootShellCommand("echo \\\"I can haz root\\\"", NullOutputReceiver.Instance);
+	            _canSU = true;
+	            }
+	        catch (PermissionDeniedException)
+	            {
+	            _canSU = false;
+	            }
+	        catch (FileNotFoundException)
+	            {
+	            _canSU = false;
+	            }
 
-			return _canSU;
-		}
+	        return _canSU;
+	        }
 
-		/// <summary>
-		/// Gets or sets the client monitoring socket.
-		/// </summary>
-		/// <value>
-		/// The client monitoring socket.
-		/// </value>
-		public Socket ClientMonitoringSocket { get; set; }
+		public Socket           ClientMonitoringSocket  { get; set; }
+		public string           SerialNumber            { get; private set; }
+		public IPEndPoint       Endpoint                { get; private set; }
+		public TransportType    TransportType           { get; private set; }
 
-		/// <summary>
-		/// Gets the device serial number
-		/// </summary>
-		public string SerialNumber { get; private set; }
-
-		/// <summary>
-		/// Gets the TCP endpoint defined when the transport is TCP.
-		/// </summary>
-		/// <value>
-		/// The endpoint.
-		/// </value>
-		public IPEndPoint Endpoint { get; private set; }
-
-		public TransportType TransportType { get; private set; }
+	    public string AvdName
+	        {
+	        get { return _avdName; }
+	        set
+	            {
+	            if (!IsEmulator)
+	                {
+	                throw new ArgumentException("Cannot set the AVD name of the device is not an emulator");
+	                }
+	            _avdName = value;
+	            }
+	        }
 
 
-		/// <summary>
-		/// Gets or sets the Avd name.
-		/// </summary>
-		public string AvdName {
-			get { return _avdName; }
-			set {
-				if(!IsEmulator) {
-					throw new ArgumentException("Cannot set the AVD name of the device is not an emulator");
-				}
-				_avdName = value;
-			}
-		}
+	    public string Product                               { get; private set; }
+	    public string Model                                 { get; private set; }
+	    public string DeviceProperty                        { get; private set; }
+	    public DeviceState State                            { get; internal set; }
+	    public Dictionary<string, MountPoint> MountPoints   { get; set; }
+	    public Dictionary<string, string> Properties        { get; private set; }
+	    public Dictionary<string, string> EnvironmentVariables { get; private set; }
 
+	    public string GetProperty(string name)
+	        {
+	        return GetProperty(new string[] {name});
+	        }
 
-		/// <summary>
-		/// Gets the product.
-		/// </summary>
-		/// <value>
-		/// The product.
-		/// </value>
-		public string Product { get; private set; }
-		/// <summary>
-		/// Gets the model.
-		/// </summary>
-		/// <value>
-		/// The model.
-		/// </value>
-		public string Model { get; private set; }
-		/// <summary>
-		/// Gets the device.
-		/// </summary>
-		/// <value>
-		/// The device identifier.
-		/// </value>
-		public string DeviceProperty { get; private set; }
+	    public string GetProperty(params string[] name)
+	        {
+	        foreach (var item in name)
+	            {
+	            if (Properties.ContainsKey(item))
+	                {
+	                return Properties[item];
+	                }
+	            }
 
-		/// <summary>
-		/// Gets the device state
-		/// </summary>
-		public DeviceState State { get; internal set; }
-
-		/// <summary>
-		/// Gets the device mount points.
-		/// </summary>
-		public Dictionary<string, MountPoint> MountPoints { get; set; }
-
-
-		/// <summary>
-		/// Returns the device properties. It contains the whole output of 'getprop'
-		/// </summary>
-		/// <value>The properties.</value>
-		public Dictionary<string, string> Properties { get; private set; }
-
-		/// <summary>
-		/// Gets the environment variables.
-		/// </summary>
-		/// <value>The environment variables.</value>
-		public Dictionary<string, string> EnvironmentVariables { get; private set; }
-
-		/// <summary>
-		/// Gets the property value.
-		/// </summary>
-		/// <param name="name">The name of the property.</param>
-		/// <returns>
-		/// the value or <code>null</code> if the property does not exist.
-		/// </returns>
-		public string GetProperty(string name) {
-			return GetProperty(new string[] { name });
-		}
-
-		/// <summary>
-		/// Gets the first property that exists in the array of property names.
-		/// </summary>
-		/// <param name="name">The array of property names.</param>
-		/// <returns></returns>
-		public string GetProperty(params string[] name) {
-			foreach(var item in name) {
-				if(Properties.ContainsKey(item)) {
-					return Properties[item];
-				}
-			}
-
-			return null;
-		}
+	        return null;
+	        }
 
 		/// <summary>
 		/// Gets the file system for this device.

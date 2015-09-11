@@ -150,8 +150,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             {
             try
                 {
-                string path = GetAdbPath();
-                this.bridge = AndroidDebugBridge.OpenBridge(path);
+                this.bridge = AndroidDebugBridge.Create();
                 this.bridge.DeviceConnected += (object sender, Managed.Adb.DeviceEventArgs e) =>
                     {
                     EnsureAdbDevicesAreOnTCPIP("ADB device connected notification");
@@ -186,23 +185,13 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             this.eventRaiser.DeviceArrived        -= OnDeviceArrived;
             this.eventRaiser.DeviceRemoveComplete -= OnDeviceRemoveComplete;
 
-            this.bridge?.StopMonitoring();
+            this.bridge?.StopTracking();
             this.bridge = null;
             }
 
         //-----------------------------------------------------------------------------------------
         // ADB
         //-----------------------------------------------------------------------------------------
-
-        string GetAdbPath()
-        // Return the path to the ADB.EXE executable that we are to use
-        // TODO: This should look for the Android SDK version first, and use what we have here only as a last resort.
-        // HKEY_LOCAL_MACHINE\SOFTWARE\Android Studio@SdkPath
-            {
-            string dir = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
-            string result = Path.Combine(dir, "adb.exe");
-            return result;
-            }
 
         object ensureAdbDevicesAreOnTCPIPLock = new object();
 
