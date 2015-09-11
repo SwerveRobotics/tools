@@ -21,8 +21,9 @@ namespace MadBee.Console
             {
             Log.Level = LogLevel.Verbose;
 
+            string adbPath = AndroidDebugBridge.AdbPath;
             var args = new Arguments(arguments);
-            AndroidDebugBridge bridge = AndroidDebugBridge.OpenBridge(@"e:\ftc\tools\bin\debug\adb.exe");
+            AndroidDebugBridge bridge = AndroidDebugBridge.OpenBridge(adbPath);
             try {
                 foreach (var item in Enum.GetNames(typeof(Actions)))
                     {

@@ -99,28 +99,25 @@ namespace Managed.Adb
             {
             get
                 {
-                // Look in the Android Studio configuration
-                string file = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Android Studio")?.GetValue(@"SdkPath") as string;
-                if (FileExists(file))
-                    return file;
-                
                 // Find the Android SDK, look in platform-tools therein
-                string sdk = Environment.GetEnvironmentVariable(@"ANDROID_SDK_HOME");
+                // Look for the sdk fist in the Android Studio configuration, then in an environment variable
+                string sdk = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Android Studio")?.GetValue(@"SdkPath") as string;
+                if (sdk == null) sdk = Environment.GetEnvironmentVariable(@"ANDROID_SDK_HOME");
                 if (sdk != null)
                     {
-                    file = Path.Combine(sdk, @"platform-tools", ADB_EXE);
+                    string file = Path.Combine(sdk, @"platform-tools", ADB_EXE);
                     if (FileExists(file))
                         return file;
                     }
-
-                // Let the system try to resolve it
-                Process.Creeat
                 
                 // Use the one that shipped with our code
                 string dir = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
-                file = Path.Combine(dir, ADB_EXE);
-                if (FileExists(file))
-                    return file;
+                if (dir != null)
+                    { 
+                    string file = Path.Combine(dir, ADB_EXE);
+                    if (FileExists(file))
+                        return file;
+                    }
 
                 // Can't find it
                 throw new FileNotFoundException($"unable to locate '{ADB_EXE}'");
