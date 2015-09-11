@@ -40,10 +40,6 @@ namespace MadBee.Console
                                 }
                             break;
                         case Actions.Monitor:
-                            bridge.DeviceChanged += (sender, e) =>
-                                {
-                                System.Console.WriteLine("Changed: {0}\t{1}", e.Device.SerialNumber, e.Device.State);
-                                };
                             bridge.DeviceConnected += (sender, e) =>
                                 {
                                 System.Console.WriteLine("{0}\t{1}", e.Device.SerialNumber, e.Device.State);
@@ -51,19 +47,6 @@ namespace MadBee.Console
                             bridge.DeviceDisconnected += (sender, e) =>
                                 {
                                 System.Console.WriteLine("{0}\t{1}", e.Device.SerialNumber, e.Device.State);
-                                };
-                            bridge.BridgeChanged += (sender, e) =>
-                                {
-                                if (e.Bridge == null)
-                                    System.Console.WriteLine("null bridge");
-                                else
-                                    {
-                                    System.Console.WriteLine("-----");
-                                    foreach (var device in e.Bridge.Devices)
-                                        {
-                                        System.Console.WriteLine($"   device: {device.SerialNumber}");
-                                        }
-                                    }
                                 };
                             System.Console.ReadLine();
                             break;
@@ -80,10 +63,6 @@ namespace MadBee.Console
                             break;
                         case Actions.TCPIP:
                             {
-                            bridge.DeviceChanged += delegate (object sender, DeviceEventArgs e)
-                                {
-                                System.Console.WriteLine("Changed: {0}\t{1}", e.Device.SerialNumber, e.Device.State);
-                                };
                             bridge.DeviceConnected += delegate (object sender, DeviceEventArgs e)
                                 {
                                 System.Console.WriteLine("{0}\t{1}", e.Device.SerialNumber, e.Device.State);

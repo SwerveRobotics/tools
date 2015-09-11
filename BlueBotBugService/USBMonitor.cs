@@ -151,7 +151,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             try
                 {
                 string path = GetAdbPath();
-                this.bridge = AndroidDebugBridge.OpenBridge(path, true);
+                this.bridge = AndroidDebugBridge.OpenBridge(path);
                 this.bridge.DeviceConnected += (object sender, Managed.Adb.DeviceEventArgs e) =>
                     {
                     EnsureAdbDevicesAreOnTCPIP("ADB device connected notification");
