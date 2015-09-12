@@ -303,43 +303,57 @@ namespace Managed.Adb {
 			HexDump ( "ddms", LogLevel.Debug, data, 0, data.Length );
 		}
 
-		/// <summary>
-		/// prints to stdout; could write to a log window
-		/// </summary>
-		/// <param name="logLevel"></param>
-		/// <param name="tag"></param>
-		/// <param name="message"></param>
-		private static void WriteLine ( LogLevel.LogLevelInfo logLevel, string tag, string message ) {
-			if ( logLevel.Priority >= Level.Priority ) {
-				if ( LogOutput != null ) {
-					LogOutput.Write ( logLevel, tag, message );
-				} else {
-					Write ( logLevel, tag, message );
-				}
-			}
-		}
+        /// <summary>
+        /// prints to stdout; could write to a log window
+        /// </summary>
+        /// <param name="logLevel"></param>
+        /// <param name="tag"></param>
+        /// <param name="message"></param>
+        private static void WriteLine(LogLevel.LogLevelInfo logLevel, string tag, string message)
+            {
+            if (logLevel.Priority >= Level.Priority)
+                {
+                if (LogOutput != null)
+                    {
+                    LogOutput.Write(logLevel, tag, message);
+                    }
+                else
+                    {
+                    Write(logLevel, tag, message);
+                    }
+                }
 
-		/// <summary>
-		/// Prints a log message.
-		/// </summary>
-		/// <param name="logLevel"></param>
-		/// <param name="tag"></param>
-		/// <param name="message"></param>
-		public static void Write ( LogLevel.LogLevelInfo logLevel, string tag, string message ) {
-			Console.Write ( GetLogFormatString ( logLevel, tag, message ) );
-		}
+            // Always trace to debug, irrespective of the log level
+            WriteDebug(logLevel, tag, message);
+            }
 
-		/// <summary>
-		/// Formats a log message.
-		/// </summary>
-		/// <param name="logLevel"></param>
-		/// <param name="tag"></param>
-		/// <param name="message"></param>
-		/// <returns></returns>
-		public static string GetLogFormatString ( LogLevel.LogLevelInfo logLevel, string tag, string message ) {
+
+        /// <summary>
+        /// Prints a log message.
+        /// </summary>
+        /// <param name="logLevel"></param>
+        /// <param name="tag"></param>
+        /// <param name="message"></param>
+        public static void Write(LogLevel.LogLevelInfo logLevel, string tag, string message)
+            {
+            Console.WriteLine(GetLogFormatString(logLevel, tag, message));
+            }
+
+        public static void WriteDebug(LogLevel.LogLevelInfo logLevel, string tag, string message)
+            {
+            System.Diagnostics.Debug.Write($"BlueBotBug| {GetLogFormatString(logLevel, tag, message)}");
+            }
+
+        /// <summary>
+        /// Formats a log message.
+        /// </summary>
+        /// <param name="logLevel"></param>
+        /// <param name="tag"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public static string GetLogFormatString ( LogLevel.LogLevelInfo logLevel, string tag, string message ) {
 			long msec = DateTime.Now.ToUnixEpoch ( );
-			return string.Format ( "{0:00}:{1:00} {2}/{3}: {4}\n", ( msec / 60000 ) % 60, ( msec / 1000 ) % 60,
-							logLevel.Letter, tag, message );
+			return $"{(msec/60000)%60:00}:{(msec/1000)%60:00} {logLevel.Letter}/{tag}: {message}";
 		}
 	}
 }

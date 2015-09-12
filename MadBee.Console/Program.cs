@@ -19,8 +19,6 @@ namespace MadBee.Console
 
         static void Main(string[] arguments)
             {
-            // Log.Level = LogLevel.Verbose;
-
             Arguments args = new Arguments(arguments);
             AndroidDebugBridge bridge = new AndroidDebugBridge();
             try {
