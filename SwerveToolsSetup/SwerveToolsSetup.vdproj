@@ -15,14 +15,14 @@
     {
         "Entry"
         {
-        "MsmKey" = "8:_4B601CAAD9CADB251995224D3F387927"
+        "MsmKey" = "8:_15D189565FCA321100CC87368E13BCE4"
         "OwnerKey" = "8:_626AF9517E254B40A91F4C51F990517A"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_4B601CAAD9CADB251995224D3F387927"
-        "OwnerKey" = "8:_EAD5A71E416B4B64B02F3C67FBCAAB63"
+        "MsmKey" = "8:_4F116F194916E65F1604258125C77A41"
+        "OwnerKey" = "8:_C5E94DE6E0914FBFA74A36BA916827FC"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -33,14 +33,8 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_EAD5A71E416B4B64B02F3C67FBCAAB63"
+        "MsmKey" = "8:_C5E94DE6E0914FBFA74A36BA916827FC"
         "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_4B601CAAD9CADB251995224D3F387927"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -52,7 +46,19 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_EAD5A71E416B4B64B02F3C67FBCAAB63"
+        "OwnerKey" = "8:_C5E94DE6E0914FBFA74A36BA916827FC"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_4F116F194916E65F1604258125C77A41"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_15D189565FCA321100CC87368E13BCE4"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -160,15 +166,51 @@
         }
         "File"
         {
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_4B601CAAD9CADB251995224D3F387927"
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_15D189565FCA321100CC87368E13BCE4"
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
             "AssemblyAsmDisplayName" = "8:System.Net.Http, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"
                 "ScatterAssemblies"
                 {
+                    "_15D189565FCA321100CC87368E13BCE4"
+                    {
+                    "Name" = "8:System.Net.Http.dll"
+                    "Attributes" = "3:512"
+                    }
                 }
             "SourcePath" = "8:System.Net.Http.dll"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_E1E005270EBA4CC1BFD6034588882162"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_4F116F194916E65F1604258125C77A41"
+            {
+            "AssemblyRegister" = "3:1"
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:Managed.AndroidDebugBridge, Version=0.5.5733.28212, Culture=neutral, processorArchitecture=MSIL"
+                "ScatterAssemblies"
+                {
+                    "_4F116F194916E65F1604258125C77A41"
+                    {
+                    "Name" = "8:Managed.AndroidDebugBridge.dll"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:Managed.AndroidDebugBridge.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_E1E005270EBA4CC1BFD6034588882162"
@@ -216,7 +258,7 @@
             }
             "{3C67513D-01DD-4637-8A68-80971EB9504F}:_E1E005270EBA4CC1BFD6034588882162"
             {
-            "DefaultLocation" = "8:[ProgramFilesFolder][Manufacturer]\\[ProductName]"
+            "DefaultLocation" = "8:[ProgramFiles64Folder][Manufacturer]\\Tools Suite"
             "Name" = "8:#1925"
             "AlwaysCreate" = "11:FALSE"
             "Condition" = "8:"
@@ -241,30 +283,30 @@
         "Product"
         {
         "Name" = "8:Microsoft Visual Studio"
-        "ProductName" = "8:Tools"
+        "ProductName" = "8:Swerve Robotics FTC Tools Suite"
         "ProductCode" = "8:{FCC614D9-4E3D-4253-A49C-61858B6D4402}"
-        "PackageCode" = "8:{78EEBB2D-ECC9-49B9-9100-64480E44F73F}"
+        "PackageCode" = "8:{EA66B1E5-AAEA-4AB3-9F29-B12CAF56C7F2}"
         "UpgradeCode" = "8:{E40D1846-E09F-48C2-89E6-BE196A6055E1}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
-        "RemovePreviousVersions" = "11:FALSE"
+        "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
         "ProductVersion" = "8:0.5.0"
-        "Manufacturer" = "8:SwerveRobotics"
+        "Manufacturer" = "8:Swerve Robotics"
         "ARPHELPTELEPHONE" = "8:"
-        "ARPHELPLINK" = "8:"
+        "ARPHELPLINK" = "8:http://www.swerverobotics.org"
         "Title" = "8:Setup"
         "Subject" = "8:"
-        "ARPCONTACT" = "8:Default Company Name"
+        "ARPCONTACT" = "8:Robert Atkinson"
         "Keywords" = "8:"
-        "ARPCOMMENTS" = "8:"
-        "ARPURLINFOABOUT" = "8:"
+        "ARPCOMMENTS" = "8:A handy set of utilities for FTC teams"
+        "ARPURLINFOABOUT" = "8:http://www.swerverobotics.org"
         "ARPPRODUCTICON" = "8:"
         "ARPIconIndex" = "3:0"
         "SearchPath" = "8:"
         "UseSystemSearchPath" = "11:TRUE"
-        "TargetPlatform" = "3:0"
+        "TargetPlatform" = "3:1"
         "PreBuildEvent" = "8:"
         "PostBuildEvent" = "8:"
         "RunPostBuildEvent" = "3:0"
@@ -764,7 +806,7 @@
         {
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_626AF9517E254B40A91F4C51F990517A"
             {
-            "SourcePath" = "8:..\\SwerveToolsTray\\obj\\Release\\SwerveToolsTray.exe"
+            "SourcePath" = "8:..\\SwerveToolsTray\\obj\\Debug\\SwerveToolsTray.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_E1E005270EBA4CC1BFD6034588882162"
@@ -790,9 +832,9 @@
                 {
                 }
             }
-            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_EAD5A71E416B4B64B02F3C67FBCAAB63"
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_C5E94DE6E0914FBFA74A36BA916827FC"
             {
-            "SourcePath" = "8:..\\SwerveToolsTray\\obj\\Release\\SwerveToolsTray.exe"
+            "SourcePath" = "8:..\\BotBugService\\obj\\Debug\\BotBugService.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_E1E005270EBA4CC1BFD6034588882162"
@@ -812,7 +854,7 @@
             "ProjectOutputGroupRegister" = "3:1"
             "OutputConfiguration" = "8:"
             "OutputGroupCanonicalName" = "8:Built"
-            "OutputProjectGuid" = "8:{242946E0-0909-4A66-A585-AAB920333406}"
+            "OutputProjectGuid" = "8:{98E84E5D-BA98-470B-AA07-A5506267FF78}"
             "ShowKeyOutput" = "11:TRUE"
                 "ExcludeFilters"
                 {
