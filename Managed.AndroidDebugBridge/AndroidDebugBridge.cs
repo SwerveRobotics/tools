@@ -49,24 +49,24 @@ namespace Managed.Adb
             {
             get
                 {
+                IntPtr HKEY_CURRENT_USER  = (IntPtr)AsInt(0x80000001);
+                IntPtr HKEY_LOCAL_MACHINE = (IntPtr)AsInt(0x80000002);
+
                 // Find the Android SDK, looking in a number of places trying to find it.
                 // Once found, look in platform-tools therein
-                string sdk = null;
-                if (sdk == null) sdk = ReadRegistry(@"SOFTWARE\Android Studio",    @"SdkPath");
-                if (sdk == null) sdk = ReadRegistry(@"SOFTWARE\Android SDK Tools", @"Path");
-                if (sdk == null) sdk = Environment.GetEnvironmentVariable(@"ANDROID_SDK_HOME");
-                if (sdk != null)
-                    {
-                    string file = Path.Combine(sdk, @"platform-tools", ADB_EXE);
-                    if (FileExists(file))
-                        return file;
-                    }
+                string file = null;
+                if (file == null) file = FindInSDK(HKEY_LOCAL_MACHINE, @"SOFTWARE\Android Studio",          @"SdkPath");
+                if (file == null) file = FindInSDK(HKEY_LOCAL_MACHINE, @"SOFTWARE\Android SDK Tools",       @"Path");
+                if (file == null) file = FindInSDK(HKEY_CURRENT_USER,  @"Software\Novell\Mono for Android", @"AndroidSdkDirectory");
+                if (file == null) file = FindInSDK(Environment.GetEnvironmentVariable(@"ANDROID_SDK_HOME"));
+                if (file != null)
+                    return file;
 
                 // Use the one that shipped with our code
                 string dir = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
                 if (dir != null)
                     {
-                    string file = Path.Combine(dir, ADB_EXE);
+                    file = Path.Combine(dir, ADB_EXE);
                     if (FileExists(file))
                         return file;
                     }
@@ -76,18 +76,32 @@ namespace Managed.Adb
                 }
             }
 
-        private static string ReadRegistry(string path, string valueName)
+        private static string FindInSDK(IntPtr root, string path, string valueName)
+            {
+            return FindInSDK(ReadRegistry(root, path, valueName));
+            }
+        private static string FindInSDK(string sdk)
+            {
+            if (sdk != null)
+                {
+                string file = Path.Combine(sdk, @"platform-tools", ADB_EXE);
+                if (FileExists(file))
+                    return file;
+                }
+            return null;
+            }
+
+        private static string ReadRegistry(IntPtr root, string path, string valueName)
             {
             // Look in both 32 bit and 64 bit variations of the path, explicitly, as what
             // we would see implicitly would be highly sensitive to various code compilation issues.
-            return ReadRegistry(true, path, valueName) ?? ReadRegistry(false, path, valueName);
+            return ReadRegistry(true, root, path, valueName) ?? ReadRegistry(false, root, path, valueName);
             }
 
-        private static string ReadRegistry(bool is64, string path, string valueName)
+        private static string ReadRegistry(bool is64, IntPtr root, string path, string valueName)
             {
             string result = null;
-            IntPtr HKEY_LOCAL_MACHINE = (IntPtr)AsInt(0x80000002);
-            using (SafeRegistryHandle hkeyRootNativeHandle = new SafeRegistryHandle(HKEY_LOCAL_MACHINE, false))
+            using (SafeRegistryHandle hkeyRootNativeHandle = new SafeRegistryHandle(root, false))
                 {
                 using (RegistryKey hkeyRoot = RegistryKey.FromHandle(hkeyRootNativeHandle, is64 ? RegistryView.Registry64 : RegistryView.Registry32))
                     {
@@ -352,7 +366,7 @@ namespace Managed.Adb
             try
                 {
                 string command = "kill-server";
-                ProcessStartInfo psi                     = new ProcessStartInfo(this.pathToAdbExe, command);
+                ProcessStartInfo psi = new ProcessStartInfo(this.pathToAdbExe, command);
                 psi.CreateNoWindow          = true;
                 psi.WindowStyle             = ProcessWindowStyle.Hidden;
                 psi.UseShellExecute         = false;
