@@ -275,49 +275,55 @@ namespace Managed.Adb {
 			}
 		}
 
-		/// <summary>
-		/// Opens this connection.
-		/// </summary>
-		/// <returns></returns>
-		public bool Open ( ) {
-			if ( IsOpen ) {
-				return true;
-			}
+        /// <summary>
+        /// Opens this connection.
+        /// </summary>
+        /// <returns></returns>
+        public bool Open()
+            {
+            if (IsOpen)
+                {
+                return true;
+                }
 
-			try {
-				Channel = new Socket ( AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp );
-				Channel.Connect ( this.Address );
-				Channel.Blocking = true;
+            try
+                {
+                Channel = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                Channel.Connect(this.Address);
+                Channel.Blocking = true;
 
-				// target a specific device
-				AdbHelper.Instance.SetDevice ( Channel, Device );
+                // target a specific device
+                AdbHelper.Instance.SetDevice(Channel, Device);
 
-				byte[] request = AdbHelper.Instance.FormAdbRequest ( "sync:" );
-				AdbHelper.Instance.Write ( Channel, request, -1, DdmPreferences.Timeout );
+                byte[] request = AdbHelper.Instance.FormAdbRequest("sync:");
+                AdbHelper.Instance.Write(Channel, request, -1, DdmPreferences.Timeout);
 
-				AdbResponse resp = AdbHelper.Instance.ReadAdbResponse ( Channel, false /* readDiagString */);
+                AdbResponse resp = AdbHelper.Instance.ReadAdbResponse(Channel);
 
-				if ( !resp.IOSuccess || !resp.Okay ) {
-					Log.w ( "ddms:syncservice", "Got timeout or unhappy response from ADB sync req: {0}", resp.Message );
-					Channel.Close ( );
-					Channel = null;
-					return false;
-				}
-			} catch ( IOException ) {
-				Close ( );
-				throw;
-			}
+                if (!resp.IOSuccess || !resp.Okay)
+                    {
+                    Log.w("ddms:syncservice", "Got timeout or unhappy response from ADB sync req: {0}", resp.Message);
+                    Channel.Close();
+                    Channel = null;
+                    return false;
+                    }
+                }
+            catch (IOException)
+                {
+                Close();
+                throw;
+                }
 
-			return true;
-		}
+            return true;
+            }
 
-		/**
+        /**
 		 * Closes the connection.
 		 */
-		/// <summary>
-		/// Closes this connection.
-		/// </summary>
-		public void Close ( ) {
+        /// <summary>
+        /// Closes this connection.
+        /// </summary>
+        public void Close ( ) {
 			if ( Channel != null ) {
 				try {
 					Channel.Close ( );

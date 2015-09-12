@@ -209,7 +209,7 @@ namespace Managed.Adb
             byte[] request = AdbHelper.Instance.FormAdbRequest("host:track-devices");
             AdbHelper.Instance.Write(this.socketTrackDevices, request);
 
-            AdbResponse resp = AdbHelper.Instance.ReadAdbResponse(this.socketTrackDevices, false /* readDiagString */);
+            AdbResponse resp = AdbHelper.Instance.ReadAdbResponse(this.socketTrackDevices);
             if (!resp.IOSuccess)
                 {
                 Log.e(loggingTag, "Failed to read the adb response!");

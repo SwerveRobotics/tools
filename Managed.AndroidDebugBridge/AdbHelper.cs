@@ -90,7 +90,7 @@ namespace Managed.Adb
 
                 byte[] req = CreateAdbForwardRequest(null, port);
                 Write(s, req);
-                AdbResponse resp = ReadAdbResponse(s, false);
+                AdbResponse resp = ReadAdbResponse(s);
                 if (!resp.Okay)
                     {
                     throw new AdbException("connection request rejected");
@@ -113,7 +113,7 @@ namespace Managed.Adb
                 socket.Connect(address);
                 socket.Blocking = true;
                 Write(socket, request);
-                AdbResponse resp = ReadAdbResponse(socket, false);
+                AdbResponse resp = ReadAdbResponse(socket);
                 if (!resp.IOSuccess || !resp.Okay)
                     {
                     Log.e(LOGGING_TAG, "Got timeout or unhappy response from ADB req: " + resp.Message);
@@ -134,7 +134,7 @@ namespace Managed.Adb
                 socket.Connect(address);
                 socket.Blocking = true;
                 Write(socket, request);
-                AdbResponse resp = ReadAdbResponse(socket, false);
+                AdbResponse resp = ReadAdbResponse(socket);
                 if (!resp.IOSuccess || !resp.Okay)
                     {
                     Log.e(LOGGING_TAG, "Got timeout or unhappy response from ADB req: " + resp.Message);
@@ -169,7 +169,7 @@ namespace Managed.Adb
                 adbChan.Blocking = true;
                 Write(adbChan, request);
 
-                AdbResponse resp = ReadAdbResponse(adbChan, false /* readDiagString */);
+                AdbResponse resp = ReadAdbResponse(adbChan);
                 if (!resp.IOSuccess || !resp.Okay)
                     {
                     Log.e(LOGGING_TAG, "Got timeout or unhappy response from ADB fb req: " + resp.Message);
@@ -211,7 +211,7 @@ namespace Managed.Adb
 
                 Write(socket, req);
 
-                AdbResponse resp = ReadAdbResponse(socket, false /* readDiagString */);
+                AdbResponse resp = ReadAdbResponse(socket);
                 if (!resp.Okay)
                     throw new AdbException("connection request rejected: " + resp.Message); //$NON-NLS-1$
                 }
@@ -317,24 +317,32 @@ namespace Managed.Adb
                 }
             }
 
+        public AdbResponse ReadAdbResponse(Socket socket)
+            {
+            return ReadAdbResponseInternal(socket, false, false);
+            }
+        public AdbResponse ReadAdbResponseDiagnostic(Socket socket)
+            {
+            return ReadAdbResponseInternal(socket, true, false);
+            }
+        public AdbResponse ReadAdbResponseNoLogging(Socket socket)
+            {
+            return ReadAdbResponseInternal(socket, false, true);
+            }
+
         // Read and parse a response from the ADB server. Throw if we don't
         // get enough data from the server to form a response
-        public AdbResponse ReadAdbResponse(Socket socket, bool readDiagString, bool suppressLogging = false)
+        public AdbResponse ReadAdbResponseInternal(Socket socket, bool readDiagString, bool suppressLogging)
             {
             AdbResponse resp = new AdbResponse();
 
             byte[] reply = new byte[4];
             Read(socket, reply);
             resp.IOSuccess = true;
-
-            if (IsOkay(reply))
-                {
-                resp.Okay = true;
-                }
-            else
+            resp.Okay      = IsOkay(reply);
+            if (!resp.Okay)
                 {
                 readDiagString = true; // look for a reason after the FAIL
-                resp.Okay = false;
                 }
 
             // not a loop -- use "while" so we can use "break"
@@ -458,7 +466,7 @@ namespace Managed.Adb
 
                 Write(adbChan, request);
 
-                AdbResponse resp = ReadAdbResponse(adbChan, false /* readDiagString */);
+                AdbResponse resp = ReadAdbResponse(adbChan);
                 if (!resp.IOSuccess || !resp.Okay)
                     {
                     throw new AdbException("Device rejected command: " + resp.Message);
@@ -552,7 +560,7 @@ namespace Managed.Adb
                 SetDevice(adbChan, device);
                 Write(adbChan, request);
 
-                AdbResponse resp = ReadAdbResponse(adbChan, false /* readDiagString */);
+                AdbResponse resp = ReadAdbResponse(adbChan);
                 if (!resp.IOSuccess || !resp.Okay)
                     {
                     Log.w(LOGGING_TAG, "Got timeout or unhappy response from ADB fb req: " + resp.Message);
@@ -724,7 +732,7 @@ namespace Managed.Adb
 
                 Write(adbChan, device_query);
 
-                AdbResponse resp = ReadAdbResponse(adbChan, false /* readDiagString */, true /*supress logging*/);
+                AdbResponse resp = ReadAdbResponseNoLogging(adbChan);
                 if (!resp.Okay)
                     {
                     if (equalsIgnoreCase("device not found", resp.Message))
@@ -865,7 +873,7 @@ namespace Managed.Adb
                 }
             Write(adbChan, command);
 
-            AdbResponse resp = ReadAdbResponse(adbChan, false /* readDiagString */);
+            AdbResponse resp = ReadAdbResponse(adbChan);
             if (!resp.IOSuccess || !resp.Okay)
                 {
                 throw new AdbException("Device rejected command: {0}".With(resp.Message));
