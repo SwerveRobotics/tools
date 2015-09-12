@@ -341,7 +341,7 @@ namespace Managed.Adb {
 
         public static void WriteDebug(LogLevel.LogLevelInfo logLevel, string tag, string message)
             {
-            System.Diagnostics.Debug.Write($"BlueBotBug| {GetLogFormatString(logLevel, tag, message)}");
+            System.Diagnostics.Debug.Write($"BotBug| {GetLogFormatString(logLevel, tag, message)}");
             }
 
         /// <summary>

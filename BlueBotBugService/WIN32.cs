@@ -11,7 +11,7 @@ using System.Windows.Forms;
 using COMTypes = System.Runtime.InteropServices.ComTypes;
 using Microsoft.Win32.SafeHandles;
 
-namespace Org.SwerveRobotics.BlueBotBug.Service
+namespace Org.SwerveRobotics.BotBug.Service
     {
     //=================================================================================
 

@@ -1,4 +1,4 @@
-﻿namespace Org.SwerveRobotics.BlueBotBug.Service
+﻿namespace Org.SwerveRobotics.BotBug.Service
     {
     partial class ProjectInstaller
         {
@@ -33,17 +33,18 @@
             // 
             // serviceProcessInstaller
             // 
-            this.serviceProcessInstaller.Account = System.ServiceProcess.ServiceAccount.LocalSystem;
             this.serviceProcessInstaller.Password = null;
             this.serviceProcessInstaller.Username = null;
+            this.serviceProcessInstaller.AfterInstall += new System.Configuration.Install.InstallEventHandler(this.serviceProcessInstaller_AfterInstall);
             // 
             // serviceInstaller
             // 
             this.serviceInstaller.Description = "When an FTC Robot Controller phone docks using PC, this service auto-configures i" +
     "t for wireless debugging, using Bluetooth.";
-            this.serviceInstaller.DisplayName = "BlueBotBug";
-            this.serviceInstaller.ServiceName = "BlueBotBug";
+            this.serviceInstaller.DisplayName = "BotBug";
+            this.serviceInstaller.ServiceName = "BotBug";
             this.serviceInstaller.StartType = System.ServiceProcess.ServiceStartMode.Automatic;
+            this.serviceInstaller.AfterInstall += new System.Configuration.Install.InstallEventHandler(this.serviceInstaller_AfterInstall);
             // 
             // ProjectInstaller
             // 

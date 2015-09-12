@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 // https://msdn.microsoft.com/en-us/library/zt39148a(v=vs.110).aspx
 
-namespace Org.SwerveRobotics.BlueBotBug.Service
+namespace Org.SwerveRobotics.BotBug.Service
     {
     static class Program
         {
@@ -15,7 +15,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             {
             DecompiledServiceBase[] ServicesToRun = new DecompiledServiceBase[] 
                 { 
-                new BlueBotBugService() 
+                new BotBugService() 
                 };
             DecompiledServiceBase.Run(ServicesToRun);
             }

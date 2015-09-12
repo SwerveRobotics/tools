@@ -7,8 +7,8 @@
     <ProjectGuid>{98E84E5D-BA98-470B-AA07-A5506267FF78}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Org.SwerveRobotics.BlueBotBug.Service</RootNamespace>
-    <AssemblyName>BlueBotBugService</AssemblyName>
+    <RootNamespace>Org.SwerveRobotics.BotBug.Service</RootNamespace>
+    <AssemblyName>BotBugService</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -71,11 +71,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BlueBotBugService.cs">
+    <Compile Include="BotBugService.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="BlueBotBugService.Designer.cs">
-      <DependentUpon>BlueBotBugService.cs</DependentUpon>
+    <Compile Include="BotBugService.Designer.cs">
+      <DependentUpon>BotBugService.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="ProjectInstaller.cs">
@@ -124,8 +124,8 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="BlueBotBugService.resx">
-      <DependentUpon>BlueBotBugService.cs</DependentUpon>
+    <EmbeddedResource Include="BotBugService.resx">
+      <DependentUpon>BotBugService.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="ProjectInstaller.resx">

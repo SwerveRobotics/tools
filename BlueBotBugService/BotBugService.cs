@@ -7,11 +7,11 @@ using System.Linq;
 using System.ServiceProcess;
 using System.Text;
 using System.Threading.Tasks;
-using Org.SwerveRobotics.BlueBotBug.Service;
+using Org.SwerveRobotics.BotBug.Service;
 
-namespace Org.SwerveRobotics.BlueBotBug.Service
+namespace Org.SwerveRobotics.BotBug.Service
     {
-    public partial class BlueBotBugService : DecompiledServiceBase, ITracer, IDeviceEvents
+    public partial class BotBugService : DecompiledServiceBase, ITracer, IDeviceEvents
         {
         //------------------------------------------------------------------------------------------
         // State
@@ -19,7 +19,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
         
         System.Diagnostics.EventLog         eventLog       = null;
 
-        private const string                eventLogSourceName = "BlueBotBug";
+        private const string                eventLogSourceName = "BotBug";
         private const string                eventLogName       = "Application";
 
         private bool                        oleInitialized = false;
@@ -29,7 +29,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
         // Construction
         //------------------------------------------------------------------------------------------
 
-        public BlueBotBugService()
+        public BotBugService()
             {
             InitializeComponent();
 
@@ -273,7 +273,7 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
             {
             lock (traceLock)
                 {
-                Util.TraceDebug("BlueBotBug", format, args);
+                Util.TraceDebug("BotBug", format, args);
                 }
             }
 

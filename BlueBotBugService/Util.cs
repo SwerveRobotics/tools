@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Org.SwerveRobotics.BlueBotBug.Service
+namespace Org.SwerveRobotics.BotBug.Service
     {
     //------------------------------------------------------------------------------------------------
     // Util

@@ -6,7 +6,7 @@ using System.Configuration.Install;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Org.SwerveRobotics.BlueBotBug.Service
+namespace Org.SwerveRobotics.BotBug.Service
     {
     [RunInstaller(true)]
     public partial class ProjectInstaller : System.Configuration.Install.Installer
@@ -14,6 +14,16 @@ namespace Org.SwerveRobotics.BlueBotBug.Service
         public ProjectInstaller()
             {
             InitializeComponent();
+            }
+
+        private void serviceInstaller_AfterInstall(object sender, InstallEventArgs e)
+            {
+
+            }
+
+        private void serviceProcessInstaller_AfterInstall(object sender, InstallEventArgs e)
+            {
+
             }
         }
     }

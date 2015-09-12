@@ -1,6 +1,6 @@
-﻿namespace Org.SwerveRobotics.BlueBotBug.Service
+﻿namespace Org.SwerveRobotics.BotBug.Service
     {
-    partial class BlueBotBugService
+    partial class BotBugService
         {
         /// <summary> 
         /// Required designer variable.
@@ -37,10 +37,9 @@
         private void InitializeComponent()
             {
             // 
-            // BlueBotBugService
+            // BotBugService
             // 
-            this.ServiceName = "BlueBotBug";
-
+            this.ServiceName = "BotBug";
             }
 
         #endregion

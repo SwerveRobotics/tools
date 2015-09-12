@@ -6,9 +6,9 @@ using System.Threading;
 using System.Diagnostics;
 using System.IO;
 using Managed.Adb;
-using static Org.SwerveRobotics.BlueBotBug.Service.WIN32;
+using static Org.SwerveRobotics.BotBug.Service.WIN32;
 
-namespace Org.SwerveRobotics.BlueBotBug.Service
+namespace Org.SwerveRobotics.BotBug.Service
     {
     public interface ITracer
         { 

@@ -23,7 +23,7 @@ namespace Managed.Adb
         bool CloseHandle(IntPtr handle);
 
         public static bool ConsoleTracingEnabled = false;
-        public static string TraceTag = "BlueBotBug: ";
+        public static string TraceTag = "BotBug: ";
 
         public static void ConsoleTraceError(string format, params object[] arguments)
             {
