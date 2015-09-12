@@ -10,11 +10,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MadBee.Console", "MadBee.Co
 		{65473257-E70F-410B-9269-D0C0F771EA87} = {65473257-E70F-410B-9269-D0C0F771EA87}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotBugService", "BlueBotBugService\BotBugService.csproj", "{98E84E5D-BA98-470B-AA07-A5506267FF78}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SwerveToolsTray", "SwerveToolsTray\SwerveToolsTray.csproj", "{242946E0-0909-4A66-A585-AAB920333406}"
 EndProject
-Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "SwerveToolsSetup", "Setup\Setup.vdproj", "{4DAB351D-EBEB-414B-8F2C-79DC9075FD06}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotBugService", "BotBugService\BotBugService.csproj", "{98E84E5D-BA98-470B-AA07-A5506267FF78}"
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "SwerveToolsSetup", "SwerveToolsSetup\SwerveToolsSetup.vdproj", "{6CA0C724-32C0-4E3C-A342-2C826BB4442C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,18 +30,18 @@ Global
 		{F9A436F4-0606-4326-8607-9EA4D9E6AF18}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F9A436F4-0606-4326-8607-9EA4D9E6AF18}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F9A436F4-0606-4326-8607-9EA4D9E6AF18}.Release|Any CPU.Build.0 = Release|Any CPU
-		{98E84E5D-BA98-470B-AA07-A5506267FF78}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{98E84E5D-BA98-470B-AA07-A5506267FF78}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{98E84E5D-BA98-470B-AA07-A5506267FF78}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{98E84E5D-BA98-470B-AA07-A5506267FF78}.Release|Any CPU.Build.0 = Release|Any CPU
 		{242946E0-0909-4A66-A585-AAB920333406}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{242946E0-0909-4A66-A585-AAB920333406}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{242946E0-0909-4A66-A585-AAB920333406}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{242946E0-0909-4A66-A585-AAB920333406}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4DAB351D-EBEB-414B-8F2C-79DC9075FD06}.Debug|Any CPU.ActiveCfg = Debug
-		{4DAB351D-EBEB-414B-8F2C-79DC9075FD06}.Debug|Any CPU.Build.0 = Debug
-		{4DAB351D-EBEB-414B-8F2C-79DC9075FD06}.Release|Any CPU.ActiveCfg = Release
-		{4DAB351D-EBEB-414B-8F2C-79DC9075FD06}.Release|Any CPU.Build.0 = Release
+		{98E84E5D-BA98-470B-AA07-A5506267FF78}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{98E84E5D-BA98-470B-AA07-A5506267FF78}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{98E84E5D-BA98-470B-AA07-A5506267FF78}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{98E84E5D-BA98-470B-AA07-A5506267FF78}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6CA0C724-32C0-4E3C-A342-2C826BB4442C}.Debug|Any CPU.ActiveCfg = Debug
+		{6CA0C724-32C0-4E3C-A342-2C826BB4442C}.Debug|Any CPU.Build.0 = Debug
+		{6CA0C724-32C0-4E3C-A342-2C826BB4442C}.Release|Any CPU.ActiveCfg = Release
+		{6CA0C724-32C0-4E3C-A342-2C826BB4442C}.Release|Any CPU.Build.0 = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
