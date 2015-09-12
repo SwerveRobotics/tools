@@ -6,8 +6,7 @@ namespace Managed.Adb.Exceptions
     /** Signals a semantic error reported to us by the ADB server. */
     public class AdbException : Exception
         {
-        public AdbException()
-            : base("An error occurred with ADB")
+        public AdbException() : base("An error occurred with ADB")
             {
             }
 
@@ -69,5 +68,9 @@ namespace Managed.Adb.Exceptions
         public ShellCommandUnresponsiveException() : base("The shell command has become unresponsive")
             {
             }
+        }
+
+    public class EndOfFileException : AdbException
+        {
         }
     }

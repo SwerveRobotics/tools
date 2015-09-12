@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -177,34 +178,21 @@ namespace Managed.Adb
                     }
 
                 reply = new byte[4];
-                if (!Read(adbChan, reply))
-                    {
-                    Log.e(LOGGING_TAG, "error in getting data length");
-
-                    adbChan.Close();
-                    return -1;
-                    }
+                Read(adbChan, reply);
 
                 string lenHex = reply.GetString(DEFAULT_ENCODING);
                 int len = int.Parse(lenHex, NumberStyles.HexNumber);
 
                 // the protocol version.
                 reply = new byte[len];
-                if (!Read(adbChan, reply))
-                    {
-                    Log.e(LOGGING_TAG, "did not get the version info");
-
-                    adbChan.Close();
-                    return -1;
-                    }
+                Read(adbChan, reply);
 
                 string sReply = reply.GetString(DEFAULT_ENCODING);
                 return int.Parse(sReply, NumberStyles.HexNumber);
                 }
-            catch (Exception ex)
+            finally
                 {
-                ConsoleTraceError(ex);
-                throw;
+                adbChan?.Close();
                 }
             }
 
@@ -263,6 +251,10 @@ namespace Managed.Adb
             Debug.Assert(result.Length == req.Length + 5, string.Format("result: {1}{0}\nreq: {3}{2}", result.Length, result.GetString(DEFAULT_ENCODING), req.Length, req));
             return result;
             }
+
+        //----------------------------------------------------------------------------------------------------
+        // Low level reading and writing
+        //----------------------------------------------------------------------------------------------------
 
         public void Write(Socket socket, byte[] data)
             {
@@ -325,22 +317,14 @@ namespace Managed.Adb
                 }
             }
 
-        /// <summary>
-        ///     Reads the adb response.
-        /// </summary>
-        /// <param name="socket">The socket.</param>
-        /// <param name="readDiagString">if set to <c>true</c> [read diag string].</param>
-        /// <param name="suppressLogging">if true, failures are not logged</param>
-        /// <returns></returns>
+        // Read and parse a response from the ADB server. Throw if we don't
+        // get enough data from the server to form a response
         public AdbResponse ReadAdbResponse(Socket socket, bool readDiagString, bool suppressLogging = false)
             {
             AdbResponse resp = new AdbResponse();
 
             byte[] reply = new byte[4];
-            if (!Read(socket, reply))
-                {
-                return resp;
-                }
+            Read(socket, reply);
             resp.IOSuccess = true;
 
             if (IsOkay(reply))
@@ -358,11 +342,7 @@ namespace Managed.Adb
                 {
                 // length string is in next 4 bytes
                 byte[] lenBuf = new byte[4];
-                if (!Read(socket, lenBuf))
-                    {
-                    ConsoleTraceError("Expected diagnostic string not found");
-                    break;
-                    }
+                Read(socket, lenBuf);
 
                 string lenStr = ReplyToString(lenBuf);
 
@@ -379,11 +359,7 @@ namespace Managed.Adb
                     }
 
                 byte[] msg = new byte[len];
-                if (!Read(socket, msg))
-                    {
-                    Log.e(LOGGING_TAG, "Failed reading diagnostic string, len={0}", len);
-                    break;
-                    }
+                Read(socket, msg);
 
                 resp.Message = ReplyToString(msg);
                 if (!suppressLogging)
@@ -395,39 +371,37 @@ namespace Managed.Adb
             return resp;
             }
 
+        // Read up until the next newline, or until EOF
         public string ReadLine(Socket socket)
             {
             StringBuilder result = new StringBuilder();
-            for (;;)
+            try 
                 {
-                byte[] data = new byte[1];
-                if (Read(socket, data))
+                for (;;)
                     {
+                    byte[] data = new byte[1];
+                    Read(socket, data);
                     char ch = (char) data[0];
                     if (ch == '\n')
                         break;
                     result.Append(ch);
                     }
-                else
-                    break;
+                }
+            catch (EndOfFileException)
+                {
                 }
             return result.ToString();
             }
 
-        public bool Read(Socket socket, byte[] data)
+        // Read enough data to fill the buffer. Throw
+        // if we don't get enough to do that, for whatever reason
+        public void Read(Socket socket, byte[] data)
             {
-            try
-                {
-                Read(socket, data, -1, DdmPreferences.Timeout);
-                }
-            catch (AdbException)
-                {
-                return false;
-                }
-
-            return true;
+            Read(socket, data, -1, DdmPreferences.Timeout);
             }
 
+        // Read length bytes into the buffer. Throw if we don't
+        // get enough data to do that, for whatever reason
         public void Read(Socket socket, byte[] data, int length, int timeout)
             {
             int expLen = length != -1 ? length : data.Length;
@@ -446,13 +420,11 @@ namespace Managed.Adb
                     count = socket.Receive(buffer, buflen, SocketFlags.None);
                     if (count < 0)
                         {
-                        Log.e(LOGGING_TAG, "read: channel EOF");
-                        throw new AdbException("EOF");
+                        throw new EndOfFileException();
                         }
                     else if (count == 0)
                         {
-                        // Util.ConsoleTrace("DONE with Read");
-                        throw new AdbException("EOF(2)"); // -rga
+                        throw new EndOfFileException();
                         }
                     else
                         {
@@ -460,9 +432,9 @@ namespace Managed.Adb
                         totalRead += count;
                         }
                     }
-                catch (SocketException sex)
+                catch (SocketException)
                     {
-                    throw new AdbException($"No Data to read: {sex.Message}");
+                    throw;  // we don't actually suppress the socket read errors
                     }
                 }
             }
@@ -549,31 +521,16 @@ namespace Managed.Adb
             using (Socket socket = ExecuteRawSocketCommand(address, "host:devices-l"))
                 {
                 byte[] reply = new byte[4];
+                Read(socket, reply);
 
-                if (!Read(socket, reply))
-                    {
-                    Log.e(LOGGING_TAG, "error in getting data length");
-                    return null;
-                    }
                 string lenHex = reply.GetString(Encoding.Default);
                 int len = int.Parse(lenHex, NumberStyles.HexNumber);
 
                 reply = new byte[len];
-                if (!Read(socket, reply))
-                    {
-                    Log.e(LOGGING_TAG, "error in getting data");
-                    return null;
-                    }
+                Read(socket, reply);
 
-                List<Device> s = new List<Device>();
                 string[] data = reply.GetString(Encoding.Default).Split(new[] {"\r\n", "\n"}, StringSplitOptions.RemoveEmptyEntries);
-                foreach (string item in data)
-                    {
-                    Device device = Device.CreateFromAdbData(item);
-                    s.Add(device);
-                    }
-
-                return s;
+                return data.Select(Device.CreateFromAdbData).ToList();
                 }
             }
 
@@ -581,10 +538,7 @@ namespace Managed.Adb
             {
             RawImage imageParams = new RawImage();
             byte[] request = FormAdbRequest("framebuffer:"); //$NON-NLS-1$
-            byte[] nudge =
-                {
-                0
-                };
+            byte[] nudge = { 0 };
             byte[] reply;
 
             Socket adbChan = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -608,13 +562,7 @@ namespace Managed.Adb
 
                 // first the protocol version.
                 reply = new byte[4];
-                if (!Read(adbChan, reply))
-                    {
-                    Log.w(LOGGING_TAG, "got partial reply from ADB fb:");
-
-                    adbChan.Close();
-                    return null;
-                    }
+                Read(adbChan, reply);
                 BinaryReader buf;
                 int version = 0;
                 using (MemoryStream ms = new MemoryStream(reply))
@@ -627,14 +575,7 @@ namespace Managed.Adb
                 int headerSize = RawImage.GetHeaderSize(version);
                 // read the header
                 reply = new byte[headerSize*4];
-                if (!Read(adbChan, reply))
-                    {
-                    Log.w(LOGGING_TAG, "got partial reply from ADB fb:");
-
-                    adbChan.Close();
-                    return null;
-                    }
-
+                Read(adbChan, reply);
                 using (MemoryStream ms = new MemoryStream(reply))
                     {
                     buf = new BinaryReader(ms);
@@ -654,13 +595,7 @@ namespace Managed.Adb
                 Write(adbChan, nudge);
 
                 reply = new byte[imageParams.Size];
-                if (!Read(adbChan, reply))
-                    {
-                    Log.w(LOGGING_TAG, "got truncated reply from ADB fb data");
-                    adbChan.Close();
-                    return null;
-                    }
-
+                Read(adbChan, reply);
                 imageParams.Data = reply;
                 }
             finally

@@ -61,8 +61,8 @@ namespace Managed.Adb
             }
 
         // A lock for controlling access to the right to set the socket variable
-        void AcquireSocketWriteLock()    { this.socketLock.AcquireWriterLock(-1); }
-        void ReleaseSocketWriteLock()    { this.socketLock.ReleaseWriterLock();   }
+        void AcquireSocketLock()    { this.socketLock.AcquireWriterLock(-1); }
+        void ReleaseSocketLock()    { this.socketLock.ReleaseWriterLock();   }
 
         public void StopDeviceTracking()
             {
@@ -90,7 +90,7 @@ namespace Managed.Adb
         bool OpenSocketIfNecessary()
             {
             bool result = false;
-            this.AcquireSocketWriteLock();
+            this.AcquireSocketLock();
             try
                 {
                 // If we haven't a socket, try to open one
@@ -111,9 +111,9 @@ namespace Managed.Adb
                             }
 
                         // Wait a bit before attempting another socket open
-                        this.ReleaseSocketWriteLock();
+                        this.ReleaseSocketLock();
                         Thread.Sleep(1000);
-                        this.AcquireSocketWriteLock();
+                        this.AcquireSocketLock();
                         }
                     else
                         {
@@ -125,22 +125,25 @@ namespace Managed.Adb
                 }
             finally
                 {
-                this.ReleaseSocketWriteLock();
+                this.ReleaseSocketLock();
                 }
             return result;
             }
 
+        /**
+         * Close the socket, which may be null. If asked to, take the socket lock while doing so.
+         */
         void CloseSocket(ref Socket socket, bool takeLock=true)
             {
             try {
                 socket?.Close();
                 try {
-                    if (takeLock) this.AcquireSocketWriteLock();
+                    if (takeLock) this.AcquireSocketLock();
                     socket = null;
                     }
                 finally
                     {
-                    if (takeLock) this.ReleaseSocketWriteLock();
+                    if (takeLock) this.ReleaseSocketLock();
                     }
                 }
             catch (Exception)
