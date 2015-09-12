@@ -25,7 +25,8 @@ namespace Managed.Adb
         public bool                         HasDeviceList           { get; private set; }
 
         private readonly AndroidDebugBridge bridge;
-        private int                         adbFailedOpens;
+        private int                         serverFailedConnects;
+        private int                         serverRestarts;
         private bool                        stopRequested;
         private Socket                      socketTrackDevices;
         private Thread                      deviceTrackingThread;
@@ -42,6 +43,8 @@ namespace Managed.Adb
             this.bridge        = bridge;
             this.Devices       = new List<Device>();
             this.stopRequested = false;
+            this.serverFailedConnects = 0;
+            this.serverRestarts = 0;
             }
 
         public void StartDeviceTracking()
@@ -102,23 +105,29 @@ namespace Managed.Adb
                     if (this.socketTrackDevices == null)
                         {
                         // Connect attempt failed. Restart the server if we can
-                        this.adbFailedOpens++;
-                        if (this.adbFailedOpens > 1)
+                        this.serverFailedConnects++;
+                        if (this.serverFailedConnects > 0)
                             {
                             this.bridge.KillServer();
                             this.bridge.StartServer();
+                            this.serverRestarts++;
                             }
 
-                        // Wait a bit before attempting another socket open
-                        this.ReleaseSocketLock();
-                        Thread.Sleep(1000);
-                        this.AcquireSocketLock();
+                        if (this.serverRestarts > 1)
+                            {
+                            // Wait a bit before attempting another socket open
+                            this.ReleaseSocketLock();
+                            Log.d(loggingTag, "sleeping 1s");
+                            Thread.Sleep(1000);
+                            this.AcquireSocketLock();
+                            }
                         }
                     else
                         {
                         result = true;
                         Log.d(loggingTag, "Connected to adb for device monitoring");
-                        this.adbFailedOpens = 0;
+                        this.serverFailedConnects = 0;
+                        this.serverRestarts = 0;
                         }
                     }
                 }
@@ -184,7 +193,7 @@ namespace Managed.Adb
                     }
                 catch (Exception e)
                     {
-                    Log.e(loggingTag, "exception in DeviceTrackingThread: ", e);
+                    Log.w(loggingTag, $"exception in DeviceTrackingThread: {e.Message}");
                     this.IsTrackingDevices = false;
                     CloseSocket(ref this.socketTrackDevices);
                     }
@@ -261,6 +270,10 @@ namespace Managed.Adb
          */
         private void UpdateDevices(List<Device> newCurrentDevices)
             {
+            Log.d(loggingTag, "---------");
+            foreach (Device device in newCurrentDevices)
+                Log.d(loggingTag, $"device reported: {device.SerialNumber}");
+
             lock (this.Devices)
                 {
                 // For each device in the existing list, we look for a match in the new current list.

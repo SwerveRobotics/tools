@@ -301,6 +301,7 @@ namespace Managed.Adb
         public bool StartServer()
             {
             int status = -1;
+            Log.d(DDMS, "'adb start-server' ...");
 
             try
                 {
@@ -338,14 +339,15 @@ namespace Managed.Adb
                 return false;
                 }
 
+            Log.d(DDMS, "...'adb start-server' succeeded");
             OnServerStarted();
-            Log.d(DDMS, "'adb start-server' succeeded");
             return true;
             }
 
         public bool KillServer()
             {
             int status = -1;
+            Log.d(DDMS, "'adb kill-server' ...");
 
             try
                 {
@@ -359,11 +361,10 @@ namespace Managed.Adb
 
                 using (Process proc = Process.Start(psi))
                     {
-                    // We are conservative in our kill notifications: we don't KNOW that it got
-                    // killed, but we know that we tried.
-                    OnServerKilled();
+                    // We are conservative in our kill notifications: we don't KNOW that it got killed, but we know that we tried.
                     proc.WaitForExit();
                     status = proc.ExitCode;
+                    OnServerKilled();
                     }
                 }
             catch (IOException)
@@ -381,7 +382,7 @@ namespace Managed.Adb
                 return false;
                 }
 
-            Log.d(DDMS, "'adb kill-server' succeeded");
+            Log.d(DDMS, "... 'adb kill-server' succeeded");
             return true;
             }
 

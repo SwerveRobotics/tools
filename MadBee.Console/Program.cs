@@ -19,13 +19,13 @@ namespace MadBee.Console
 
         static void Main(string[] arguments)
             {
-            Log.Level = LogLevel.Verbose;
+            // Log.Level = LogLevel.Verbose;
 
             Arguments args = new Arguments(arguments);
             AndroidDebugBridge bridge = new AndroidDebugBridge();
             try {
-                bridge.DeviceConnected      += (sender, e) => System.Console.WriteLine($"{e.Device.SerialNumber}\t{e.Device.State}");
-                bridge.DeviceDisconnected   += (sender, e) => System.Console.WriteLine($"{e.Device.SerialNumber}\t{e.Device.State}");
+                bridge.DeviceConnected      += (sender, e) => System.Console.WriteLine($"Device connected: {e.Device.SerialNumber}\t{e.Device.State}");
+                bridge.DeviceDisconnected   += (sender, e) => System.Console.WriteLine($"Device disconnected: {e.Device.SerialNumber}\t{e.Device.State}");
                 bridge.ServerStarted        += (sender, b) => System.Console.WriteLine($"ADB server started");
                 bridge.ServerKilled         += (sender, b) => System.Console.WriteLine($"ADB server killed");
 
