@@ -46,7 +46,7 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_C5E94DE6E0914FBFA74A36BA916827FC"
+        "OwnerKey" = "8:_15D189565FCA321100CC87368E13BCE4"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -58,7 +58,7 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_15D189565FCA321100CC87368E13BCE4"
+        "OwnerKey" = "8:_C5E94DE6E0914FBFA74A36BA916827FC"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -143,6 +143,62 @@
     {
         "CustomAction"
         {
+            "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_24D97D8DEDF845CCA92461C0C5FDE402"
+            {
+            "Name" = "8:Primary output from BotBugService (Active)"
+            "Condition" = "8:"
+            "Object" = "8:_C5E94DE6E0914FBFA74A36BA916827FC"
+            "FileType" = "3:2"
+            "InstallAction" = "3:2"
+            "Arguments" = "8:"
+            "EntryPoint" = "8:"
+            "Sequence" = "3:1"
+            "Identifier" = "8:_C4694870_0394_44A5_B547_CC80997FAA87"
+            "InstallerClass" = "11:TRUE"
+            "CustomActionData" = "8:"
+            }
+            "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_77FC1383CF7C4F2EAEEDFBC4E8FCF035"
+            {
+            "Name" = "8:Primary output from BotBugService (Active)"
+            "Condition" = "8:"
+            "Object" = "8:_C5E94DE6E0914FBFA74A36BA916827FC"
+            "FileType" = "3:2"
+            "InstallAction" = "3:4"
+            "Arguments" = "8:"
+            "EntryPoint" = "8:"
+            "Sequence" = "3:1"
+            "Identifier" = "8:_8332C505_D51E_4A37_9788_01BD14CB335B"
+            "InstallerClass" = "11:TRUE"
+            "CustomActionData" = "8:"
+            }
+            "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_995F3D8D1F6047EB937346F42D626338"
+            {
+            "Name" = "8:Primary output from BotBugService (Active)"
+            "Condition" = "8:"
+            "Object" = "8:_C5E94DE6E0914FBFA74A36BA916827FC"
+            "FileType" = "3:2"
+            "InstallAction" = "3:3"
+            "Arguments" = "8:"
+            "EntryPoint" = "8:"
+            "Sequence" = "3:1"
+            "Identifier" = "8:_CDE6CE99_0BE3_4286_B3A8_EA4C7EB87C37"
+            "InstallerClass" = "11:TRUE"
+            "CustomActionData" = "8:"
+            }
+            "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_9FABE0A6905C4CC5BC20F28E9F438568"
+            {
+            "Name" = "8:Primary output from BotBugService (Active)"
+            "Condition" = "8:"
+            "Object" = "8:_C5E94DE6E0914FBFA74A36BA916827FC"
+            "FileType" = "3:2"
+            "InstallAction" = "3:1"
+            "Arguments" = "8:"
+            "EntryPoint" = "8:"
+            "Sequence" = "3:1"
+            "Identifier" = "8:_E541BB8B_E001_4D90_89EE_87AA59B8A5CC"
+            "InstallerClass" = "11:TRUE"
+            "CustomActionData" = "8:"
+            }
         }
         "DefaultFeature"
         {
@@ -173,11 +229,6 @@
             "AssemblyAsmDisplayName" = "8:System.Net.Http, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"
                 "ScatterAssemblies"
                 {
-                    "_15D189565FCA321100CC87368E13BCE4"
-                    {
-                    "Name" = "8:System.Net.Http.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:System.Net.Http.dll"
             "TargetName" = "8:"
@@ -204,11 +255,6 @@
             "AssemblyAsmDisplayName" = "8:Managed.AndroidDebugBridge, Version=0.5.5733.28212, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_4F116F194916E65F1604258125C77A41"
-                    {
-                    "Name" = "8:Managed.AndroidDebugBridge.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:Managed.AndroidDebugBridge.dll"
             "TargetName" = "8:"
@@ -806,7 +852,7 @@
         {
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_626AF9517E254B40A91F4C51F990517A"
             {
-            "SourcePath" = "8:..\\SwerveToolsTray\\obj\\Debug\\SwerveToolsTray.exe"
+            "SourcePath" = "8:..\\SwerveToolsTray\\obj\\Release\\SwerveToolsTray.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_E1E005270EBA4CC1BFD6034588882162"
@@ -834,7 +880,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_C5E94DE6E0914FBFA74A36BA916827FC"
             {
-            "SourcePath" = "8:..\\BotBugService\\obj\\Debug\\BotBugService.exe"
+            "SourcePath" = "8:..\\BotBugService\\obj\\Release\\BotBugService.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_E1E005270EBA4CC1BFD6034588882162"
