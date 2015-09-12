@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.Win32;
+using Microsoft.Win32.SafeHandles;
 using static Managed.Adb.Util;
 
 namespace Managed.Adb
@@ -47,10 +49,12 @@ namespace Managed.Adb
             {
             get
                 {
-                // Find the Android SDK, look in platform-tools therein
-                // Look for the sdk fist in the Android Studio configuration, then in an environment variable
-                string sdk = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Android Studio")?.GetValue(@"SdkPath") as string 
-                     ?? Environment.GetEnvironmentVariable(@"ANDROID_SDK_HOME");
+                // Find the Android SDK, looking in a number of places trying to find it.
+                // Once found, look in platform-tools therein
+                string sdk = null;
+                if (sdk == null) sdk = ReadRegistry(@"SOFTWARE\Android Studio",    @"SdkPath");
+                if (sdk == null) sdk = ReadRegistry(@"SOFTWARE\Android SDK Tools", @"Path");
+                if (sdk == null) sdk = Environment.GetEnvironmentVariable(@"ANDROID_SDK_HOME");
                 if (sdk != null)
                     {
                     string file = Path.Combine(sdk, @"platform-tools", ADB_EXE);
@@ -71,6 +75,35 @@ namespace Managed.Adb
                 throw new FileNotFoundException($"unable to locate '{ADB_EXE}'");
                 }
             }
+
+        private static string ReadRegistry(string path, string valueName)
+            {
+            // Look in both 32 bit and 64 bit variations of the path, explicitly, as what
+            // we would see implicitly would be highly sensitive to various code compilation issues.
+            return ReadRegistry(true, path, valueName) ?? ReadRegistry(false, path, valueName);
+            }
+
+        private static string ReadRegistry(bool is64, string path, string valueName)
+            {
+            string result = null;
+            IntPtr HKEY_LOCAL_MACHINE = (IntPtr)AsInt(0x80000002);
+            using (SafeRegistryHandle hkeyRootNativeHandle = new SafeRegistryHandle(HKEY_LOCAL_MACHINE, false))
+                {
+                using (RegistryKey hkeyRoot = RegistryKey.FromHandle(hkeyRootNativeHandle, is64 ? RegistryView.Registry64 : RegistryView.Registry32))
+                    {
+                    using (RegistryKey key = hkeyRoot.OpenSubKey(path))
+                        {
+                        result = key?.GetValue(valueName) as string;
+                        }
+                    }
+                }
+            return result;
+            }
+
+        private static int AsInt(uint u) { return unchecked((int)u); }
+
+        [DllImport("advapi32.dll", CharSet = CharSet.Unicode, EntryPoint = "RegOpenKeyExW", SetLastError = true)]
+        private static extern int RegOpenKeyExW(IntPtr hKey, string subKey, uint options, int sam, out IntPtr phkResult);
 
         //---------------------------------------------------------------------------------------
         // Construction

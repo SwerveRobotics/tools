@@ -44,16 +44,11 @@ namespace Managed.Adb
         private const   int         WAIT_TIME = 5;
 
         public  static  string      DEFAULT_ENCODING = "ISO-8859-1";
-        private static  AdbHelper   g_instance = null;
+        public  static  AdbHelper   Instance { get; } = new AdbHelper();
 
         //-------------------------------------------------------------------------------------------------------------
         // Construction
         //-------------------------------------------------------------------------------------------------------------
-
-        public static AdbHelper Instance
-            {
-            get { return g_instance ?? (g_instance = new AdbHelper()); }
-            }
 
         /** Constructor that prevents other than a singleton instance of this class from being created. */
         private AdbHelper()
@@ -291,7 +286,7 @@ namespace Managed.Adb
                 count = socket.Send(data, 0, length != -1 ? length : data.Length, SocketFlags.None);
                 if (count < 0)
                     {
-                    throw new AdbException("channel EOF");
+                    throw new EndOfFileException();
                     }
                 else if (count == 0)
                     {
@@ -319,31 +314,24 @@ namespace Managed.Adb
 
         public AdbResponse ReadAdbResponse(Socket socket)
             {
-            return ReadAdbResponseInternal(socket, false, false);
-            }
-        public AdbResponse ReadAdbResponseDiagnostic(Socket socket)
-            {
-            return ReadAdbResponseInternal(socket, true, false);
+            return ReadAdbResponseInternal(socket, false);
             }
         public AdbResponse ReadAdbResponseNoLogging(Socket socket)
             {
-            return ReadAdbResponseInternal(socket, false, true);
+            return ReadAdbResponseInternal(socket, true);
             }
 
         // Read and parse a response from the ADB server. Throw if we don't
         // get enough data from the server to form a response
-        public AdbResponse ReadAdbResponseInternal(Socket socket, bool readDiagString, bool suppressLogging)
+        public AdbResponse ReadAdbResponseInternal(Socket socket, bool suppressLogging)
             {
             AdbResponse resp = new AdbResponse();
 
             byte[] reply = new byte[4];
             Read(socket, reply);
-            resp.IOSuccess = true;
-            resp.Okay      = IsOkay(reply);
-            if (!resp.Okay)
-                {
-                readDiagString = true; // look for a reason after the FAIL
-                }
+            resp.IOSuccess      = true;
+            resp.Okay           = IsOkay(reply);
+            bool readDiagString = !resp.Okay; // look for a reason after the FAIL
 
             // not a loop -- use "while" so we can use "break"
             while (readDiagString)
@@ -412,32 +400,31 @@ namespace Managed.Adb
         // get enough data to do that, for whatever reason
         public void Read(Socket socket, byte[] data, int length, int timeout)
             {
-            int expLen = length != -1 ? length : data.Length;
-            int count = -1;
-            int totalRead = 0;
+            int cbExpected = length >=0 ? length : data.Length;
+            int cbRead = 0;
 
-            while (count != 0 && totalRead < expLen)
+            while (cbRead < cbExpected)
                 {
                 try
                     {
-                    int left = expLen - totalRead;
-                    int buflen = left < socket.ReceiveBufferSize ? left : socket.ReceiveBufferSize;
+                    int cbRemaining = cbExpected - cbRead;
+                    int cbBuffer = cbRemaining < socket.ReceiveBufferSize ? cbRemaining : socket.ReceiveBufferSize;
 
-                    byte[] buffer = new byte[buflen];
-                    socket.ReceiveBufferSize = expLen;
-                    count = socket.Receive(buffer, buflen, SocketFlags.None);
-                    if (count < 0)
+                    byte[] buffer = new byte[cbBuffer];
+                    socket.ReceiveBufferSize = cbExpected;
+                    int cbReceived = socket.Receive(buffer, cbBuffer, SocketFlags.None);
+                    if (cbReceived < 0)
                         {
                         throw new EndOfFileException();
                         }
-                    else if (count == 0)
+                    else if (cbReceived == 0)
                         {
                         throw new EndOfFileException();
                         }
                     else
                         {
-                        Array.Copy(buffer, 0, data, totalRead, count);
-                        totalRead += count;
+                        Array.Copy(buffer, 0, data, cbRead, cbReceived);
+                        cbRead += cbReceived;
                         }
                     }
                 catch (SocketException)

@@ -6,6 +6,7 @@ using System.Text;
 using System.IO;
 using System.Net.Sockets;
 using System.Threading;
+using Managed.Adb.Exceptions;
 
 namespace Managed.Adb
     {
@@ -29,7 +30,6 @@ namespace Managed.Adb
         private Socket                      socketTrackDevices;
         private Thread                      deviceTrackingThread;
         private const string                loggingTag   = "DeviceMonitor";
-        private byte[]                      lengthBuffer = null;
         private ManualResetEventSlim        startedEvent = new ManualResetEventSlim(false);
         private ReaderWriterLock            socketLock   = new ReaderWriterLock();
 
@@ -41,7 +41,6 @@ namespace Managed.Adb
             {
             this.bridge        = bridge;
             this.Devices       = new List<Device>();
-            this.lengthBuffer  = new byte[4];
             this.stopRequested = false;
             }
 
@@ -104,7 +103,7 @@ namespace Managed.Adb
                         {
                         // Connect attempt failed. Restart the server if we can
                         this.adbFailedOpens++;
-                        if (this.adbFailedOpens > 10)
+                        if (this.adbFailedOpens > 1)
                             {
                             this.bridge.KillServer();
                             this.bridge.StartServer();
@@ -172,7 +171,7 @@ namespace Managed.Adb
                     if (this.IsTrackingDevices)
                         {
                         // read the length of the incoming message
-                        int length = ReadLength(this.socketTrackDevices, this.lengthBuffer);
+                        int length = ReadLength(this.socketTrackDevices, new byte[4]);
                         if (length >= 0)
                             {
                             // read the incoming message
@@ -232,7 +231,7 @@ namespace Managed.Adb
             if (length > 0)
                 {
                 byte[] buffer = new byte[length];
-                string result = Read(this.socketTrackDevices, buffer);
+                string result = ReadString(this.socketTrackDevices, buffer);
                 string[] devices = result.Split(new string[] {"\r\n", "\n"}, StringSplitOptions.RemoveEmptyEntries);
                 foreach (string deviceData in devices)
                     {
@@ -411,88 +410,20 @@ namespace Managed.Adb
         // Utility
         //---------------------------------------------------------------------------------------------------------------
 
-        /**
-         * Reads the length of the next message from a socket.
-         * @return  the length, or 0 (zero) if no data is available from the socket.
-         */
         private int ReadLength(Socket socket, byte[] buffer)
             {
-            string msg = Read(socket, buffer);
-            if (msg != null)
-                {
-                try
-                    {
-                    int len = int.Parse(msg, System.Globalization.NumberStyles.HexNumber);
-                    return len;
-                    }
-                catch (FormatException)
-                    {
-                    // we'll throw an exception below.
-                    }
-                }
-            //throw new IOException ( "unable to read data length" );
-            // we receive something we can't read. It's better to reset the connection at this point.
-            return -1;
+            string msg = ReadString(socket, buffer);
+            return int.Parse(msg, System.Globalization.NumberStyles.HexNumber);
             }
 
-        /**
-         * Reads the specified socket.
-         *
-         * @exception   IOException Thrown when an IO failure occurred.
-         *
-         * @return  the data read
-         */
-        private string Read(Socket socket, byte[] data)
+        private string ReadString(Socket socket, byte[] data)
             {
-            int count = -1;
-            int totalRead = 0;
-
-            while (count != 0 && totalRead < data.Length)
-                {
-                try
-                    {
-                    int left = data.Length - totalRead;
-                    int buflen = left < socket.ReceiveBufferSize ? left : socket.ReceiveBufferSize;
-
-                    byte[] buffer = new byte[buflen];
-                    socket.ReceiveBufferSize = buffer.Length;
-                    count = socket.Receive(buffer, buflen, SocketFlags.None);
-                    if (count < 0)
-                        {
-                        throw new IOException("EOF");
-                        }
-                    else if (count == 0)
-                        {
-                        }
-                    else
-                        {
-                        Array.Copy(buffer, 0, data, totalRead, count);
-                        totalRead += count;
-                        }
-                    }
-                catch (SocketException sex)
-                    {
-                    if (sex.Message.Contains("connection was aborted"))
-                        {
-                        // ignore this?
-                        return string.Empty;
-                        }
-                    else
-                        {
-                        throw new IOException($"No Data to read: {sex.Message}");
-                        }
-                    }
-                }
-
+            AdbHelper.Instance.Read(socket, data);
             return data.GetString(AdbHelper.DEFAULT_ENCODING);
             }
 
-        /**
-         * Opens a socket to the ADB server.
-         *
-         * @return  a connected socket, or null a connection could not be obtained
-         */
         private Socket ConnectToServer()
+        // Note: does NOT throw on error; returns null instead
             {
             Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             try
@@ -500,9 +431,8 @@ namespace Managed.Adb
                 socket.Connect(AndroidDebugBridge.SocketAddress);
                 socket.NoDelay = true;
                 }
-            catch (Exception e)
+            catch (Exception)
                 {
-                Log.w(loggingTag, e);
                 this.CloseSocket(ref socket, false);
                 }
             return socket;
