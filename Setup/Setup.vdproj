@@ -33,18 +33,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_C236947AB3B84D81891DB6FB20895951"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_CAD3D068D05DBA60AB1592EE8097A042"
-        "OwnerKey" = "8:_C236947AB3B84D81891DB6FB20895951"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_EAD5A71E416B4B64B02F3C67FBCAAB63"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -52,19 +40,7 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_C236947AB3B84D81891DB6FB20895951"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_CAD3D068D05DBA60AB1592EE8097A042"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_EAD5A71E416B4B64B02F3C67FBCAAB63"
+        "OwnerKey" = "8:_4B601CAAD9CADB251995224D3F387927"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -76,7 +52,7 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_4B601CAAD9CADB251995224D3F387927"
+        "OwnerKey" = "8:_EAD5A71E416B4B64B02F3C67FBCAAB63"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -191,44 +167,8 @@
             "AssemblyAsmDisplayName" = "8:System.Net.Http, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"
                 "ScatterAssemblies"
                 {
-                    "_4B601CAAD9CADB251995224D3F387927"
-                    {
-                    "Name" = "8:System.Net.Http.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:System.Net.Http.dll"
-            "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_E1E005270EBA4CC1BFD6034588882162"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_CAD3D068D05DBA60AB1592EE8097A042"
-            {
-            "AssemblyRegister" = "3:1"
-            "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:Managed.AndroidDebugBridge, Version=0.0.0.0, Culture=neutral, processorArchitecture=x86"
-                "ScatterAssemblies"
-                {
-                    "_CAD3D068D05DBA60AB1592EE8097A042"
-                    {
-                    "Name" = "8:Managed.AndroidDebugBridge.dll"
-                    "Attributes" = "3:512"
-                    }
-                }
-            "SourcePath" = "8:Managed.AndroidDebugBridge.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_E1E005270EBA4CC1BFD6034588882162"
@@ -824,7 +764,7 @@
         {
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_626AF9517E254B40A91F4C51F990517A"
             {
-            "SourcePath" = "8:..\\SwerveToolsTray\\obj\\Debug\\SwerveToolsTray.exe"
+            "SourcePath" = "8:..\\SwerveToolsTray\\obj\\Release\\SwerveToolsTray.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_E1E005270EBA4CC1BFD6034588882162"
@@ -850,65 +790,9 @@
                 {
                 }
             }
-            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_80E6C5F554F547138A187052A0EB62A5"
-            {
-            "SourcePath" = "8:"
-            "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_E1E005270EBA4CC1BFD6034588882162"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            "ProjectOutputGroupRegister" = "3:1"
-            "OutputConfiguration" = "8:"
-            "OutputGroupCanonicalName" = "8:Symbols"
-            "OutputProjectGuid" = "8:{98E84E5D-BA98-470B-AA07-A5506267FF78}"
-            "ShowKeyOutput" = "11:TRUE"
-                "ExcludeFilters"
-                {
-                }
-            }
-            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_C236947AB3B84D81891DB6FB20895951"
-            {
-            "SourcePath" = "8:..\\BlueBotBugService\\obj\\Debug\\BotBugService.exe"
-            "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_E1E005270EBA4CC1BFD6034588882162"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            "ProjectOutputGroupRegister" = "3:1"
-            "OutputConfiguration" = "8:"
-            "OutputGroupCanonicalName" = "8:Built"
-            "OutputProjectGuid" = "8:{98E84E5D-BA98-470B-AA07-A5506267FF78}"
-            "ShowKeyOutput" = "11:TRUE"
-                "ExcludeFilters"
-                {
-                }
-            }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_EAD5A71E416B4B64B02F3C67FBCAAB63"
             {
-            "SourcePath" = "8:..\\SwerveToolsTray\\obj\\Debug\\SwerveToolsTray.exe"
+            "SourcePath" = "8:..\\SwerveToolsTray\\obj\\Release\\SwerveToolsTray.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_E1E005270EBA4CC1BFD6034588882162"
