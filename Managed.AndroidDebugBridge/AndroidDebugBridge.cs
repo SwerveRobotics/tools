@@ -23,8 +23,10 @@ namespace Managed.Adb
         public  const   string      DDMS            = "monitor.bat";
         public  const   int         ADB_PORT        = 5037;
 
-        public          event EventHandler<DeviceEventArgs> DeviceConnected;
-        public          event EventHandler<DeviceEventArgs> DeviceDisconnected;
+        public          event EventHandler<DeviceEventArgs>     DeviceConnected;
+        public          event EventHandler<DeviceEventArgs>     DeviceDisconnected;
+        public          event EventHandler<AndroidDebugBridge>  ServerStarted;
+        public          event EventHandler<AndroidDebugBridge>  ServerKilled;
 
         private const   int         ADB_VERSION_MICRO_MIN = 20;
         private const   int         ADB_VERSION_MICRO_MAX = -1;
@@ -93,6 +95,10 @@ namespace Managed.Adb
             CheckAdbVersion();
             }
 
+        public AndroidDebugBridge() : this(AdbPath)
+            {
+            }
+
         public static AndroidDebugBridge Create(string pathToAdbExe)
             {
             AndroidDebugBridge result = new AndroidDebugBridge(pathToAdbExe);
@@ -125,15 +131,10 @@ namespace Managed.Adb
         // Initialization
         //---------------------------------------------------------------------------------------
 
-        internal void OnDeviceConnected(DeviceEventArgs e)
-            {
-            this.DeviceConnected?.Invoke(this, e);
-            }
-
-        internal void OnDeviceDisconnected(DeviceEventArgs e)
-            {
-            this.DeviceDisconnected?.Invoke(this, e);
-            }
+        internal void OnDeviceConnected(DeviceEventArgs e)    => this.DeviceConnected?.Invoke(null, e);
+        internal void OnDeviceDisconnected(DeviceEventArgs e) => this.DeviceDisconnected?.Invoke(null, e);
+        internal void OnServerStarted()                       => this.ServerStarted?.Invoke(null, this);
+        internal void OnServerKilled()                        => this.ServerKilled?.Invoke(null, this);
 
         public bool StartTracking()
             {
@@ -304,6 +305,7 @@ namespace Managed.Adb
                 return false;
                 }
 
+            OnServerStarted();
             Log.d(DDMS, "'adb start-server' succeeded");
             return true;
             }
@@ -324,6 +326,9 @@ namespace Managed.Adb
 
                 using (Process proc = Process.Start(psi))
                     {
+                    // We are conservative in our kill notifications: we don't KNOW that it got
+                    // killed, but we know that we tried.
+                    OnServerKilled();
                     proc.WaitForExit();
                     status = proc.ExitCode;
                     }

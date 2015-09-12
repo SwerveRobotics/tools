@@ -24,10 +24,9 @@ namespace Managed.Adb
         public bool                         HasDeviceList           { get; private set; }
 
         private readonly AndroidDebugBridge bridge;
-        private bool                        started                 { get; set; }
-        private int                         adbFailedOpens          { get; set; }
-        private bool                        stopRequested           { get; set; }
-        private Socket                      socketTrackDevices      { get; set; }
+        private int                         adbFailedOpens;
+        private bool                        stopRequested;
+        private Socket                      socketTrackDevices;
         private Thread                      deviceTrackingThread;
         private const string                loggingTag   = "DeviceMonitor";
         private byte[]                      lengthBuffer = null;
@@ -43,7 +42,6 @@ namespace Managed.Adb
             this.bridge        = bridge;
             this.Devices       = new List<Device>();
             this.lengthBuffer  = new byte[4];
-            this.started       = false;
             this.stopRequested = false;
             }
 
@@ -74,34 +72,32 @@ namespace Managed.Adb
                 this.stopRequested = true;
                 
                 // Close the socket to get him out of Receive() if he's there
-                this.AcquireSocketWriteLock();
-                try {
-                    this.socketTrackDevices?.Close();
-                    }
-                finally
-                    {
-                    this.ReleaseSocketWriteLock();    
-                    }
+                this.CloseSocket(ref socketTrackDevices);
                 
                 // Interrupt the thread just in case there are other waits
                 this.deviceTrackingThread.Interrupt();
 
                 this.deviceTrackingThread.Join();
                 this.deviceTrackingThread = null;
-                this.started = false;
                 }
             }
 
-        void OpenSocketIfNecessary()
-        // Get ourselves a socket to our ADB server, restarting it as needed
+        /**
+         * Get ourselves a socket to our ADB server, restarting it as needed.
+         *
+         * @return  true if we opened a new socket
+         */
+        bool OpenSocketIfNecessary()
             {
+            bool result = false;
             this.AcquireSocketWriteLock();
             try
                 {
                 // If we haven't a socket, try to open one
-                if (this.socketTrackDevices == null)
+                if (this.socketTrackDevices == null || !this.socketTrackDevices.Connected)
                     {
                     Debug.Assert(!this.stopRequested);
+                    CloseSocket(ref this.socketTrackDevices);
                     this.socketTrackDevices = ConnectToServer();
                     //
                     if (this.socketTrackDevices == null)
@@ -121,6 +117,7 @@ namespace Managed.Adb
                         }
                     else
                         {
+                        result = true;
                         Log.d(loggingTag, "Connected to adb for device monitoring");
                         this.adbFailedOpens = 0;
                         }
@@ -130,12 +127,32 @@ namespace Managed.Adb
                 {
                 this.ReleaseSocketWriteLock();
                 }
+            return result;
+            }
+
+        void CloseSocket(ref Socket socket, bool takeLock=true)
+            {
+            try {
+                socket?.Close();
+                try {
+                    if (takeLock) this.AcquireSocketWriteLock();
+                    socket = null;
+                    }
+                finally
+                    {
+                    if (takeLock) this.ReleaseSocketWriteLock();
+                    }
+                }
+            catch (Exception)
+                {
+                // Don't actually know if anything ever throw on a close, 
+                // but we'll ignore it, as we're just try to close, dang it
+                }
             }
 
         void DeviceTrackingThread()
             {
-            // Right here we know that Start() hasn't yet returned
-            this.started = true;
+            // Right here we know that Start() hasn't yet returned. Do the interlock and let it return.
             this.startedEvent.Set();
 
             // Loop until asked to stop
@@ -143,12 +160,10 @@ namespace Managed.Adb
                 {
                 try
                     {
-                    OpenSocketIfNecessary();
-
-                    // Post a request to track the devices if we havent already done so
-                    if (this.socketTrackDevices != null && !this.IsTrackingDevices && this.socketTrackDevices.Connected)
+                    if (OpenSocketIfNecessary())
                         {
-                        this.IsTrackingDevices = StartTrackingDevices();
+                        // Ask the ADB server to give us device notifications
+                        this.IsTrackingDevices = RequestDeviceNotifications();
                         }
 
                     if (this.IsTrackingDevices)
@@ -171,23 +186,11 @@ namespace Managed.Adb
                         {
                         Log.e(loggingTag, "Adb connection Error: ", ioe);
                         this.IsTrackingDevices = false;
-                        if (this.socketTrackDevices != null)
-                            {
-                            try
-                                {
-                                this.socketTrackDevices.Close();
-                                }
-                            catch (IOException)
-                                {
-                                }
-                            this.socketTrackDevices = null;
-                            }
+                        CloseSocket(ref this.socketTrackDevices);
                         }
                     }
                 catch (Exception)
                     {
-                    if (this.stopRequested)
-                        return;
                     }
                 } 
             }
@@ -204,13 +207,13 @@ namespace Managed.Adb
          *
          * @return  true if it succeeds, false if it fails.
          */
-        private bool StartTrackingDevices()
+        private bool RequestDeviceNotifications()
             {
             byte[] request = AdbHelper.Instance.FormAdbRequest("host:track-devices");
             if (AdbHelper.Instance.Write(this.socketTrackDevices, request) == false)
                 {
                 Log.e(loggingTag, "Sending Tracking request failed!");
-                this.socketTrackDevices.Close();
+                this.CloseSocket(ref this.socketTrackDevices);
                 throw new IOException("Sending Tracking request failed!");
                 }
 
@@ -218,7 +221,7 @@ namespace Managed.Adb
             if (!resp.IOSuccess)
                 {
                 Log.e(loggingTag, "Failed to read the adb response!");
-                this.socketTrackDevices.Close();
+                this.CloseSocket(ref this.socketTrackDevices);
                 throw new IOException("Failed to read the adb response!");
                 }
 
@@ -265,30 +268,29 @@ namespace Managed.Adb
          *
          * @param   currentDevices  the report of the current devices
          */
-        private void UpdateDevices(List<Device> currentDevices)
+        private void UpdateDevices(List<Device> newCurrentDevices)
             {
             lock (this.Devices)
                 {
-                // For each device in the current list, we look for a matching the new list.
-                // * if we find it, we update the current object with whatever new information
-                //   there is
-                //   (mostly state change, if the device becomes ready, we query for build info).
-                //   We also remove the device from the new list to mark it as "processed"
-                // * if we do not find it, we remove it from the current list.
+                // For each device in the existing list, we look for a match in the new current list.
+                // * if we find it, we update the existing object with whatever new information
+                //   there is (mostly state change, if the device becomes ready, we query for build info).
+                //   We also remove the device from the new current list to mark it as "processed"
+                // * if we do not find it, we remove it from our existing list.
                 //
-                // Once this is done, the new list contains device we aren't monitoring yet, so we
-                // add them to the list, and start monitoring them.
+                // Once this is done, the new current list contains device we aren't tracking yet, so we
+                // add them to the list
 
                 for (int d = 0; d < this.Devices.Count;)
                     {
                     Device device = this.Devices[d];
 
                     // look for a similar device in the new list.
-                    int count = currentDevices.Count;
+                    int count = newCurrentDevices.Count;
                     bool foundMatch = false;
                     for (int dd = 0; dd < count; dd++)
                         {
-                        Device newDevice = currentDevices[dd];
+                        Device newDevice = newCurrentDevices[dd];
                         // see if it matches in serial number
                         if (Util.equalsIgnoreCase(newDevice.SerialNumber, device.SerialNumber))
                             {
@@ -308,7 +310,7 @@ namespace Managed.Adb
                                 }
 
                             // remove the new device from the list since it's been used
-                            currentDevices.RemoveAt(dd);
+                            newCurrentDevices.RemoveAt(dd);
                             break;
                             }
                         }
@@ -316,7 +318,7 @@ namespace Managed.Adb
                     if (!foundMatch)
                         {
                         // the device is gone, we need to remove it, and keep current index to process the next one.
-                        RemoveDevice(device);
+                        this.Devices.Remove(device);
                         if (device.State == DeviceState.Online)
                             {
                             device.State = DeviceState.Offline;
@@ -333,7 +335,7 @@ namespace Managed.Adb
 
                 // At this point we should still have some new devices in newList, so we process them.
                 // These are the devices that we are not yet monitoring
-                foreach (Device newDevice in currentDevices)
+                foreach (Device newDevice in newCurrentDevices)
                     {
                     this.Devices.Add(newDevice);
                     if (newDevice.State == DeviceState.Online)
@@ -349,23 +351,6 @@ namespace Managed.Adb
             {
             this.bridge?.OnDeviceConnected(new DeviceEventArgs(device));
             QueryNewDeviceForInfo(device);
-            }
-
-        private void RemoveDevice(Device device)
-            {
-            //device.Clients.Clear ( );
-            this.Devices.Remove(device);
-            Socket channel = device.ClientMonitoringSocket;
-            if (channel != null)
-                {
-                try
-                    {
-                    channel.Close();
-                    }
-                catch (IOException)
-                    {
-                    }
-                }
             }
 
         private void QueryNewDeviceForInfo(Device device)
@@ -434,7 +419,6 @@ namespace Managed.Adb
         // Utility
         //---------------------------------------------------------------------------------------------------------------
 
-        #region Utility
         /**
          * Reads the length of the next message from a socket.
          * @return  the length, or 0 (zero) if no data is available from the socket.
@@ -527,12 +511,9 @@ namespace Managed.Adb
             catch (Exception e)
                 {
                 Log.w(loggingTag, e);
-                socket.Close();
-                socket = null;
+                this.CloseSocket(ref socket, false);
                 }
             return socket;
             }
-
-        #endregion
         }
     }

@@ -231,7 +231,6 @@ namespace Managed.Adb {
 	        return _canSU;
 	        }
 
-		public Socket           ClientMonitoringSocket  { get; set; }
 		public string           SerialNumber            { get; private set; }
 		public IPEndPoint       Endpoint                { get; private set; }
 		public TransportType    TransportType           { get; private set; }

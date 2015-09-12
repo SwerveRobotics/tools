@@ -342,12 +342,6 @@ namespace Managed.Adb
             return result;
             }
 
-        /// <summary>
-        /// Writes the specified data to the specified socket.
-        /// </summary>
-        /// <param name="socket">The socket.</param>
-        /// <param name="data">The data.</param>
-        /// <returns></returns>
         public bool Write(Socket socket, byte[] data)
             {
             try
@@ -363,25 +357,22 @@ namespace Managed.Adb
             return true;
             }
 
-        /// <summary>
-        /// Writes the specified data to the specified socket.
-        /// </summary>
-        /// <param name="socket">The socket.</param>
-        /// <param name="data">The data.</param>
-        /// <param name="length">The length.</param>
-        /// <param name="timeout">The timeout.</param>
-        /// <exception cref="Managed.Adb.Exceptions.AdbException">
-        /// channel EOF
-        /// or
-        /// timeout
-        /// </exception>
+        /**
+         * Only socket writing routine in all of Managed.Adb
+         *
+         * @exception   AdbException    Thrown when an Adb error condition occurs.
+         * @exception   SocketException Thrown when a Socket error condition occurs.
+         *
+         * @param   socket  The socket.
+         * @param   data    The data.
+         * @param   length  The length.
+         * @param   timeout The timeout.
+         */
         public void Write(Socket socket, byte[] data, int length, int timeout)
             {
-            //using ( var buf = new MemoryStream ( data, 0, length != -1 ? length : data.Length ) ) {
             int numWaits = 0;
             int count = -1;
 
-            //while ( buf.Position != buf.Length ) {
             try
                 {
                 count = socket.Send(data, 0, length != -1 ? length : data.Length, SocketFlags.None);
@@ -410,8 +401,6 @@ namespace Managed.Adb
                 Util.ConsoleTraceError(sex);
                 throw;
                 }
-            //}
-            //}
             }
 
         /// <summary>

@@ -185,10 +185,7 @@
     <Compile Include="Conversion\EndianBitConverter.cs" />
     <Compile Include="Conversion\Endianness.cs" />
     <Compile Include="Conversion\LittleEndianBitConverter.cs" />
-    <Compile Include="Exceptions\AdbCommandRejectedException.cs" />
-    <Compile Include="Exceptions\CommandAbortingException.cs" />
-    <Compile Include="Exceptions\ShellCommandUnresponsiveException.cs" />
-    <Compile Include="Exceptions\UnknownOptionException.cs" />
+    <Compile Include="Exceptions\OtherExceptions.cs" />
     <Compile Include="Extensions\BytesHelper.cs" />
     <Compile Include="Extensions\IntegerHelper.cs" />
     <Compile Include="Extensions\ReflectionHelper.cs" />
@@ -210,11 +207,7 @@
     <Compile Include="DeviceTracker.cs" />
     <Compile Include="Receivers\EnvironmentVariablesReceiver.cs" />
     <Compile Include="Exceptions\AdbException.cs" />
-    <Compile Include="Exceptions\DeviceNotFoundException.cs" />
-    <Compile Include="Exceptions\PackageInstallationException.cs" />
-    <Compile Include="Exceptions\PermissionDeniedException.cs" />
     <Compile Include="Extensions\ArrayHelper.cs" />
-    <Compile Include="Exceptions\BadPacketException.cs" />
     <Compile Include="ChunkHandler.cs">
       <SubType>Code</SubType>
     </Compile>
