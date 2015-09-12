@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("BlueBotBugService")]
+[assembly: AssemblyTitle("BotBugService")]
 [assembly: AssemblyDescription("Part of the Swerve Robotics FTC Tools suite")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Swerve Robotics")]
-[assembly: AssemblyProduct("BlueBotBugService")]
+[assembly: AssemblyProduct("Swerve Tools Suite")]
 [assembly: AssemblyCopyright("Copyright © 2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
