@@ -3,20 +3,33 @@ using System.Runtime.Serialization;
 
 namespace Managed.Adb.Exceptions
     {
-    public class UnknownOptionException : Exception
+    public abstract class RemoteCommandException : Exception
         {
-        public UnknownOptionException()
-            : base("Unknown option.")
+        public RemoteCommandException()
+            {
+            }
+        public RemoteCommandException(string message) : base(message)
+            {
+            }
+        public RemoteCommandException(string message, Exception inner) : base(message, inner)
+            {
+            }
+        public RemoteCommandException(SerializationInfo info, StreamingContext context) : base(info, context)
+            {
+            }
+        }
+
+    public class UnknownOptionException : RemoteCommandException
+        {
+        public UnknownOptionException() : base("Unknown option.")
             {
             }
 
-        public UnknownOptionException(string message)
-            : base(message)
+        public UnknownOptionException(string message) : base(message)
             {
             }
 
-        public UnknownOptionException(SerializationInfo serializationInfo, StreamingContext context)
-            : base(serializationInfo, context)
+        public UnknownOptionException(SerializationInfo serializationInfo, StreamingContext context) : base(serializationInfo, context)
             {
             }
 
@@ -29,7 +42,7 @@ namespace Managed.Adb.Exceptions
 
     /** An exception while installing a package on the device. */
     [Serializable]
-    public class PackageInstallationException : Exception
+    public class PackageInstallationException : RemoteCommandException
         {
         public PackageInstallationException()
             {
@@ -40,14 +53,13 @@ namespace Managed.Adb.Exceptions
         public PackageInstallationException(string message, Exception inner) : base(message, inner)
             {
             }
-        protected PackageInstallationException(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context)
-            : base(info, context)
+        protected PackageInstallationException(SerializationInfo info, StreamingContext context) : base(info, context)
             {
             }
         }
 
     /** Thrown when an executed command identifies that it is being aborted. */
-    public class CommandAbortingException : Exception
+    public class CommandAbortingException : RemoteCommandException
         {
         public CommandAbortingException()
             : base("Permission to access the specified resource was denied.")
@@ -60,13 +72,12 @@ namespace Managed.Adb.Exceptions
         public CommandAbortingException(SerializationInfo serializationInfo, StreamingContext context) : base(serializationInfo, context)
             {
             }
-        public CommandAbortingException(string message, Exception innerException)
-            : base(message, innerException)
+        public CommandAbortingException(string message, Exception innerException) : base(message, innerException)
             {
             }
         }
 
-    public class PermissionDeniedException : Exception
+    public class PermissionDeniedException : RemoteCommandException
         {
         public PermissionDeniedException()
             : base("Permission to access the specified resource was denied.")
@@ -79,8 +90,7 @@ namespace Managed.Adb.Exceptions
         public PermissionDeniedException(SerializationInfo serializationInfo, StreamingContext context) : base(serializationInfo, context)
             {
             }
-        public PermissionDeniedException(string message, Exception innerException)
-            : base(message, innerException)
+        public PermissionDeniedException(string message, Exception innerException) : base(message, innerException)
             {
             }
         }

@@ -60,7 +60,7 @@ namespace Managed.Adb
             this.startedEvent.Wait();
             }
 
-        // A lock for controlling access to the right to update the socket
+        // A lock for controlling access to the right to set the socket variable
         void AcquireSocketWriteLock()    { this.socketLock.AcquireWriterLock(-1); }
         void ReleaseSocketWriteLock()    { this.socketLock.ReleaseWriterLock();   }
 
@@ -180,17 +180,11 @@ namespace Managed.Adb
                             }
                         }
                     }
-                catch (IOException ioe)
+                catch (Exception e)
                     {
-                    if (this.stopRequested)
-                        {
-                        Log.e(loggingTag, "Adb connection Error: ", ioe);
-                        this.IsTrackingDevices = false;
-                        CloseSocket(ref this.socketTrackDevices);
-                        }
-                    }
-                catch (Exception)
-                    {
+                    Log.e(loggingTag, "exception in DeviceTrackingThread: ", e);
+                    this.IsTrackingDevices = false;
+                    CloseSocket(ref this.socketTrackDevices);
                     }
                 } 
             }
@@ -210,12 +204,7 @@ namespace Managed.Adb
         private bool RequestDeviceNotifications()
             {
             byte[] request = AdbHelper.Instance.FormAdbRequest("host:track-devices");
-            if (AdbHelper.Instance.Write(this.socketTrackDevices, request) == false)
-                {
-                Log.e(loggingTag, "Sending Tracking request failed!");
-                this.CloseSocket(ref this.socketTrackDevices);
-                throw new IOException("Sending Tracking request failed!");
-                }
+            AdbHelper.Instance.Write(this.socketTrackDevices, request);
 
             AdbResponse resp = AdbHelper.Instance.ReadAdbResponse(this.socketTrackDevices, false /* readDiagString */);
             if (!resp.IOSuccess)

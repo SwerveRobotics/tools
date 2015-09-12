@@ -88,10 +88,7 @@ namespace Managed.Adb
                 SetDevice(s, device);
 
                 byte[] req = CreateAdbForwardRequest(null, port);
-                if (!Write(s, req))
-                    {
-                    throw new AdbException("failed submitting request to ADB");
-                    }
+                Write(s, req);
                 AdbResponse resp = ReadAdbResponse(s, false);
                 if (!resp.Okay)
                     {
@@ -99,9 +96,9 @@ namespace Managed.Adb
                     }
                 s.Blocking = true;
                 }
-            catch (AdbException)
+            catch (Exception)
                 {
-                s.Close();
+                s?.Close();
                 throw;
                 }
             return s;
@@ -114,10 +111,7 @@ namespace Managed.Adb
                 {
                 socket.Connect(address);
                 socket.Blocking = true;
-                if (!Write(socket, request))
-                    {
-                    throw new IOException("failed asking to kill adb");
-                    }
+                Write(socket, request);
                 AdbResponse resp = ReadAdbResponse(socket, false);
                 if (!resp.IOSuccess || !resp.Okay)
                     {
@@ -138,10 +132,7 @@ namespace Managed.Adb
                 {
                 socket.Connect(address);
                 socket.Blocking = true;
-                if (!Write(socket, request))
-                    {
-                    throw new IOException("failed asking to backup device");
-                    }
+                Write(socket, request);
                 AdbResponse resp = ReadAdbResponse(socket, false);
                 if (!resp.IOSuccess || !resp.Okay)
                     {
@@ -175,8 +166,7 @@ namespace Managed.Adb
                 {
                 adbChan.Connect(address);
                 adbChan.Blocking = true;
-                if (!Write(adbChan, request))
-                    throw new IOException("failed asking for adb version");
+                Write(adbChan, request);
 
                 AdbResponse resp = ReadAdbResponse(adbChan, false /* readDiagString */);
                 if (!resp.IOSuccess || !resp.Okay)
@@ -226,24 +216,21 @@ namespace Managed.Adb
                 socket.Connect(endpoint);
                 socket.NoDelay = true;
 
-                // if the device is not -1, then we first tell adb we're looking to
-                // talk to a specific device
+                // if the device is not -1, then we first tell adb we're looking to talk to a specific device
                 SetDevice(socket, device);
 
                 byte[] req = CreateJdwpForwardRequest(pid);
-                // Log.hexDump(req);
 
-                if (!Write(socket, req))
-                    throw new AdbException("failed submitting request to ADB"); //$NON-NLS-1$
+                Write(socket, req);
 
                 AdbResponse resp = ReadAdbResponse(socket, false /* readDiagString */);
                 if (!resp.Okay)
                     throw new AdbException("connection request rejected: " + resp.Message); //$NON-NLS-1$
                 }
-            catch (AdbException ioe)
+            catch (Exception)
                 {
-                socket.Close();
-                throw ioe;
+                socket?.Close();
+                throw;
                 }
 
             return socket;
@@ -277,7 +264,7 @@ namespace Managed.Adb
             return result;
             }
 
-        public bool Write(Socket socket, byte[] data)
+        public void Write(Socket socket, byte[] data)
             {
             try
                 {
@@ -286,10 +273,8 @@ namespace Managed.Adb
             catch (IOException e)
                 {
                 Log.e(LOGGING_TAG, e);
-                return false;
+                throw;
                 }
-
-            return true;
             }
 
         /**
@@ -497,14 +482,9 @@ namespace Managed.Adb
                 adbChan.Blocking = true;
 
                 // host-serial should be different based on the transport...
-
-
                 byte[] request = FormAdbRequest($"host-serial:{device.SerialNumber}:forward:tcp:{localPort};tcp:{remotePort}");
 
-                if (!Write(adbChan, request))
-                    {
-                    throw new AdbException("failed to submit the forward command.");
-                    }
+                Write(adbChan, request);
 
                 AdbResponse resp = ReadAdbResponse(adbChan, false /* readDiagString */);
                 if (!resp.IOSuccess || !resp.Okay)
@@ -514,10 +494,7 @@ namespace Managed.Adb
                 }
             finally
                 {
-                if (adbChan != null)
-                    {
-                    adbChan.Close();
-                    }
+                adbChan?.Close();
                 }
 
             return true;
@@ -619,8 +596,7 @@ namespace Managed.Adb
                 // if the device is not -1, then we first tell adb we're looking to talk
                 // to a specific device
                 SetDevice(adbChan, device);
-                if (!Write(adbChan, request))
-                    throw new AdbException("failed asking for frame buffer");
+                Write(adbChan, request);
 
                 AdbResponse resp = ReadAdbResponse(adbChan, false /* readDiagString */);
                 if (!resp.IOSuccess || !resp.Okay)
@@ -675,8 +651,7 @@ namespace Managed.Adb
                     + imageParams.Size + ", width=" + imageParams.Width
                     + ", height=" + imageParams.Height);
 
-                if (!Write(adbChan, nudge))
-                    throw new AdbException("failed nudging");
+                Write(adbChan, nudge);
 
                 reply = new byte[imageParams.Size];
                 if (!Read(adbChan, reply))
@@ -812,10 +787,7 @@ namespace Managed.Adb
                 string msg = "host:transport:" + device.SerialNumber;
                 byte[] device_query = FormAdbRequest(msg);
 
-                if (!Write(adbChan, device_query))
-                    {
-                    throw new AdbException("failed submitting device (" + device + ") request to ADB");
-                    }
+                Write(adbChan, device_query);
 
                 AdbResponse resp = ReadAdbResponse(adbChan, false /* readDiagString */, true /*supress logging*/);
                 if (!resp.Okay)
@@ -925,10 +897,7 @@ namespace Managed.Adb
                 {
                 socket.Connect(adbSockAddr);
                 socket.Blocking = true;
-                if (!Write(socket, request))
-                    {
-                    throw new IOException("failed asking to connect to: " + addressAndPort);
-                    }
+                Write(socket, request);
                 }
             }
 
@@ -950,9 +919,7 @@ namespace Managed.Adb
         private Socket ExecuteRawSocketCommand(IPEndPoint address, Device device, byte[] command)
             {
             if (device != null && !device.IsOnline)
-                {
                 throw new AdbException("Device is offline");
-                }
 
             Socket adbChan = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             adbChan.Connect(address);
@@ -961,10 +928,7 @@ namespace Managed.Adb
                 {
                 SetDevice(adbChan, device);
                 }
-            if (!Write(adbChan, command))
-                {
-                throw new AdbException("failed to submit the command: {0}.".With(command.GetString().Trim()));
-                }
+            Write(adbChan, command);
 
             AdbResponse resp = ReadAdbResponse(adbChan, false /* readDiagString */);
             if (!resp.IOSuccess || !resp.Okay)
