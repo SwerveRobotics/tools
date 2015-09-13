@@ -61,6 +61,15 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Messages from the deep:.
+        /// </summary>
+        internal static string TrayIconBalloonTipTitle {
+            get {
+                return ResourceManager.GetString("TrayIconBalloonTipTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Swerve Robotics BotBug Monitor.
         /// </summary>
         internal static string TrayIconText {

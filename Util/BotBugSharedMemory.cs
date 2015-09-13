@@ -65,8 +65,8 @@ namespace Org.SwerveRobotics.Tools.Util
                     }
 
                 // Called from finalizers (and user code). Avoid referencing other objects.
-                this.reader?.Dispose();
-                this.writer?.Dispose();
+                this.reader?.Dispose();                 this.reader = null;
+                this.writer?.Dispose();                 this.writer = null;
                 this.memoryViewStream?.Dispose();       this.memoryViewStream = null;
                 this.memoryMappedFile?.Dispose();       this.memoryMappedFile = null;
                 }

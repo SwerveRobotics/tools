@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 using System.Windows.Forms;
 using Org.SwerveRobotics.Tools.SwerveToolsTray.Properties;
+using Org.SwerveRobotics.Tools.Util;
 
 namespace Org.SwerveRobotics.Tools.SwerveToolsTray
     {
@@ -16,8 +17,11 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
         //----------------------------------------------------------------------------
         
         NotifyIcon                  trayIcon;
-        Util.BotBugSharedMemory     sharedMemory;
+        BotBugSharedMemory          sharedMemory;
+        bool                        stopRequested;
         bool                        disposed;
+        ManualResetEvent            threadStartedEvent;
+        Thread                      notificationThread;
 
         //----------------------------------------------------------------------------
         // Construction
@@ -25,15 +29,14 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
 
         public TrayApplicationContext()
             {
-            Application.ApplicationExit += (object sender, EventArgs e) =>
-                {
-                if (this.trayIcon!=null) 
-                    this.trayIcon.Visible = false;
-                };
-
-            InitializeComponent();
-            this.trayIcon.Visible = true;
             this.disposed = false;
+            InitializeComponent();
+            this.sharedMemory = new BotBugSharedMemory();
+
+            Application.ApplicationExit += (object sender, EventArgs e) => this.trayIcon.Visible = false;
+            this.trayIcon.Visible = true;
+
+            StartNotificationThread();
             }
         ~TrayApplicationContext()
             {
@@ -62,6 +65,7 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
                 if (fromUserCode)
                     {
                     // Called from user's code. Can / should cleanup managed objects
+                    StopNotificationThread();
                     this.sharedMemory?.Dispose();
                     this.sharedMemory = null;
                     }
@@ -69,6 +73,58 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
                 // Called from finalizers (and user code). Avoid referencing other objects.
                 }
             base.Dispose(fromUserCode);
+            }
+
+        //----------------------------------------------------------------------------
+        // Notification
+        //----------------------------------------------------------------------------
+        
+        void StartNotificationThread()
+            {
+            this.stopRequested = false;
+            this.threadStartedEvent = new ManualResetEvent(false);
+            this.notificationThread = new Thread(this.NotificationThreadLoop);
+            this.notificationThread.Start();
+            this.threadStartedEvent.WaitOne();
+            }
+
+        void StopNotificationThread()
+            {
+            if (this.notificationThread != null)
+                {
+                this.stopRequested = true;
+                this.notificationThread.Interrupt();
+                this.notificationThread.Join();
+                this.notificationThread = null;
+                this.threadStartedEvent.Reset();
+                }
+            }
+
+        void NotificationThreadLoop()
+            {
+            // Interlock with StartNotificationThread
+            this.threadStartedEvent.Set();
+
+            while (!this.stopRequested)
+                {
+                // Get messages from writer. This will block until there's
+                // (probably) messages for us to read
+                List<string> messages = this.sharedMemory.Read();
+                if (messages.Count > 0)
+                    {
+                    StringBuilder balloonText = new StringBuilder();
+                    foreach (string message in messages)
+                        {
+                        if (balloonText.Length > 0)
+                            balloonText.Append("\n");
+                        balloonText.Append(message);
+                        }
+
+                    this.trayIcon.BalloonTipTitle = Resources.TrayIconBalloonTipTitle;
+                    this.trayIcon.BalloonTipText = balloonText.ToString();
+                    this.trayIcon.ShowBalloonTip(10000);
+                    }
+                }
             }
 
         }
