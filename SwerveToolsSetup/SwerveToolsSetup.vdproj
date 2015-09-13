@@ -318,7 +318,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:ManagedADB, Version=0.5.5734.27842, Culture=neutral, processorArchitecture=MSIL"
+            "AssemblyAsmDisplayName" = "8:ManagedADB, Version=0.5.5734.28196, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
                     "_379CED761849A1F67388DBCD021A7B22"
@@ -535,7 +535,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Swerve Robotics Tools Suite"
         "ProductCode" = "8:{3BF09BCD-D785-437D-9017-108E90EF5221}"
-        "PackageCode" = "8:{21A670C1-263D-4F10-8993-A437B09E7D83}"
+        "PackageCode" = "8:{B0D78717-C963-4737-92D2-92705CB0D826}"
         "UpgradeCode" = "8:{5ACBAA86-771B-4194-903F-8E78674A3E50}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
@@ -959,8 +959,8 @@
                             "Type" = "3:15"
                             "ContextData" = "8:"
                             "Attributes" = "3:0"
-                            "Setting" = "3:1"
-                            "Value" = "8:#1258"
+                            "Setting" = "3:2"
+                            "Value" = "8:For comments or support, see http://www.swerverobotics.org"
                             "DefaultValue" = "8:#1258"
                             "UsePlugInResources" = "11:TRUE"
                             }
