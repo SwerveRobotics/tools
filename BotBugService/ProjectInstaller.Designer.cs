@@ -40,8 +40,7 @@
             // 
             // serviceInstaller
             // 
-            this.serviceInstaller.Description = "When an FTC Robot Controller phone docks using PC, this service auto-configures i" +
-    "t for wireless debugging, using Bluetooth.";
+            this.serviceInstaller.Description = "Auto configures FTC robot controllers for wireless debugging";
             this.serviceInstaller.DisplayName = "BotBug";
             this.serviceInstaller.ServiceName = "BotBug";
             this.serviceInstaller.StartType = System.ServiceProcess.ServiceStartMode.Automatic;
@@ -49,10 +48,11 @@
             // 
             // ProjectInstaller
             // 
-            this.Installers.AddRange(new System.Configuration.Install.Installer[] {
-            this.serviceProcessInstaller,
-            this.serviceInstaller});
-
+            this.Installers.AddRange(new System.Configuration.Install.Installer[] 
+                {
+                this.serviceProcessInstaller,
+                this.serviceInstaller
+                });
             }
 
         #endregion
