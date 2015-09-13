@@ -9,13 +9,15 @@ using Org.SwerveRobotics.Tools.SwerveToolsTray.Properties;
 
 namespace Org.SwerveRobotics.Tools.SwerveToolsTray
     {
-    class TrayApplicationContext : ApplicationContext
+    class TrayApplicationContext : ApplicationContext, IDisposable
         {
         //----------------------------------------------------------------------------
         // State
         //----------------------------------------------------------------------------
         
-        NotifyIcon  trayIcon;
+        NotifyIcon                  trayIcon;
+        Util.BotBugSharedMemory     sharedMemory;
+        bool                        disposed;
 
         //----------------------------------------------------------------------------
         // Construction
@@ -28,8 +30,14 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
                 if (this.trayIcon!=null) 
                     this.trayIcon.Visible = false;
                 };
+
             InitializeComponent();
             this.trayIcon.Visible = true;
+            this.disposed = false;
+            }
+        ~TrayApplicationContext()
+            {
+            this.Dispose(false);
             }
 
         private void InitializeComponent()
@@ -39,5 +47,29 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
             this.trayIcon.Text           = Resources.TrayIconText;
             this.trayIcon.Icon           = SystemIcons.Exclamation; // TODO
             }
+
+        void IDisposable.Dispose()
+            {
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+            }
+
+        protected override void Dispose(bool fromUserCode)
+            {
+            if (!disposed)
+                {
+                this.disposed = true;
+                if (fromUserCode)
+                    {
+                    // Called from user's code. Can / should cleanup managed objects
+                    this.sharedMemory?.Dispose();
+                    this.sharedMemory = null;
+                    }
+
+                // Called from finalizers (and user code). Avoid referencing other objects.
+                }
+            base.Dispose(fromUserCode);
+            }
+
         }
     }

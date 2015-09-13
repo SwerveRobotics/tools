@@ -47,6 +47,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
         // State
         //-----------------------------------------------------------------------------------------
 
+        bool                disposed    = false;
         IDeviceEvents       eventRaiser = null;
         ITracer             tracer      = null;
         bool                started     = false;
@@ -76,7 +77,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             this.Dispose(false);
             }
 
-        void IDisposable.Dispose()
+        public void Dispose()
             {
             this.Dispose(true);
             GC.SuppressFinalize(this);
@@ -92,15 +93,19 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             this.started = false;
             }
 
-        public virtual void Dispose(bool fromUserCode)
+        protected virtual void Dispose(bool fromUserCode)
             {
-            if (fromUserCode)
+            if (!disposed)
                 {
-                // Called from user's code. Can / should cleanup managed objects
-                }
+                this.disposed = true;
+                if (fromUserCode)
+                    {
+                    // Called from user's code. Can / should cleanup managed objects
+                    }
 
-            // Called from finalizers (and user code). Avoid referencing other objects
-            this.ReleaseDeviceNotificationHandles();
+                // Called from finalizers (and user code). Avoid referencing other objects
+                this.ReleaseDeviceNotificationHandles();
+                }
             }
 
         //-----------------------------------------------------------------------------------------

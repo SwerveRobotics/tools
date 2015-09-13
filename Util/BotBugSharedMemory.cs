@@ -23,6 +23,7 @@ namespace Org.SwerveRobotics.Tools.Util
         MemoryMappedViewStream memoryViewStream;
         BinaryReader           reader;
         BinaryWriter           writer;
+        bool                   disposed;
         
         //---------------------------------------------------------------------------------------
         // Construction
@@ -39,26 +40,36 @@ namespace Org.SwerveRobotics.Tools.Util
             this.memoryViewStream   = this.memoryMappedFile.CreateViewStream(0, cbBuffer);
             this.reader             = new BinaryReader(memoryViewStream);
             this.writer             = new BinaryWriter(memoryViewStream);
+            this.disposed           = false;
             }
 
-        void IDisposable.Dispose()
+        ~BotBugSharedMemory()
+            {
+            Dispose(false);
+            }
+
+        public void Dispose()
             {
             this.Dispose(true);
             GC.SuppressFinalize(this);
             }
 
-        public virtual void Dispose(bool fromUserCode)
+        protected virtual void Dispose(bool fromUserCode)
             {
-            if (fromUserCode)
+            if (!disposed)
                 {
-                // Called from user's code. Can / should cleanup managed objects
-                }
+                this.disposed = true;
+                if (fromUserCode)
+                    {
+                    // Called from user's code. Can / should cleanup managed objects
+                    }
 
-            // Called from finalizers (and user code). Avoid referencing other objects.
-            this.reader?.Dispose();
-            this.writer?.Dispose();
-            this.memoryViewStream?.Dispose();       this.memoryViewStream = null;
-            this.memoryMappedFile?.Dispose();       this.memoryMappedFile = null;
+                // Called from finalizers (and user code). Avoid referencing other objects.
+                this.reader?.Dispose();
+                this.writer?.Dispose();
+                this.memoryViewStream?.Dispose();       this.memoryViewStream = null;
+                this.memoryMappedFile?.Dispose();       this.memoryMappedFile = null;
+                }
             }
 
         //---------------------------------------------------------------------------------------
