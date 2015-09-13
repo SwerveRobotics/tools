@@ -7,8 +7,8 @@
     <ProjectGuid>{F5051E49-157A-4FA7-9339-1F1D992AECC9}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Org.SwerveRobotics.Tools.Service</RootNamespace>
-    <AssemblyName>Util</AssemblyName>
+    <RootNamespace>Org.SwerveRobotics.Tools.Util</RootNamespace>
+    <AssemblyName>SwerveToolsUtil</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -40,7 +40,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="SharedMemory.cs" />
+    <Compile Include="BotBugSharedMemory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
