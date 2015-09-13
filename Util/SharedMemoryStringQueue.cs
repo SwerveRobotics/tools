@@ -15,6 +15,8 @@ namespace Org.SwerveRobotics.Tools.Util
 
         public SharedMemoryStringQueue(string uniquifier) : base(2048, $"StringQueue({uniquifier})")
             {
+            // Note: we rely on the fact that newly created memory is zeroed.
+            // That makes the initial message count zero w/o us doing anything.
             }
 
         //---------------------------------------------------------------------------------------

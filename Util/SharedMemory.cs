@@ -5,13 +5,14 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.IO.MemoryMappedFiles;
+using System.Security.AccessControl;
+using System.Security.Principal;
 
 namespace Org.SwerveRobotics.Tools.Util
     {
     /** A little utility that creates a shared-memory buffer for one process to read and another to write  */
     public abstract class SharedMemory : IDisposable
     // https://msdn.microsoft.com/EN-US/library/vstudio/dd267552(v=vs.100).aspx
-    // TODO: Add security to this
         {
         //---------------------------------------------------------------------------------------
         // State
@@ -34,11 +35,32 @@ namespace Org.SwerveRobotics.Tools.Util
 
         public SharedMemory(int cbBuffer, string uniquifier)
             {
-            // Note: we rely on the fact that newly created memory is zeroed.
-            // That makes the initial message count zero w/o us doing anything.
-            this.mutex              = new Mutex(false, Global($"SwerveToolsSharedMem({uniquifier})Mutex"));
-            this.bufferChangedEvent = new EventWaitHandle(false, EventResetMode.AutoReset, Global($"SwerveToolsSharedMem({uniquifier})Event"));
-            this.memoryMappedFile   = MemoryMappedFile.CreateOrOpen(Global($"SwerveToolsSharedMem({uniquifier})Map"), cbBuffer);
+            bool createdNew; 
+
+            this.mutex              = new Mutex
+                                            (
+                                            false, 
+                                            Global($"SwerveToolsSharedMem({uniquifier})Mutex"), 
+                                            out createdNew, 
+                                            MutexSecurity()
+                                            );
+            this.bufferChangedEvent = new EventWaitHandle
+                                            (
+                                            false, 
+                                            EventResetMode.AutoReset, 
+                                            Global($"SwerveToolsSharedMem({uniquifier})Event"), 
+                                            out createdNew, 
+                                            EventSecurity()
+                                            );
+            this.memoryMappedFile   = MemoryMappedFile.CreateOrOpen
+                                            (
+                                            Global($"SwerveToolsSharedMem({uniquifier})Map"), 
+                                            cbBuffer, 
+                                            MemoryMappedFileAccess.ReadWrite, 
+                                            MemoryMappedFileOptions.None, 
+                                            MapSecurity(), 
+                                            HandleInheritability.None
+                                            );
             this.memoryViewStream   = this.memoryMappedFile.CreateViewStream(0, cbBuffer);
             this.reader             = new BinaryReader(memoryViewStream);
             this.writer             = new BinaryWriter(memoryViewStream);
@@ -72,6 +94,48 @@ namespace Org.SwerveRobotics.Tools.Util
                 this.memoryViewStream?.Dispose();       this.memoryViewStream = null;
                 this.memoryMappedFile?.Dispose();       this.memoryMappedFile = null;
                 }
+            }
+
+        //---------------------------------------------------------------------------------------
+        // Utility
+        //---------------------------------------------------------------------------------------
+        
+        SecurityIdentifier GetEveryone()
+            {
+            return new SecurityIdentifier(WellKnownSidType.WorldSid, null);
+            }
+
+        MutexSecurity MutexSecurity()
+            {
+            SecurityIdentifier user = GetEveryone();
+            MutexSecurity result = new MutexSecurity();
+
+            MutexAccessRule rule = new MutexAccessRule(user, MutexRights.Synchronize | MutexRights.Modify | MutexRights.Delete, AccessControlType.Allow);
+            result.AddAccessRule(rule);
+
+            return result;
+            }
+
+        EventWaitHandleSecurity EventSecurity()
+            {
+            SecurityIdentifier user = GetEveryone();
+            EventWaitHandleSecurity result = new EventWaitHandleSecurity();
+
+            EventWaitHandleAccessRule  rule = new EventWaitHandleAccessRule(user, EventWaitHandleRights.Synchronize | EventWaitHandleRights.Modify | EventWaitHandleRights.Delete, AccessControlType.Allow);
+            result.AddAccessRule(rule);
+
+            return result;
+            }
+
+        MemoryMappedFileSecurity MapSecurity()
+            {
+            SecurityIdentifier user = GetEveryone();
+            MemoryMappedFileSecurity result = new MemoryMappedFileSecurity();
+
+            AccessRule<MemoryMappedFileRights> rule = new AccessRule<MemoryMappedFileRights>(user, MemoryMappedFileRights.ReadWrite|MemoryMappedFileRights.Delete, AccessControlType.Allow);
+            result.AddAccessRule(rule);
+
+            return result;
             }
         }
     }
