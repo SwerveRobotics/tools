@@ -17,11 +17,12 @@ namespace Org.SwerveRobotics.Tools.Util
         // State
         //---------------------------------------------------------------------------------------
 
-        int                    messageCount;
         Mutex                  mutex;
         EventWaitHandle        bufferChangedEvent;
         MemoryMappedFile       memoryMappedFile;
         MemoryMappedViewStream memoryViewStream;
+        BinaryReader           reader;
+        BinaryWriter           writer;
         
         //---------------------------------------------------------------------------------------
         // Construction
@@ -29,12 +30,15 @@ namespace Org.SwerveRobotics.Tools.Util
 
         public BotBugSharedMemory()
             {
-            const int cbBuffer = 1024;
-            this.messageCount       = 0;
+            // Note: we rely on the fact that newly created memory is zeroed.
+            // That makes the initial message count zero w/o us doing anything.
+            const int cbBuffer = 2048;
             this.mutex              = new Mutex(false, "SwerveBotBugMutex");
             this.bufferChangedEvent = new EventWaitHandle(false, EventResetMode.AutoReset, "SwerveBotBugEvent");
             this.memoryMappedFile   = MemoryMappedFile.CreateOrOpen("SwerveBotBugMemoryMap", cbBuffer);
             this.memoryViewStream   = this.memoryMappedFile.CreateViewStream(0, cbBuffer);
+            this.reader             = new BinaryReader(memoryViewStream);
+            this.writer             = new BinaryWriter(memoryViewStream);
             }
 
         void IDisposable.Dispose()
@@ -51,6 +55,8 @@ namespace Org.SwerveRobotics.Tools.Util
                 }
 
             // Called from finalizers (and user code). Avoid referencing other objects.
+            this.reader?.Dispose();
+            this.writer?.Dispose();
             this.memoryViewStream?.Dispose();       this.memoryViewStream = null;
             this.memoryMappedFile?.Dispose();       this.memoryMappedFile = null;
             }
@@ -59,16 +65,37 @@ namespace Org.SwerveRobotics.Tools.Util
         // Operations
         //---------------------------------------------------------------------------------------
 
+        /** Append a new message to the queue of messsages */ 
         public void Write(string message)
             {
             this.mutex.WaitOne();
             try {
+                // Read the message count at the start of the buffer
                 this.memoryViewStream.Seek(0, SeekOrigin.Begin);
-                BinaryWriter writer = new BinaryWriter(memoryViewStream);
-                writer.Write(++this.messageCount);
-                writer.Write(message);
-                //
+                int messageCount = reader.ReadInt32();
+
+                // Skip over that many messages
+                for (int i = 0; i < messageCount; i++)
+                    {
+                    reader.ReadString();
+                    }
+                
+                // Write the next string. 'May hit the buffer end and throw exception, but 
+                // that's ok; we'll just be ignoring this message
+                writer.Write(message); 
+
+                // Update the message count
+                this.memoryViewStream.Seek(0, SeekOrigin.Begin);
+                writer.Write(messageCount + 1);
+                
+                // Let the reader know there's new stuff
                 this.bufferChangedEvent.Set();
+                }
+            catch (Exception)
+                {
+                // Ignore write errors; they'll be at buffer end. The actual exeption we 
+                // see is a NotSupportedException thrown by the stream when asked to extend
+                // it's length
                 }
             finally
                 {
@@ -76,33 +103,36 @@ namespace Org.SwerveRobotics.Tools.Util
                 }
             }
 
-        public string ReadString()
+        /** Read all the messages in the queue */
+        public List<string> Read()
             {
-            for (;;)
-                {
-                // Wait until there's (probably) something new
-                this.bufferChangedEvent.WaitOne();
+            List<string> result = new List<string>();
 
-                // Read it
-                this.mutex.WaitOne();
-                try {
-                    this.memoryViewStream.Seek(0, SeekOrigin.Begin);
-                    BinaryReader reader = new BinaryReader(memoryViewStream);
-                    int messageNumber = reader.ReadInt32();
-                    string message    = reader.ReadString();
+            // Wait until there's (probably) something new
+            this.bufferChangedEvent.WaitOne();
 
-                    // If it's a message we haven't seen before, then remember it
-                    if (messageNumber > this.messageCount)
-                        {
-                        this.messageCount = messageNumber;
-                        return message;
-                        }
-                    }
-                finally
+            this.mutex.WaitOne();
+            try {
+                // Read the message count at the start of the buffer
+                this.memoryViewStream.Seek(0, SeekOrigin.Begin);
+                int messageCount = reader.ReadInt32();
+
+                // Read over that many messages
+                for (int i = 0; i < messageCount; i++)
                     {
-                    this.mutex.ReleaseMutex();
+                    result.Add(reader.ReadString());
                     }
+
+                // Update the message count
+                this.memoryViewStream.Seek(0, SeekOrigin.Begin);
+                writer.Write((int)0);
                 }
+            finally
+                {
+                this.mutex.ReleaseMutex();
+                }
+
+            return result;
             }
         }
     }
