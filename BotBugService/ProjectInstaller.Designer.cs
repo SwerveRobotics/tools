@@ -1,4 +1,7 @@
-﻿namespace Org.SwerveRobotics.Tools.BotBug.Service
+﻿using System.Configuration.Install;
+using System.ServiceProcess;
+
+namespace Org.SwerveRobotics.Tools.BotBug.Service
     {
     partial class ProjectInstaller
         {
@@ -36,7 +39,6 @@
             this.serviceProcessInstaller.Account = System.ServiceProcess.ServiceAccount.LocalService;
             this.serviceProcessInstaller.Password = null;
             this.serviceProcessInstaller.Username = null;
-            this.serviceProcessInstaller.AfterInstall += new System.Configuration.Install.InstallEventHandler(this.serviceProcessInstaller_AfterInstall);
             // 
             // serviceInstaller
             // 
@@ -44,7 +46,14 @@
             this.serviceInstaller.DisplayName = "BotBug";
             this.serviceInstaller.ServiceName = "BotBug";
             this.serviceInstaller.StartType = System.ServiceProcess.ServiceStartMode.Automatic;
-            this.serviceInstaller.AfterInstall += new System.Configuration.Install.InstallEventHandler(this.serviceInstaller_AfterInstall);
+            this.serviceInstaller.Committed += new System.Configuration.Install.InstallEventHandler(this.OnServiceInstallerOnCommitted);
+            this.serviceInstaller.AfterInstall += new System.Configuration.Install.InstallEventHandler(this.OnServiceInstallerOnAfterInstall);
+            this.serviceInstaller.AfterRollback += new System.Configuration.Install.InstallEventHandler(this.OnServiceInstallerOnAfterRollback);
+            this.serviceInstaller.AfterUninstall += new System.Configuration.Install.InstallEventHandler(this.OnServiceInstallerOnAfterUninstall);
+            this.serviceInstaller.Committing += new System.Configuration.Install.InstallEventHandler(this.OnServiceInstallerOnCommitting);
+            this.serviceInstaller.BeforeInstall += new System.Configuration.Install.InstallEventHandler(this.OnServiceInstallerOnBeforeInstall);
+            this.serviceInstaller.BeforeRollback += new System.Configuration.Install.InstallEventHandler(this.OnServiceInstallerOnBeforeRollback);
+            this.serviceInstaller.BeforeUninstall += new System.Configuration.Install.InstallEventHandler(this.OnServiceInstallerOnBeforeUninstall);
             // 
             // ProjectInstaller
             // 

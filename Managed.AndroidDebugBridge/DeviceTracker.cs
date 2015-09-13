@@ -68,8 +68,10 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
 
         public void StopDeviceTracking()
             {
-            if (this.stopRequested)
+            if (this.deviceTrackingThread != null)
                 {
+                Log.d(loggingTag, "requesting device tracking stop...");
+
                 // Set the flag for he gets around to lookign
                 this.stopRequested = true;
                 
@@ -81,6 +83,8 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
 
                 this.deviceTrackingThread.Join();
                 this.deviceTrackingThread = null;
+
+                Log.d(loggingTag, "...device tracking stop request complete");
                 }
             }
 
@@ -163,6 +167,8 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
 
         void DeviceTrackingThread()
             {
+            Log.d(loggingTag, "::: DeviceTrackingThread started :::");
+
             // Right here we know that Start() hasn't yet returned. Do the interlock and let it return.
             this.startedEvent.Set();
 
@@ -198,6 +204,8 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                     CloseSocket(ref this.socketTrackDevices);
                     }
                 } 
+
+            Log.d(loggingTag, "::: DeviceTrackingThread stopped :::");
             }
 
         //---------------------------------------------------------------------------------------------------------------
