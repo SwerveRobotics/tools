@@ -25,10 +25,10 @@ namespace Managed.Adb
         public  const   string      DDMS            = "monitor.bat";
         public  const   int         ADB_PORT        = 5037;
 
-        public          event EventHandler<DeviceEventArgs>     DeviceConnected;
-        public          event EventHandler<DeviceEventArgs>     DeviceDisconnected;
-        public          event EventHandler<AndroidDebugBridge>  ServerStarted;
-        public          event EventHandler<AndroidDebugBridge>  ServerKilled;
+        public          event EventHandler<DeviceEventArgs>              DeviceConnected;
+        public          event EventHandler<DeviceEventArgs>              DeviceDisconnected;
+        public          event EventHandler<AndroidDebugBridgeEventArgs>  ServerStarted;
+        public          event EventHandler<AndroidDebugBridgeEventArgs>  ServerKilled;
 
         private const   int         ADB_VERSION_MICRO_MIN = 20;
         private const   int         ADB_VERSION_MICRO_MAX = -1;
@@ -180,8 +180,8 @@ namespace Managed.Adb
 
         internal void OnDeviceConnected(DeviceEventArgs e)    => this.DeviceConnected?.Invoke(null, e);
         internal void OnDeviceDisconnected(DeviceEventArgs e) => this.DeviceDisconnected?.Invoke(null, e);
-        internal void OnServerStarted()                       => this.ServerStarted?.Invoke(null, this);
-        internal void OnServerKilled()                        => this.ServerKilled?.Invoke(null, this);
+        internal void OnServerStarted()                       => this.ServerStarted?.Invoke(null, new AndroidDebugBridgeEventArgs(this));
+        internal void OnServerKilled()                        => this.ServerKilled?.Invoke(null, new AndroidDebugBridgeEventArgs(this));
 
         public bool StartTracking()
             {

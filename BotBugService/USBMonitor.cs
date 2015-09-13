@@ -155,6 +155,10 @@ namespace Org.SwerveRobotics.BotBug.Service
                     {
                     EnsureAdbDevicesAreOnTCPIP("ADB device connected notification");
                     };
+                this.bridge.ServerStarted  += (object sender, Managed.Adb.AndroidDebugBridgeEventArgs e) =>
+                    {
+                    EnsureAdbDevicesAreOnTCPIP("ADB server started notification");
+                    };
 
                 this.eventRaiser.DeviceArrived        += OnDeviceArrived;
                 this.eventRaiser.DeviceRemoveComplete += OnDeviceRemoveComplete;
@@ -202,7 +206,7 @@ namespace Org.SwerveRobotics.BotBug.Service
             {
             // We synchronize for paranoid reasons: we're not SURE we can be be called on
             // a whole range of threads, possibly simultaneously, but why take the chance?
-            lock (ensureAdbDevicesAreOnTCPIPLock)
+            lock (this.ensureAdbDevicesAreOnTCPIPLock)
                 {
                 this.tracer.Trace("------");
                 this.tracer.Trace($"EnsureAdbDevicesAreOnTCPIP({reason})");
