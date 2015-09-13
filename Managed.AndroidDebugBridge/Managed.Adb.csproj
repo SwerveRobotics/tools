@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Org.SwerveRobotics.Tools.ManagedADB</RootNamespace>
-    <AssemblyName>Managed.AndroidDebugBridge</AssemblyName>
+    <AssemblyName>ManagedADB</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <IsWebBootstrapper>false</IsWebBootstrapper>
