@@ -15,9 +15,13 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
         [STAThread]
         static void Main()
             {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new TrayApplicationContext());
+            SingleInstance singleInstance = new SingleInstance("SwerveToolsTray");
+            if (singleInstance.IsFirstInstance())
+                {
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
+                Application.Run(new TrayApplicationContext());
+                }
             }
         }
     }

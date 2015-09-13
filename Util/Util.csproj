@@ -40,9 +40,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BotBugSharedMemory.cs" />
+    <Compile Include="SharedMemory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SharedMemoryStrings.cs" />
+    <Compile Include="SharedMemoryCounter.cs" />
+    <Compile Include="SharedMemoryStringQueue.cs" />
+    <Compile Include="SingleInstance.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

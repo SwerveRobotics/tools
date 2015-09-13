@@ -9,7 +9,7 @@ using System.IO.MemoryMappedFiles;
 namespace Org.SwerveRobotics.Tools.Util
     {
     /** A little utility that creates a shared-memory buffer for one process to read and another to write  */
-    public abstract class BotBugSharedMemory : IDisposable
+    public abstract class SharedMemory : IDisposable
     // https://msdn.microsoft.com/EN-US/library/vstudio/dd267552(v=vs.100).aspx
     // TODO: Add security to this
         {
@@ -29,21 +29,20 @@ namespace Org.SwerveRobotics.Tools.Util
         // Construction
         //---------------------------------------------------------------------------------------
 
-        public BotBugSharedMemory()
+        public SharedMemory(int cbBuffer, string uniquifier)
             {
             // Note: we rely on the fact that newly created memory is zeroed.
             // That makes the initial message count zero w/o us doing anything.
-            const int cbBuffer = 2048;
-            this.mutex              = new Mutex(false, "SwerveBotBugMutex");
-            this.bufferChangedEvent = new EventWaitHandle(false, EventResetMode.AutoReset, "SwerveBotBugEvent");
-            this.memoryMappedFile   = MemoryMappedFile.CreateOrOpen("SwerveBotBugMemoryMap", cbBuffer);
+            this.mutex              = new Mutex(false, $"SwerveBotBugMutex({uniquifier})");
+            this.bufferChangedEvent = new EventWaitHandle(false, EventResetMode.AutoReset, $"SwerveBotBugEvent{uniquifier}");
+            this.memoryMappedFile   = MemoryMappedFile.CreateOrOpen($"SwerveBotBugMemoryMap{uniquifier}", cbBuffer);
             this.memoryViewStream   = this.memoryMappedFile.CreateViewStream(0, cbBuffer);
             this.reader             = new BinaryReader(memoryViewStream);
             this.writer             = new BinaryWriter(memoryViewStream);
             this.disposed           = false;
             }
 
-        ~BotBugSharedMemory()
+        ~SharedMemory()
             {
             Dispose(false);
             }

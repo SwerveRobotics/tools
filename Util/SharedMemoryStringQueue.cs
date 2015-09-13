@@ -7,8 +7,16 @@ using System.Threading.Tasks;
 
 namespace Org.SwerveRobotics.Tools.Util
     {
-    public class SharedMemoryStrings : BotBugSharedMemory
+    public class SharedMemoryStringQueue : SharedMemory
         {
+        //---------------------------------------------------------------------------------------
+        // Construction
+        //---------------------------------------------------------------------------------------
+
+        public SharedMemoryStringQueue(string uniquifier) : base(2048, $"StringQueue({uniquifier})")
+            {
+            }
+
         //---------------------------------------------------------------------------------------
         // Operations
         //---------------------------------------------------------------------------------------
