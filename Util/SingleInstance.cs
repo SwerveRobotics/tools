@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using static Org.SwerveRobotics.Tools.Util.Util;
 
 namespace Org.SwerveRobotics.Tools.Util
     {
@@ -64,27 +65,30 @@ namespace Org.SwerveRobotics.Tools.Util
 
         public bool IsFirstInstance()
             {
-            this.mutex.WaitOne();
-            try {
-                if (this.probe == null)
-                    {
-                    string probeName = SharedMemory.User($"SwerveToolsSingleInstance({this.uniquifier})Probe");
-                    try {
-                        this.probe = Mutex.OpenExisting(probeName);
-                        this.isFirstInstance = false;
-                        }
-                    catch (WaitHandleCannotBeOpenedException)
-                        {
-                        this.probe = new Mutex(false, probeName);
-                        this.isFirstInstance = true;
-                        }
-                    }
-                return this.isFirstInstance;
-                }
-            finally
+            if (this.mutex.WaitOneNoExcept()) 
                 {
-                this.mutex.ReleaseMutex();
+                try {
+                    if (this.probe == null)
+                        {
+                        string probeName = SharedMemory.User($"SwerveToolsSingleInstance({this.uniquifier})Probe");
+                        try {
+                            this.probe = Mutex.OpenExisting(probeName);
+                            this.isFirstInstance = false;
+                            }
+                        catch (WaitHandleCannotBeOpenedException)
+                            {
+                            this.probe = new Mutex(false, probeName);
+                            this.isFirstInstance = true;
+                            }
+                        }
+                    return this.isFirstInstance;
+                    }
+                finally
+                    {
+                    this.mutex.ReleaseMutex();
+                    }
                 }
+            return true;    // err on safe side of having process run
             }
         }
     }

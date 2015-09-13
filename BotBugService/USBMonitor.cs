@@ -284,7 +284,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
         void NotifyConnected(Device device)
             {
             string message = string.Format(Resource.ConnectionNotificationString, device.SerialNumber, device.GetIpAddress());
-            this.sharedMemory.Write(message);
+            this.sharedMemory.Write(message, 100);
             }
 
         //-----------------------------------------------------------------------------------------
