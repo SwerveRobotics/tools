@@ -33,7 +33,7 @@
             // 
             // serviceProcessInstaller
             // 
-            this.serviceProcessInstaller.Account = System.ServiceProcess.ServiceAccount.LocalSystem;
+            this.serviceProcessInstaller.Account = System.ServiceProcess.ServiceAccount.LocalService;
             this.serviceProcessInstaller.Password = null;
             this.serviceProcessInstaller.Username = null;
             this.serviceProcessInstaller.AfterInstall += new System.Configuration.Install.InstallEventHandler(this.serviceProcessInstaller_AfterInstall);
@@ -48,11 +48,10 @@
             // 
             // ProjectInstaller
             // 
-            this.Installers.AddRange(new System.Configuration.Install.Installer[] 
-                {
-                this.serviceProcessInstaller,
-                this.serviceInstaller
-                });
+            this.Installers.AddRange(new System.Configuration.Install.Installer[] {
+            this.serviceProcessInstaller,
+            this.serviceInstaller});
+
             }
 
         #endregion
