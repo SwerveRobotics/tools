@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Org.SwerveRobotics.Tools.Util;
 
-namespace SwerveToolsTray
+namespace Org.SwerveRobotics.Tools.SwerveToolsTray
     {
     static class Program
         {
@@ -17,7 +17,7 @@ namespace SwerveToolsTray
             {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
+            Application.Run(new TrayApplicationContext());
             }
         }
     }

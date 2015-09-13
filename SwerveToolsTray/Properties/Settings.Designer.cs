@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace SwerveToolsTray.Properties {
+namespace Org.SwerveRobotics.Tools.SwerveToolsTray.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]

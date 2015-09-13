@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace SwerveToolsTray.Properties {
+namespace Org.SwerveRobotics.Tools.SwerveToolsTray.Properties {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace SwerveToolsTray.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SwerveToolsTray.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Org.SwerveRobotics.Tools.SwerveToolsTray.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -57,6 +57,15 @@ namespace SwerveToolsTray.Properties {
             }
             set {
                 resourceCulture = value;
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Swerve Robotics BotBug Monitor.
+        /// </summary>
+        internal static string TrayIconText {
+            get {
+                return ResourceManager.GetString("TrayIconText", resourceCulture);
             }
         }
     }
