@@ -48,7 +48,7 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
             this.trayIcon = new NotifyIcon();
             this.trayIcon.BalloonTipIcon = ToolTipIcon.Info;
             this.trayIcon.Text           = Resources.TrayIconText;
-            this.trayIcon.Icon           = SystemIcons.Exclamation; // TODO
+            this.trayIcon.Icon           = SystemIcons.Exclamation; // Util.Properties.Resources.SwerveIcon;
 
             MenuItem menuItem = new MenuItem(Resources.MenuItemExit, (sender, e) =>
                 {
