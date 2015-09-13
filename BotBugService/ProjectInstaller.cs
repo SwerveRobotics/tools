@@ -81,7 +81,6 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             {
             Trace("before uninstall");
             SetInstalling(e, false);
-            StopService();
             }
         private void OnServiceInstallerOnAfterUninstall(object sender, InstallEventArgs e)
             {
@@ -121,21 +120,6 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                 sc.Start();
                 }
             Trace("...started");
-            }
-        void StopService()
-            {
-            Trace("stopping service...");
-            try {
-                using (ServiceController sc = new ServiceController(this.serviceInstaller.ServiceName))
-                    {
-                    sc.Stop();
-                    }
-                }
-            catch (Exception)
-                {
-                // ignore
-                }
-            Trace("...stopped");
             }
 
         void Trace(string message)
