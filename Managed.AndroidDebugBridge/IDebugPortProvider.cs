@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Managed.Adb {
+namespace Org.SwerveRobotics.Tools.ManagedADB {
 	public interface IDebugPortProvider {
 		/// <summary>
 		/// Returns a non-random debugger port for the specified application running on the specified Device.

@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Org.SwerveRobotics.BotBug.Service.Properties {
+namespace Org.SwerveRobotics.Tools.BotBug.Service.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]

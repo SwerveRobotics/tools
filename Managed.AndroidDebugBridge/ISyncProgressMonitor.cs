@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Managed.Adb {
+namespace Org.SwerveRobotics.Tools.ManagedADB {
 	/// <summary>
 	/// Classes which implement this interface provide methods that deal with displaying transfer progress.
 	/// </summary>

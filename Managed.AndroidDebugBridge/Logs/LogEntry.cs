@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Managed.Adb.Logs {
+namespace Org.SwerveRobotics.Tools.ManagedADB.Logs {
 	public sealed class LogEntry {
 		public int Length { get; set; }
 		public int ProcessId { get; set; }

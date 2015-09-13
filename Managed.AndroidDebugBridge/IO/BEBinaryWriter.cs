@@ -25,7 +25,7 @@
 // 
 #endregion 
 
-namespace Managed.Adb.IO {
+namespace Org.SwerveRobotics.Tools.ManagedADB.IO {
 	using System;
 	using System.IO;
 	using System.Net;

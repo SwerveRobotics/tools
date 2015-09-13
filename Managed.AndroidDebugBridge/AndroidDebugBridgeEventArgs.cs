@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Managed.Adb
+namespace Org.SwerveRobotics.Tools.ManagedADB
     {
     public class AndroidDebugBridgeEventArgs : EventArgs
         {

@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 using System.Drawing.Imaging;
 using System.IO;
 
-namespace Managed.Adb.IO {
+namespace Org.SwerveRobotics.Tools.ManagedADB.IO {
 	/// <summary>
 	/// A class that represents Rgb565 Image information
 	/// </summary>

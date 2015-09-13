@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
 
-namespace Managed.Adb.IO {
+namespace Org.SwerveRobotics.Tools.ManagedADB.IO {
 	/// <summary>
 	/// Just like System.IO.Path, except it is geared for Linux
 	/// </summary>

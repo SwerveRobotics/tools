@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 // https://msdn.microsoft.com/en-us/library/zt39148a(v=vs.110).aspx
 
-namespace Org.SwerveRobotics.BotBug.Service
+namespace Org.SwerveRobotics.Tools.BotBug.Service
     {
     static class Program
         {

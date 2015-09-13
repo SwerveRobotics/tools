@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace Managed.Adb.Exceptions
+namespace Org.SwerveRobotics.Tools.ManagedADB.Exceptions
     {
     public abstract class RemoteCommandException : Exception
         {

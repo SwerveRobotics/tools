@@ -7,12 +7,12 @@ using System.Text.RegularExpressions;
 using System.IO;
 using System.Reflection;
 using System.ComponentModel;
-using Managed.Adb.Exceptions;
-using Managed.Adb.IO;
-using Managed.Adb.Logs;
+using Org.SwerveRobotics.Tools.ManagedADB.Exceptions;
+using Org.SwerveRobotics.Tools.ManagedADB.IO;
+using Org.SwerveRobotics.Tools.ManagedADB.Logs;
 using System.Net;
 
-namespace Managed.Adb {
+namespace Org.SwerveRobotics.Tools.ManagedADB {
 	/// <summary>
 	/// 
 	/// </summary>

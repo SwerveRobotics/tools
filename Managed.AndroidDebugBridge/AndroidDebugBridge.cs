@@ -9,9 +9,9 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.Win32;
 using Microsoft.Win32.SafeHandles;
-using static Managed.Adb.Util;
+using static Org.SwerveRobotics.Tools.ManagedADB.Util;
 
-namespace Managed.Adb
+namespace Org.SwerveRobotics.Tools.ManagedADB
     {
     public sealed class AndroidDebugBridge
         {

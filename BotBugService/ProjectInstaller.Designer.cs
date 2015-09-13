@@ -1,4 +1,4 @@
-﻿namespace Org.SwerveRobotics.BotBug.Service
+﻿namespace Org.SwerveRobotics.Tools.BotBug.Service
     {
     partial class ProjectInstaller
         {

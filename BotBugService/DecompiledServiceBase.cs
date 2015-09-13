@@ -20,9 +20,8 @@ using System.Security.Permissions;
 using System.Threading;
 using System.ServiceProcess;
 using System.Text;
-using Org.SwerveRobotics.BotBug.Service;
 
-namespace Org.SwerveRobotics.BotBug.Service
+namespace Org.SwerveRobotics.Tools.BotBug.Service
     {
     [InstallerType(typeof(ServiceProcessInstaller))]
     public class DecompiledServiceBase : Component

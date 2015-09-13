@@ -8,15 +8,15 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using Managed.Adb.Exceptions;
-using Managed.Adb.Logs;
-using static Managed.Adb.Util;
+using Org.SwerveRobotics.Tools.ManagedADB.Exceptions;
+using Org.SwerveRobotics.Tools.ManagedADB.Logs;
+using static Org.SwerveRobotics.Tools.ManagedADB.Util;
 
 #pragma warning disable 1591
 
 // services that are supported by adb: https://github.com/android/platform_system_core/blob/master/adb/SERVICES.TXT
 
-namespace Managed.Adb
+namespace Org.SwerveRobotics.Tools.ManagedADB
     {
     public enum TransportType
         {
@@ -265,7 +265,7 @@ namespace Managed.Adb
             }
 
         /**
-         * Only socket writing routine in all of Managed.Adb
+         * Only socket writing routine in all of Org.SwerveRobotics.Tools.ManagedADB
          *
          * @exception   AdbException    Thrown when an Adb error condition occurs.
          * @exception   SocketException Thrown when a Socket error condition occurs.

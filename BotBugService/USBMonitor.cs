@@ -5,10 +5,10 @@ using System.ComponentModel;
 using System.Threading;
 using System.Diagnostics;
 using System.IO;
-using Managed.Adb;
-using static Org.SwerveRobotics.BotBug.Service.WIN32;
+using Org.SwerveRobotics.Tools.ManagedADB;
+using static Org.SwerveRobotics.Tools.BotBug.Service.WIN32;
 
-namespace Org.SwerveRobotics.BotBug.Service
+namespace Org.SwerveRobotics.Tools.BotBug.Service
     {
     public interface ITracer
         { 
@@ -153,11 +153,11 @@ namespace Org.SwerveRobotics.BotBug.Service
                 Log.ThresholdLevel = LogLevel.Debug;
 
                 this.bridge = AndroidDebugBridge.Create();
-                this.bridge.DeviceConnected += (object sender, Managed.Adb.DeviceEventArgs e) =>
+                this.bridge.DeviceConnected += (object sender, Org.SwerveRobotics.Tools.ManagedADB.DeviceEventArgs e) =>
                     {
                     EnsureAdbDevicesAreOnTCPIP("ADB device connected notification");
                     };
-                this.bridge.ServerStarted  += (object sender, Managed.Adb.AndroidDebugBridgeEventArgs e) =>
+                this.bridge.ServerStarted  += (object sender, Org.SwerveRobotics.Tools.ManagedADB.AndroidDebugBridgeEventArgs e) =>
                     {
                     EnsureAdbDevicesAreOnTCPIP("ADB server started notification");
                     };

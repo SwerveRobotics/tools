@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace Managed.Adb.Exceptions
+namespace Org.SwerveRobotics.Tools.ManagedADB.Exceptions
     {
     /** Signals a semantic error reported to us by the ADB server. */
     public class AdbException : Exception

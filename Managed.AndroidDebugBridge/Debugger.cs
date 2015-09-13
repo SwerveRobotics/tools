@@ -6,7 +6,7 @@ using System.IO;
 using System.Net.Sockets;
 using System.Net;
 
-namespace Managed.Adb {
+namespace Org.SwerveRobotics.Tools.ManagedADB {
 	public class Debugger : IPacketConsumer {
 		public enum ConnectionStates {
 			NotConnected = 1,

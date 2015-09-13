@@ -7,7 +7,7 @@
     <ProjectGuid>{98E84E5D-BA98-470B-AA07-A5506267FF78}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Org.SwerveRobotics.BotBug.Service</RootNamespace>
+    <RootNamespace>Org.SwerveRobotics.Tools.BotBug.Service</RootNamespace>
     <AssemblyName>BotBugService</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -133,7 +133,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Managed.AndroidDebugBridge\Managed.Adb.csproj">
       <Project>{65473257-e70f-410b-9269-d0c0f771ea87}</Project>
-      <Name>Managed.Adb</Name>
+      <Name>Org.SwerveRobotics.Tools.ManagedADB</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

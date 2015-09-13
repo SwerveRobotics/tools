@@ -7,7 +7,7 @@ using System.Linq;
 using System.ServiceProcess;
 using System.Threading.Tasks;
 
-namespace Org.SwerveRobotics.BotBug.Service
+namespace Org.SwerveRobotics.Tools.BotBug.Service
     {
     [RunInstaller(true)]
     public partial class ProjectInstaller : System.Configuration.Install.Installer

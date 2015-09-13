@@ -4,7 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 
-namespace Managed.Adb {
+namespace Org.SwerveRobotics.Tools.ManagedADB {
 	/// <ignore>true</ignore>
 	public static partial class ManagedAdbExtenstions {
 		internal static void ThrowIfNegative<T> ( this int argument, Expression<Func<T, string>> func ) {

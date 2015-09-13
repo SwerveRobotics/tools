@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
-using Managed.Adb.IO;
+using Org.SwerveRobotics.Tools.ManagedADB.IO;
 using System.Text.RegularExpressions;
 
-namespace Managed.Adb {
+namespace Org.SwerveRobotics.Tools.ManagedADB {
 	/// <summary>
 	/// A class to help with working with BusyBox
 	/// </summary>

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Managed.Adb {
+namespace Org.SwerveRobotics.Tools.ManagedADB {
 	internal class CommandErrorReceiver : MultiLineReceiver {
 		/// <summary>
 		/// Initializes a new instance of the <see cref="CommandErrorReceiver" /> class.

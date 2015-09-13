@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading;
 using System.IO;
 using System.Text.RegularExpressions;
-using Managed.Adb.IO;
+using Org.SwerveRobotics.Tools.ManagedADB.IO;
 
-namespace Managed.Adb {
+namespace Org.SwerveRobotics.Tools.ManagedADB {
 	/// <summary>
 	/// Provides Device side file listing service.
 	/// </summary>

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Managed.Adb.Logs {
+namespace Org.SwerveRobotics.Tools.ManagedADB.Logs {
 	public class LogReceiver {
 		private const int ENTRY_HEADER_SIZE = 20; // 2*2 + 4*4; see LogEntry.
 		public LogReceiver ( ILogListener listener ) {

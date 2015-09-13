@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Managed.Adb
+namespace Org.SwerveRobotics.Tools.ManagedADB
     {
     static class Util
         {

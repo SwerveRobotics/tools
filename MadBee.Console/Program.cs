@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Managed.Adb;
+using Org.SwerveRobotics.Tools.ManagedADB;
 using System.IO;
 
-namespace MadBee.Console
+namespace Org.SwerveRobotics.Tools.MadBeeConsole
     {
     class Program
         {

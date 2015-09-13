@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 
-namespace Managed.Adb {
+namespace Org.SwerveRobotics.Tools.ManagedADB {
 	/// <ignore>true</ignore>
 	public static partial class ManagedAdbExtenstions {
 		/// <summary>

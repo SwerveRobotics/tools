@@ -48,7 +48,7 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE. 
 
 */
-namespace Managed.Adb.Conversion
+namespace Org.SwerveRobotics.Tools.ManagedADB.Conversion
 {
 	/// <summary>
 	/// Implementation of EndianBitConverter which converts to/from little-endian

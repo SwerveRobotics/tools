@@ -52,7 +52,7 @@ POSSIBILITY OF SUCH DAMAGE.
 using System;
 using System.Globalization;
 
-namespace Managed.Adb.Conversion
+namespace Org.SwerveRobotics.Tools.ManagedADB.Conversion
 {
 	/// <summary>
 	/// A class to allow the conversion of doubles to string representations of

@@ -5,7 +5,7 @@ using System.Text;
 using System.Drawing;
 using System.Net;
 
-namespace Managed.Adb {
+namespace Org.SwerveRobotics.Tools.ManagedADB {
 
 	/// <summary>
 	/// 

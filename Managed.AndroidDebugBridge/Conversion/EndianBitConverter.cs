@@ -52,7 +52,7 @@ POSSIBILITY OF SUCH DAMAGE.
 using System;
 using System.Runtime.InteropServices;
 
-namespace Managed.Adb.Conversion
+namespace Org.SwerveRobotics.Tools.ManagedADB.Conversion
 {
 	/// <summary>
 	/// Equivalent of System.BitConverter, but with either endianness.

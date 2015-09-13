@@ -6,9 +6,9 @@ using System.Text;
 using System.IO;
 using System.Net.Sockets;
 using System.Threading;
-using Managed.Adb.Exceptions;
+using Org.SwerveRobotics.Tools.ManagedADB.Exceptions;
 
-namespace Managed.Adb
+namespace Org.SwerveRobotics.Tools.ManagedADB
     {
     /**
      * A Device monitor. This connects to the Android Debug Bridge and get device and debuggable

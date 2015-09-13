@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Managed.Adb {
+namespace Org.SwerveRobotics.Tools.ManagedADB {
 	/// <summary>
 	/// 
 	/// </summary>
@@ -58,7 +58,7 @@ namespace Managed.Adb {
                         if (Device.Properties.ContainsKey(label))
                             {
                             System.Diagnostics.Debugger.Break();
-                            throw new Managed.Adb.Exceptions.AdbException($"property already present:{label}");
+                            throw new Org.SwerveRobotics.Tools.ManagedADB.Exceptions.AdbException($"property already present:{label}");
                             }
                         else
                             Device.Properties.Add(label, value);

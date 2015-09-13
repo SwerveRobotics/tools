@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Managed.Adb {
+namespace Org.SwerveRobotics.Tools.ManagedADB {
 	public static class DdmPreferences {
 		/** Default value for thread update flag upon client connection. */
 		public const bool DEFAULT_INITIAL_THREAD_UPDATE = false;
@@ -14,7 +14,7 @@ namespace Managed.Adb {
 		/** Default value for the debug port base */
 		public const int DEFAULT_DEBUG_PORT_BASE = 8600;
 		/** Default value for the logcat {@link LogLevel} */
-		public static readonly LogLevel.LogLevelInfo DEFAULT_LOG_LEVEL = Managed.Adb.LogLevel.Error;
+		public static readonly LogLevel.LogLevelInfo DEFAULT_LOG_LEVEL = Org.SwerveRobotics.Tools.ManagedADB.LogLevel.Error;
 		/** Default timeout values for adb connection (milliseconds) */
 		public const int DEFAULT_TIMEOUT = 5000; // standard delay, in ms
 

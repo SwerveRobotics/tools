@@ -5,7 +5,7 @@ using System.Text;
 using System.Net.Sockets;
 using System.IO;
 
-namespace Managed.Adb {
+namespace Org.SwerveRobotics.Tools.ManagedADB {
 	/// <summary>
 	/// A debug client
 	/// </summary>

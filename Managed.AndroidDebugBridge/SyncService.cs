@@ -5,9 +5,9 @@ using System.Text;
 using System.Net;
 using System.IO;
 using System.Net.Sockets;
-using Managed.Adb.IO;
+using Org.SwerveRobotics.Tools.ManagedADB.IO;
 
-namespace Managed.Adb {
+namespace Org.SwerveRobotics.Tools.ManagedADB {
 	public class SyncService : IDisposable {
 		private const string OKAY = "OKAY";
 		private const string FAIL = "FAIL";

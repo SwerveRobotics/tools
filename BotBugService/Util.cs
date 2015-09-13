@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Org.SwerveRobotics.BotBug.Service
+namespace Org.SwerveRobotics.Tools.BotBug.Service
     {
     //------------------------------------------------------------------------------------------------
     // Util
@@ -411,7 +411,7 @@ namespace Org.SwerveRobotics.BotBug.Service
         // Misc
         //--------------------------------------------------------------------------------------------
 
-        public static string IpAddress(this Managed.Adb.IDevice device)
+        public static string IpAddress(this Org.SwerveRobotics.Tools.ManagedADB.IDevice device)
             {
             return device.GetProperty("dhcp.wlan0.ipaddress");
             }

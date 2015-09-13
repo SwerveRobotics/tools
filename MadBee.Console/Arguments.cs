@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace MadBee.Console
+namespace Org.SwerveRobotics.Tools.MadBeeConsole
     {
     public class Arguments : IEnumerable<string>
         {

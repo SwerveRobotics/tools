@@ -6,9 +6,9 @@ using System.IO;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
-using Managed.Adb.Conversion;
+using Org.SwerveRobotics.Tools.ManagedADB.Conversion;
 
-namespace Managed.Adb {
+namespace Org.SwerveRobotics.Tools.ManagedADB {
 	/// <summary>
 	/// Data representing an image taken from a device frame buffer.
 	/// </summary>

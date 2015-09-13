@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using Managed.Adb.Exceptions;
+using Org.SwerveRobotics.Tools.ManagedADB.Exceptions;
 
-namespace Managed.Adb {
+namespace Org.SwerveRobotics.Tools.ManagedADB {
 	/// <summary>
 	/// 
 	/// </summary>

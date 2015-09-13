@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.IO;
-using Managed.Adb.IO;
+using Org.SwerveRobotics.Tools.ManagedADB.IO;
 
-namespace Managed.Adb {
+namespace Org.SwerveRobotics.Tools.ManagedADB {
 	/// <summary>
 	/// Represents a file entry on a device
 	/// </summary>

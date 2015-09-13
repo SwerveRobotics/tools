@@ -7,7 +7,7 @@
     <ProjectGuid>{65473257-E70F-410B-9269-D0C0F771EA87}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Managed.Adb</RootNamespace>
+    <RootNamespace>Org.SwerveRobotics.Tools.ManagedADB</RootNamespace>
     <AssemblyName>Managed.AndroidDebugBridge</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>

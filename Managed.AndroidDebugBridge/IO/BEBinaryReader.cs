@@ -28,7 +28,7 @@
 using System;
 using System.IO;
 using System.Net; 
-namespace Managed.Adb.IO {
+namespace Org.SwerveRobotics.Tools.ManagedADB.IO {
 	/// <summary> 
 	/// Big-Endian Binary Reader 
 	/// </summary> 
