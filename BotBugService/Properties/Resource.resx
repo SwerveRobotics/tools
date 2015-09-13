@@ -117,13 +117,7 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="MenuItemExit" xml:space="preserve">
-    <value>E&amp;xit</value>
-  </data>
-  <data name="TrayIconBalloonTipTitle" xml:space="preserve">
-    <value>Robot Controller Debug Connections</value>
-  </data>
-  <data name="TrayIconText" xml:space="preserve">
-    <value>Swerve Robotics BotBug Monitor</value>
+  <data name="ConnectionNotificationString" xml:space="preserve">
+    <value>Connected {0} on {1}</value>
   </data>
 </root>

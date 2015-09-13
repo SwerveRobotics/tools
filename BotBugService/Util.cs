@@ -411,7 +411,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
         // Misc
         //--------------------------------------------------------------------------------------------
 
-        public static string IpAddress(this Org.SwerveRobotics.Tools.ManagedADB.IDevice device)
+        public static string GetIpAddress(this Org.SwerveRobotics.Tools.ManagedADB.IDevice device)
             {
             return device.GetProperty("dhcp.wlan0.ipaddress");
             }

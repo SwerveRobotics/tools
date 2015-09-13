@@ -8,6 +8,7 @@ using System.IO;
 using Org.SwerveRobotics.Tools.ManagedADB;
 using Org.SwerveRobotics.Tools.Util;
 using static Org.SwerveRobotics.Tools.BotBug.Service.WIN32;
+using Org.SwerveRobotics.Tools.BotBug.Service.Properties;
 
 namespace Org.SwerveRobotics.Tools.BotBug.Service
     {
@@ -238,20 +239,20 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                 foreach (Device device in devices)
                     {
                     // If the device doesn't have an IP address, we can't do anything
-                    if (device.IpAddress() == null)
+                    if (device.GetIpAddress() == null)
                         continue;
 
                     this.tracer.Trace($"      serialNumber:{device.SerialNumber}");
 
                     // Is this guy already listening as we want him to?
                     if (device.SerialNumber.IsMatch(ipPattern))
-                        ipAddressesAlreadyListening.Add(device.IpAddress());
+                        ipAddressesAlreadyListening.Add(device.GetIpAddress());
                     }
 
                 // Iterate again over that list, ensuring that any that are not listening start to do so
                 foreach (Device device in devices)
                     {
-                    string ipAddress = device.IpAddress();
+                    string ipAddress = device.GetIpAddress();
 
                     // If the device doesn't have an IP address, we can't do anything
                     if (ipAddress == null)
@@ -262,7 +263,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                         continue;
 
                     // Restart the device listening on a port of interest
-                    this.tracer.Trace($"   restarting {ipAddress} in TCPIP mode");
+                    this.tracer.Trace($"   restarting {device.SerialNumber} in TCPIP mode at {ipAddress}");
                     int portNumber = 5555;
                     AdbHelper.Instance.TcpIp(portNumber, AndroidDebugBridge.SocketAddress, device);
                     
@@ -275,9 +276,15 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                     AdbHelper.Instance.Connect(ipAddress, portNumber, AndroidDebugBridge.SocketAddress);
 
                     this.tracer.Trace($"   connected to {ipAddress}");
-                    this.sharedMemory?.Write($"connected to {ipAddress}");
+                    NotifyConnected(device);
                     }
                 }
+            }
+
+        void NotifyConnected(Device device)
+            {
+            string message = string.Format(Resource.ConnectionNotificationString, device.SerialNumber, device.GetIpAddress());
+            this.sharedMemory.Write(message);
             }
 
         //-----------------------------------------------------------------------------------------

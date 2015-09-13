@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Org.SwerveRobotics.Tools.SwerveToolsTray.Properties {
+namespace Org.SwerveRobotics.Tools.BotBug.Service.Properties {
     using System;
     
     
@@ -22,24 +22,24 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray.Properties {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Resources {
+    public class Resource {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal Resources() {
+        internal Resource() {
         }
         
         /// <summary>
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Org.SwerveRobotics.Tools.SwerveToolsTray.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Org.SwerveRobotics.Tools.BotBug.Service.Properties.Resource", typeof(Resource).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -51,7 +51,7 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray.Properties {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -61,29 +61,11 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to E&amp;xit.
+        ///   Looks up a localized string similar to Connected {0} on {1}.
         /// </summary>
-        internal static string MenuItemExit {
+        public static string ConnectionNotificationString {
             get {
-                return ResourceManager.GetString("MenuItemExit", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Robot Controller Debug Connections.
-        /// </summary>
-        internal static string TrayIconBalloonTipTitle {
-            get {
-                return ResourceManager.GetString("TrayIconBalloonTipTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Swerve Robotics BotBug Monitor.
-        /// </summary>
-        internal static string TrayIconText {
-            get {
-                return ResourceManager.GetString("TrayIconText", resourceCulture);
+                return ResourceManager.GetString("ConnectionNotificationString", resourceCulture);
             }
         }
     }
