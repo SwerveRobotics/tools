@@ -21,7 +21,7 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_4F116F194916E65F1604258125C77A41"
+        "MsmKey" = "8:_32114E811BB00BF5ADA29B8108F492BD"
         "OwnerKey" = "8:_C5E94DE6E0914FBFA74A36BA916827FC"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -41,6 +41,18 @@
         {
         "MsmKey" = "8:_7C43B5FCF5984815AE245DB8EAC5D37A"
         "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_B66012FE6C61FB86EE72FD6318E3D15D"
+        "OwnerKey" = "8:_626AF9517E254B40A91F4C51F990517A"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_B66012FE6C61FB86EE72FD6318E3D15D"
+        "OwnerKey" = "8:_C5E94DE6E0914FBFA74A36BA916827FC"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -70,7 +82,13 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_4F116F194916E65F1604258125C77A41"
+        "OwnerKey" = "8:_32114E811BB00BF5ADA29B8108F492BD"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_B66012FE6C61FB86EE72FD6318E3D15D"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -175,6 +193,34 @@
             "InstallerClass" = "11:TRUE"
             "CustomActionData" = "8:"
             }
+            "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_367853FB867141F6BF783E46C2196FD2"
+            {
+            "Name" = "8:Primary output from SwerveToolsTray (Active)"
+            "Condition" = "8:"
+            "Object" = "8:_626AF9517E254B40A91F4C51F990517A"
+            "FileType" = "3:2"
+            "InstallAction" = "3:3"
+            "Arguments" = "8:"
+            "EntryPoint" = "8:"
+            "Sequence" = "3:2"
+            "Identifier" = "8:_B87F72E1_2B5A_4540_BBAE_F14B9047E6F7"
+            "InstallerClass" = "11:TRUE"
+            "CustomActionData" = "8:"
+            }
+            "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_395E74FB06AE474A8475A6EACC933A19"
+            {
+            "Name" = "8:Primary output from SwerveToolsTray (Active)"
+            "Condition" = "8:"
+            "Object" = "8:_626AF9517E254B40A91F4C51F990517A"
+            "FileType" = "3:2"
+            "InstallAction" = "3:4"
+            "Arguments" = "8:"
+            "EntryPoint" = "8:"
+            "Sequence" = "3:2"
+            "Identifier" = "8:_A50AA7F7_7E51_4C45_A447_3D6343CF893A"
+            "InstallerClass" = "11:TRUE"
+            "CustomActionData" = "8:"
+            }
             "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_77FC1383CF7C4F2EAEEDFBC4E8FCF035"
             {
             "Name" = "8:Primary output from BotBugService (Active)"
@@ -186,6 +232,20 @@
             "EntryPoint" = "8:"
             "Sequence" = "3:1"
             "Identifier" = "8:_8332C505_D51E_4A37_9788_01BD14CB335B"
+            "InstallerClass" = "11:TRUE"
+            "CustomActionData" = "8:"
+            }
+            "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_892D34B0DEC44F30A136EC72306E967B"
+            {
+            "Name" = "8:Primary output from SwerveToolsTray (Active)"
+            "Condition" = "8:"
+            "Object" = "8:_626AF9517E254B40A91F4C51F990517A"
+            "FileType" = "3:2"
+            "InstallAction" = "3:1"
+            "Arguments" = "8:"
+            "EntryPoint" = "8:"
+            "Sequence" = "3:2"
+            "Identifier" = "8:_2768E6B1_903C_4A15_8E95_7A28CEFE522B"
             "InstallerClass" = "11:TRUE"
             "CustomActionData" = "8:"
             }
@@ -214,6 +274,20 @@
             "EntryPoint" = "8:"
             "Sequence" = "3:1"
             "Identifier" = "8:_E541BB8B_E001_4D90_89EE_87AA59B8A5CC"
+            "InstallerClass" = "11:TRUE"
+            "CustomActionData" = "8:"
+            }
+            "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_B41AAFCA96FB4CDEBF392960AD4FD284"
+            {
+            "Name" = "8:Primary output from SwerveToolsTray (Active)"
+            "Condition" = "8:"
+            "Object" = "8:_626AF9517E254B40A91F4C51F990517A"
+            "FileType" = "3:2"
+            "InstallAction" = "3:2"
+            "Arguments" = "8:"
+            "EntryPoint" = "8:"
+            "Sequence" = "3:2"
+            "Identifier" = "8:_55AB0C75_4806_4414_8855_6E6D71F395C4"
             "InstallerClass" = "11:TRUE"
             "CustomActionData" = "8:"
             }
@@ -271,20 +345,20 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_4F116F194916E65F1604258125C77A41"
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_32114E811BB00BF5ADA29B8108F492BD"
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:Managed.AndroidDebugBridge, Version=0.5.5733.32708, Culture=neutral, processorArchitecture=MSIL"
+            "AssemblyAsmDisplayName" = "8:ManagedADB, Version=0.5.5734.17759, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_4F116F194916E65F1604258125C77A41"
+                    "_32114E811BB00BF5ADA29B8108F492BD"
                     {
-                    "Name" = "8:Managed.AndroidDebugBridge.dll"
+                    "Name" = "8:ManagedADB.dll"
                     "Attributes" = "3:512"
                     }
                 }
-            "SourcePath" = "8:Managed.AndroidDebugBridge.dll"
+            "SourcePath" = "8:ManagedADB.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_E1E005270EBA4CC1BFD6034588882162"
@@ -340,6 +414,37 @@
             "Register" = "3:1"
             "Exclude" = "11:FALSE"
             "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_B66012FE6C61FB86EE72FD6318E3D15D"
+            {
+            "AssemblyRegister" = "3:1"
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:SwerveToolsUtil, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL"
+                "ScatterAssemblies"
+                {
+                    "_B66012FE6C61FB86EE72FD6318E3D15D"
+                    {
+                    "Name" = "8:SwerveToolsUtil.dll"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:SwerveToolsUtil.dll"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_E1E005270EBA4CC1BFD6034588882162"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_ED2F567718C844E7BF9F8AE1AB59CB00"
