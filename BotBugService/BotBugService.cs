@@ -81,6 +81,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             if (null != this.usbMonitor)
                 {
                 this.usbMonitor.Stop();
+                this.usbMonitor.Dispose();
                 this.usbMonitor = null;
                 }
             this.OleUninitialize();

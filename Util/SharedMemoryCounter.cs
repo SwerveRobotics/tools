@@ -13,7 +13,7 @@ namespace Org.SwerveRobotics.Tools.Util
         // Construction
         //---------------------------------------------------------------------------------------
         
-        public SharedMemoryCounter(string uniquifier) : base(4, $"Counter({uniquifier})")
+        public SharedMemoryCounter(bool create, string uniquifier) : base(create, 4, $"Counter({uniquifier})")
             {
             }
 

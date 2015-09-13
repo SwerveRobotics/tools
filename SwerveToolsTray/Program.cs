@@ -9,9 +9,16 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
     {
     static class Program
         {
-        /// <summary>
-        /// The main entry point for the application.
-        /// </summary>
+        //----------------------------------------------------------------------------
+        // State
+        //----------------------------------------------------------------------------
+        
+        public static string LoggingTag = "BotBugTray";
+
+        //----------------------------------------------------------------------------
+        // Construction
+        //----------------------------------------------------------------------------
+
         [STAThread]
         static void Main()
             {

@@ -24,7 +24,11 @@ namespace Org.SwerveRobotics.Tools.Util
         protected MemoryMappedViewStream memoryViewStream;
         protected BinaryReader           reader;
         protected BinaryWriter           writer;
+
         private   bool                   disposed;
+        private   int                    cbBuffer;
+        private   string                 uniquifier;
+        private   bool                   create;
         
         //---------------------------------------------------------------------------------------
         // Construction
@@ -33,38 +37,59 @@ namespace Org.SwerveRobotics.Tools.Util
         public static string Global(string name) => $"Global\\{name}";
         public static string User  (string name) => name;
 
-        public SharedMemory(int cbBuffer, string uniquifier)
+        public SharedMemory(bool create, int cbBuffer, string uniquifier)
+            {
+            this.create             = create;
+            this.disposed           = false;
+            this.cbBuffer           = cbBuffer;
+            this.uniquifier         = uniquifier;
+            this.mutex              = null;
+            this.bufferChangedEvent = null;
+            this.memoryMappedFile   = null;
+            this.memoryViewStream   = null;
+            this.reader             = null;
+            this.writer             = null;
+            }
+
+        /** Initialize this shared memory. In the non-create case, this may throw FileNotFoundException  
+        /** if kernel hasn't created the memory section yet */
+        public void Initialize()
             {
             bool createdNew; 
-
+            
             this.mutex              = new Mutex
                                             (
                                             false, 
-                                            Global($"SwerveToolsSharedMem({uniquifier})Mutex"), 
+                                            Global($"SwerveToolsSharedMem({this.uniquifier})Mutex"), 
                                             out createdNew, 
                                             MutexSecurity()
                                             );
+
             this.bufferChangedEvent = new EventWaitHandle
                                             (
                                             false, 
                                             EventResetMode.AutoReset, 
-                                            Global($"SwerveToolsSharedMem({uniquifier})Event"), 
+                                            Global($"SwerveToolsSharedMem({this.uniquifier})Event"), 
                                             out createdNew, 
                                             EventSecurity()
                                             );
-            this.memoryMappedFile   = MemoryMappedFile.CreateOrOpen
+
+            string path = Global($"SwerveToolsSharedMem({this.uniquifier})Map"); 
+            this.memoryMappedFile   = create 
+                                    ? MemoryMappedFile.CreateOrOpen
                                             (
-                                            Global($"SwerveToolsSharedMem({uniquifier})Map"), 
-                                            cbBuffer, 
+                                            path, 
+                                            this.cbBuffer, 
                                             MemoryMappedFileAccess.ReadWrite, 
                                             MemoryMappedFileOptions.None, 
-                                            MapSecurity(), 
+                                            MapSecurity(create), 
                                             HandleInheritability.None
-                                            );
-            this.memoryViewStream   = this.memoryMappedFile.CreateViewStream(0, cbBuffer);
+                                            )
+                                     : MemoryMappedFile.OpenExisting(path, MemoryMappedFileRights.ReadWrite, HandleInheritability.None);
+
+            this.memoryViewStream   = this.memoryMappedFile.CreateViewStream(0, this.cbBuffer);
             this.reader             = new BinaryReader(memoryViewStream);
             this.writer             = new BinaryWriter(memoryViewStream);
-            this.disposed           = false;
             }
 
         ~SharedMemory()
@@ -127,12 +152,16 @@ namespace Org.SwerveRobotics.Tools.Util
             return result;
             }
 
-        MemoryMappedFileSecurity MapSecurity()
+        MemoryMappedFileSecurity MapSecurity(bool create)
             {
             SecurityIdentifier user = GetEveryone();
             MemoryMappedFileSecurity result = new MemoryMappedFileSecurity();
 
-            AccessRule<MemoryMappedFileRights> rule = new AccessRule<MemoryMappedFileRights>(user, MemoryMappedFileRights.ReadWrite | MemoryMappedFileRights.Delete, AccessControlType.Allow);
+            MemoryMappedFileRights rights = MemoryMappedFileRights.ReadWrite;
+            if (create)
+                rights |= MemoryMappedFileRights.Delete;
+
+            AccessRule<MemoryMappedFileRights> rule = new AccessRule<MemoryMappedFileRights>(user, rights, AccessControlType.Allow);
             result.AddAccessRule(rule);
 
             return result;

@@ -72,7 +72,10 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             this.tracer = tracer;
             this.notificationHandle = notificationHandle;
             this.notificationHandleIsService = notificationHandleIsService;
-            this.sharedMemory = new SharedMemoryStringQueue("BotBug");
+
+            this.sharedMemory = new SharedMemoryStringQueue(true, "BotBug");
+            this.sharedMemory.Initialize();
+            this.sharedMemory.Write(Resources.StartingMessage);
 
             this.Initialize();
             }
@@ -106,6 +109,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                 if (fromUserCode)
                     {
                     // Called from user's code. Can / should cleanup managed objects
+                    this.sharedMemory?.Write(Resources.StoppingMessage);
                     this.sharedMemory?.Dispose();
                     this.sharedMemory = null;
                     }
@@ -283,7 +287,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
 
         void NotifyConnected(Device device)
             {
-            string message = string.Format(Resource.ConnectionNotificationString, device.SerialNumber, device.GetIpAddress());
+            string message = string.Format(Resources.ConnectionNotificationString, device.SerialNumber, device.GetIpAddress());
             this.sharedMemory.Write(message, 100);
             }
 

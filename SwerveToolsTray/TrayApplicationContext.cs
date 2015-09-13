@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using Org.SwerveRobotics.Tools.SwerveToolsTray.Properties;
 using Org.SwerveRobotics.Tools.Util;
+using static Org.SwerveRobotics.Tools.Util.Util;
 
 namespace Org.SwerveRobotics.Tools.SwerveToolsTray
     {
@@ -31,7 +33,7 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
             {
             this.disposed = false;
             InitializeComponent();
-            this.sharedMemory = new SharedMemoryStringQueue("BotBug");
+            this.sharedMemory = new SharedMemoryStringQueue(false, "BotBug");
 
             Application.ApplicationExit += (object sender, EventArgs e) => this.trayIcon.Visible = false;
             this.trayIcon.Visible = true;
@@ -48,7 +50,7 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
             this.trayIcon = new NotifyIcon();
             this.trayIcon.BalloonTipIcon = ToolTipIcon.Info;
             this.trayIcon.Text           = Resources.TrayIconText;
-            this.trayIcon.Icon           = SystemIcons.Exclamation; // Util.Properties.Resources.SwerveIcon;
+            this.trayIcon.Icon           = Util.Properties.Resources.SwerveIcon;
 
             MenuItem menuItem = new MenuItem(Resources.MenuItemExit, (sender, e) =>
                 {
@@ -110,35 +112,59 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
 
         void NotificationThreadLoop()
             {
-            // Interlock with StartNotificationThread
-            this.threadStartedEvent.Set();
+            Trace(Program.LoggingTag, "===== NotificationThreadLoop start ... ");
+            try {
+                // Interlock with StartNotificationThread
+                this.threadStartedEvent.Set();
 
-            while (!this.stopRequested)
-                {
-                try {
-                    // Get messages from writer. This will block until there's
-                    // (probably) messages for us to read
-                    List<string> messages = this.sharedMemory.Read();
-                    if (messages.Count > 0)
+                // Spin, waiting for kernel to make the section for us
+                for (bool thrown = true; !this.stopRequested && thrown; )
+                    {
+                    try {
+                        thrown = false;
+                        this.sharedMemory.Initialize();
+                        }
+                    catch (FileNotFoundException)
                         {
-                        StringBuilder balloonText = new StringBuilder();
-                        foreach (string message in messages)
-                            {
-                            if (balloonText.Length > 0)
-                                balloonText.Append("\n");
-                            balloonText.Append(message);
-                            }
-
-                        this.trayIcon.BalloonTipTitle = Resources.TrayIconBalloonTipTitle;
-                        this.trayIcon.BalloonTipText = balloonText.ToString();
-                        this.trayIcon.ShowBalloonTip(10000);
+                        thrown = true;
+                        Thread.Sleep(2000);
                         }
                     }
-                catch (ThreadInterruptedException)
+
+                Trace(Program.LoggingTag, "===== NotificationThreadLoop listening");
+
+                while (!this.stopRequested)
                     {
-                    return;
+                    try {
+                        // Get messages from writer. This will block until there's
+                        // (probably) messages for us to read
+                        List<string> messages = this.sharedMemory.Read();
+                        if (messages.Count > 0)
+                            {
+                            StringBuilder balloonText = new StringBuilder();
+                            foreach (string message in messages)
+                                {
+                                if (balloonText.Length > 0)
+                                    balloonText.Append("\n");
+                                balloonText.Append(message);
+                                }
+
+                            this.trayIcon.BalloonTipTitle = Resources.TrayIconBalloonTipTitle;
+                            this.trayIcon.BalloonTipText = balloonText.ToString();
+                            this.trayIcon.ShowBalloonTip(10000);
+                            }
+                        }
+                    catch (ThreadInterruptedException)
+                        {
+                        return;
+                        }
                     }
                 }
+            finally
+                {
+                Trace(Program.LoggingTag, "===== ... NotificationThreadLoop stop");
+                }
+
             }
 
         }

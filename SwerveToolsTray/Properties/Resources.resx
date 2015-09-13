@@ -121,7 +121,7 @@
     <value>E&amp;xit</value>
   </data>
   <data name="TrayIconBalloonTipTitle" xml:space="preserve">
-    <value>Robot Controller Debug Connections</value>
+    <value>Swerve Robotics BotBug Monitor</value>
   </data>
   <data name="TrayIconText" xml:space="preserve">
     <value>Swerve Robotics BotBug Monitor</value>

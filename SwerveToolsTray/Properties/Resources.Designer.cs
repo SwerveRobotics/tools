@@ -70,7 +70,7 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Robot Controller Debug Connections.
+        ///   Looks up a localized string similar to Swerve Robotics BotBug Monitor.
         /// </summary>
         internal static string TrayIconBalloonTipTitle {
             get {

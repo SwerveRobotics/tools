@@ -120,4 +120,11 @@
   <data name="ConnectionNotificationString" xml:space="preserve">
     <value>Connected {0} on {1}</value>
   </data>
+  <data name="StartingMessage" xml:space="preserve">
+    <value>Swerve Tools BotBug has started</value>
+  </data>
+  <data name="StoppingMessage" xml:space="preserve">
+    <value>Swerve Tools BotBug is stopping</value>
+    <comment> </comment>
+  </data>
 </root>

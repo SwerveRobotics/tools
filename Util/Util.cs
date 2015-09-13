@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Org.SwerveRobotics.Tools.Util
     {
-    static class Util
+    public static class Util
         {
         public static bool WaitOneNoExcept(this Mutex mutex, int msTimeout = -1)
             {
@@ -18,6 +18,11 @@ namespace Org.SwerveRobotics.Tools.Util
                 {
                 return false;
                 }
+            }
+
+        public static void Trace(string tag, string message)
+            {
+            System.Diagnostics.Trace.WriteLine($"{tag}: {message}");
             }
         }
     }
