@@ -9,6 +9,10 @@ using System.Threading.Tasks;
 
 namespace Org.SwerveRobotics.Tools.BotBug.Service
     {
+    // Helpful:
+    // https://msdn.microsoft.com/en-us/library/vstudio/kz0ke5xt%28v=vs.100%29.aspx?f=255&MSPPError=-2147217396
+    // misexec /i mysetup.msi /l*v mylog.txt
+    
     [RunInstaller(true)]
     public partial class ProjectInstaller : System.Configuration.Install.Installer
         {
@@ -38,74 +42,123 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             }
 
         //--------------------------------------------------------------------------------------
-        // Events
+        // Operations
         //--------------------------------------------------------------------------------------
 
         public override void Install(IDictionary savedState)
             {
-            Trace("calling Install...");
+            TraceService("calling Install...");
             base.Install(savedState);
-            Trace("...Install called");
-            // Explicitly throw an exception so that roll back is called. 
-            // throw new ArgumentException("Arg Exception");
+            TraceService("...Install called");
             }
         public override void Uninstall(IDictionary savedState)
             {
-            Trace("calling Uninstall...");
+            TraceService("calling Uninstall...");
             base.Uninstall(savedState);
-            Trace("...Uninstall called");
+            TraceService("...Uninstall called");
             }
         public override void Commit(IDictionary savedState)
             {
-            Trace("calling Commit...");
+            TraceService("calling Commit...");
             base.Commit(savedState);
-            Trace("...Commit called");
+            TraceService("...Commit called");
             }
         public override void Rollback(IDictionary savedState)
             {
-            Trace("calling Rollback...");
+            TraceService("calling Rollback...");
             base.Rollback(savedState);
-            Trace("...Rollback called");
+            TraceService("...Rollback called");
             }
+
+        //--------------------------------------------------------------------------------------
+        // Service events
+        //--------------------------------------------------------------------------------------
 
         private void OnServiceInstallerOnBeforeInstall(object sender, InstallEventArgs e)
             {
-            Trace("before install");
+            TraceService("before install");
             SetInstalling(e, true);
             }
         private void OnServiceInstallerOnAfterInstall(object sender, InstallEventArgs e)
             {
-            Trace("after install");
+            TraceService("after install");
             }
         private void OnServiceInstallerOnBeforeUninstall(object sender, InstallEventArgs e)
             {
-            Trace("before uninstall");
+            TraceService("before uninstall");
             SetInstalling(e, false);
+            StopService();
             }
         private void OnServiceInstallerOnAfterUninstall(object sender, InstallEventArgs e)
             {
-            Trace("after uninstall");
+            TraceService("after uninstall");
             }
 
         private void OnServiceInstallerOnCommitting(object sender, InstallEventArgs e)
             {
-            Trace("committing");
+            TraceService("committing");
             }
         private void OnServiceInstallerOnCommitted(object sender, InstallEventArgs e)
             {
-            Trace("committed");
+            TraceService("committed");
             if (IsInstalling(e))
                 StartService();
             }
         private void OnServiceInstallerOnBeforeRollback(object sender, InstallEventArgs e)
             {
-            Trace("before rollback");
+            TraceService("before rollback");
+            if (!IsInstalling(e))
+                StopService();
             }
         private void OnServiceInstallerOnAfterRollback(object sender, InstallEventArgs e)
             {
-            Trace("after rollback");
+            TraceService("after rollback");
             if (!IsInstalling(e))
                 StartService();
+            }
+
+        //--------------------------------------------------------------------------------------
+        // ServiceProcess events
+        //--------------------------------------------------------------------------------------
+
+        private void serviceProcessInstaller_BeforeInstall(object sender, InstallEventArgs e)
+            {
+            TraceServiceProcess("before install");
+            }
+
+        private void serviceProcessInstaller_AfterInstall(object sender, InstallEventArgs e)
+            {
+            TraceServiceProcess("after install");
+            }
+
+        private void serviceProcessInstaller_BeforeUninstall(object sender, InstallEventArgs e)
+            {
+            TraceServiceProcess("before uninstall");
+            }
+
+        private void serviceProcessInstaller_AfterUninstall(object sender, InstallEventArgs e)
+            {
+            TraceServiceProcess("after uninstall");
+            }
+
+        private void serviceProcessInstaller_Committing(object sender, InstallEventArgs e)
+            {
+            TraceServiceProcess("committing");
+            }
+
+        private void serviceProcessInstaller_Committed(object sender, InstallEventArgs e)
+            {
+            TraceServiceProcess("committed");
+            }
+
+        private void serviceProcessInstaller_BeforeRollback(object sender, InstallEventArgs e)
+            {
+            TraceServiceProcess("before rollback");
+            }
+
+        private void serviceProcessInstaller_AfterRollback(object sender, InstallEventArgs e)
+            {
+            TraceServiceProcess("after rollback");
             }
 
         //--------------------------------------------------------------------------------------
@@ -122,9 +175,35 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             Trace("...started");
             }
 
+        void StopService()
+            {
+            Trace("stopping service...");
+            try
+                {
+                using (ServiceController sc = new ServiceController(this.serviceInstaller.ServiceName))
+                    {
+                    sc.Stop();
+                    }
+                }
+            catch (Exception)
+                {
+                // ignored
+                }
+            Trace("...stopped");
+            }
+
         void Trace(string message)
             {
             System.Diagnostics.Trace.WriteLine($"BotBug: installer: {message}");
             }
+        void TraceService(string message)
+            {
+            Trace($"service:        {message}");
+            }
+        void TraceServiceProcess(string message)
+            {
+            Trace($"serviceProcess: {message}");
+            }
+
         }
     }

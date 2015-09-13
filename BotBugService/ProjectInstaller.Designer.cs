@@ -39,6 +39,14 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             this.serviceProcessInstaller.Account = System.ServiceProcess.ServiceAccount.LocalService;
             this.serviceProcessInstaller.Password = null;
             this.serviceProcessInstaller.Username = null;
+            this.serviceProcessInstaller.Committed += new System.Configuration.Install.InstallEventHandler(this.serviceProcessInstaller_Committed);
+            this.serviceProcessInstaller.AfterInstall += new System.Configuration.Install.InstallEventHandler(this.serviceProcessInstaller_AfterInstall);
+            this.serviceProcessInstaller.AfterRollback += new System.Configuration.Install.InstallEventHandler(this.serviceProcessInstaller_AfterRollback);
+            this.serviceProcessInstaller.AfterUninstall += new System.Configuration.Install.InstallEventHandler(this.serviceProcessInstaller_AfterUninstall);
+            this.serviceProcessInstaller.Committing += new System.Configuration.Install.InstallEventHandler(this.serviceProcessInstaller_Committing);
+            this.serviceProcessInstaller.BeforeInstall += new System.Configuration.Install.InstallEventHandler(this.serviceProcessInstaller_BeforeInstall);
+            this.serviceProcessInstaller.BeforeRollback += new System.Configuration.Install.InstallEventHandler(this.serviceProcessInstaller_BeforeRollback);
+            this.serviceProcessInstaller.BeforeUninstall += new System.Configuration.Install.InstallEventHandler(this.serviceProcessInstaller_BeforeUninstall);
             // 
             // serviceInstaller
             // 
