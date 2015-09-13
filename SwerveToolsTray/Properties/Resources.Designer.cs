@@ -61,6 +61,15 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to E&amp;xit.
+        /// </summary>
+        internal static string MenuItemExit {
+            get {
+                return ResourceManager.GetString("MenuItemExit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Messages from the deep:.
         /// </summary>
         internal static string TrayIconBalloonTipTitle {

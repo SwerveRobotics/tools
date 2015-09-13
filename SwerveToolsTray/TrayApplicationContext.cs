@@ -49,6 +49,13 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
             this.trayIcon.BalloonTipIcon = ToolTipIcon.Info;
             this.trayIcon.Text           = Resources.TrayIconText;
             this.trayIcon.Icon           = SystemIcons.Exclamation; // TODO
+
+            MenuItem menuItem = new MenuItem(Resources.MenuItemExit, (sender, e) =>
+                {
+                this.trayIcon.Visible = false;  // be doubly sure
+                ExitThread();
+                });
+            this.trayIcon.ContextMenu = new ContextMenu(new MenuItem[] { menuItem });
             }
 
         void IDisposable.Dispose()
@@ -107,22 +114,28 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
 
             while (!this.stopRequested)
                 {
-                // Get messages from writer. This will block until there's
-                // (probably) messages for us to read
-                List<string> messages = this.sharedMemory.Read();
-                if (messages.Count > 0)
-                    {
-                    StringBuilder balloonText = new StringBuilder();
-                    foreach (string message in messages)
+                try {
+                    // Get messages from writer. This will block until there's
+                    // (probably) messages for us to read
+                    List<string> messages = this.sharedMemory.Read();
+                    if (messages.Count > 0)
                         {
-                        if (balloonText.Length > 0)
-                            balloonText.Append("\n");
-                        balloonText.Append(message);
-                        }
+                        StringBuilder balloonText = new StringBuilder();
+                        foreach (string message in messages)
+                            {
+                            if (balloonText.Length > 0)
+                                balloonText.Append("\n");
+                            balloonText.Append(message);
+                            }
 
-                    this.trayIcon.BalloonTipTitle = Resources.TrayIconBalloonTipTitle;
-                    this.trayIcon.BalloonTipText = balloonText.ToString();
-                    this.trayIcon.ShowBalloonTip(10000);
+                        this.trayIcon.BalloonTipTitle = Resources.TrayIconBalloonTipTitle;
+                        this.trayIcon.BalloonTipText = balloonText.ToString();
+                        this.trayIcon.ShowBalloonTip(10000);
+                        }
+                    }
+                catch (ThreadInterruptedException)
+                    {
+                    return;
                     }
                 }
             }

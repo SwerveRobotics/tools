@@ -6,6 +6,7 @@ using System.Threading;
 using System.Diagnostics;
 using System.IO;
 using Org.SwerveRobotics.Tools.ManagedADB;
+using Org.SwerveRobotics.Tools.Util;
 using static Org.SwerveRobotics.Tools.BotBug.Service.WIN32;
 
 namespace Org.SwerveRobotics.Tools.BotBug.Service
@@ -58,6 +59,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
         List<Guid>          deviceInterfacesOfInterest = null;
         List<IntPtr>        deviceNotificationHandles = null;
         AndroidDebugBridge  bridge = null;
+        BotBugSharedMemory  sharedMemory = new BotBugSharedMemory();
 
         //-----------------------------------------------------------------------------------------
         // Construction
@@ -77,12 +79,6 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             this.Dispose(false);
             }
 
-        public void Dispose()
-            {
-            this.Dispose(true);
-            GC.SuppressFinalize(this);
-            }
-
         void Initialize()
             {
             lock (theLock)
@@ -93,6 +89,12 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             this.started = false;
             }
 
+        public void Dispose()
+            {
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+            }
+
         protected virtual void Dispose(bool fromUserCode)
             {
             if (!disposed)
@@ -101,6 +103,8 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                 if (fromUserCode)
                     {
                     // Called from user's code. Can / should cleanup managed objects
+                    this.sharedMemory?.Dispose();
+                    this.sharedMemory = null;
                     }
 
                 // Called from finalizers (and user code). Avoid referencing other objects
@@ -269,6 +273,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                     AdbHelper.Instance.Connect(ipAddress, portNumber, AndroidDebugBridge.SocketAddress);
 
                     this.tracer.Trace($"   connected to {ipAddress}");
+                    this.sharedMemory?.Write($"connected to {ipAddress}");
                     }
                 }
             }
