@@ -97,7 +97,7 @@ namespace Org.SwerveRobotics.Tools.Util
             }
 
         //---------------------------------------------------------------------------------------
-        // Utility
+        // ACL management
         //---------------------------------------------------------------------------------------
         
         SecurityIdentifier GetEveryone()
@@ -121,7 +121,7 @@ namespace Org.SwerveRobotics.Tools.Util
             SecurityIdentifier user = GetEveryone();
             EventWaitHandleSecurity result = new EventWaitHandleSecurity();
 
-            EventWaitHandleAccessRule  rule = new EventWaitHandleAccessRule(user, EventWaitHandleRights.Synchronize | EventWaitHandleRights.Modify | EventWaitHandleRights.Delete, AccessControlType.Allow);
+            EventWaitHandleAccessRule  rule = new EventWaitHandleAccessRule(user, EventWaitHandleRights.FullControl, AccessControlType.Allow);
             result.AddAccessRule(rule);
 
             return result;
@@ -132,7 +132,7 @@ namespace Org.SwerveRobotics.Tools.Util
             SecurityIdentifier user = GetEveryone();
             MemoryMappedFileSecurity result = new MemoryMappedFileSecurity();
 
-            AccessRule<MemoryMappedFileRights> rule = new AccessRule<MemoryMappedFileRights>(user, MemoryMappedFileRights.ReadWrite|MemoryMappedFileRights.Delete, AccessControlType.Allow);
+            AccessRule<MemoryMappedFileRights> rule = new AccessRule<MemoryMappedFileRights>(user, MemoryMappedFileRights.ReadWrite | MemoryMappedFileRights.Delete, AccessControlType.Allow);
             result.AddAccessRule(rule);
 
             return result;
