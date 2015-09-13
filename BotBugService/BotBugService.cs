@@ -21,6 +21,7 @@ namespace Org.SwerveRobotics.BotBug.Service
 
         private const string                eventLogSourceName = "BotBug";
         private const string                eventLogName       = "Application";
+        public  const string                TraceTag           = "BotBug";
 
         private bool                        oleInitialized = false;
         private USBMonitor                  usbMonitor     = null;
@@ -267,14 +268,9 @@ namespace Org.SwerveRobotics.BotBug.Service
         // Tracing and exceptions
         //------------------------------------------------------------------------------------------
 
-        object traceLock = new object();
-
         public void Trace(string format, params object[] args)
             {
-            lock (traceLock)
-                {
-                Util.TraceDebug("BotBug", format, args);
-                }
+            Util.TraceDebug(TraceTag, format, args);
             }
 
         public void Log(string format, params object[] args)

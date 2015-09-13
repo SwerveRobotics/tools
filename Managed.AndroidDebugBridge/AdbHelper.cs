@@ -550,7 +550,7 @@ namespace Managed.Adb
                 AdbResponse resp = ReadAdbResponse(adbChan);
                 if (!resp.IOSuccess || !resp.Okay)
                     {
-                    Log.w(LOGGING_TAG, "Got timeout or unhappy response from ADB fb req: " + resp.Message);
+                    Log.v(LOGGING_TAG, "Got timeout or unhappy response from ADB fb req: " + resp.Message);
                     adbChan.Close();
                     return null;
                     }
@@ -578,7 +578,7 @@ namespace Managed.Adb
                     // fill the RawImage with the header
                     if (imageParams.ReadHeader(version, buf) == false)
                         {
-                        Log.w(LOGGING_TAG, "Unsupported protocol: " + version);
+                        Log.v(LOGGING_TAG, "Unsupported protocol: " + version);
                         return null;
                         }
                     }
@@ -626,7 +626,7 @@ namespace Managed.Adb
                         {
                         if (rcvr != null && rcvr.IsCancelled)
                             {
-                            Log.w(LOGGING_TAG, "execute: cancelled");
+                            Log.v(LOGGING_TAG, "execute: cancelled");
                             throw new OperationCanceledException();
                             }
 
@@ -635,7 +635,7 @@ namespace Managed.Adb
                             {
                             // we're at the end, we flush the output
                             rcvr.Flush();
-                            Log.w(LOGGING_TAG, "execute '" + command + "' on '" + device + "' : EOF hit. Read: " + count);
+                            Log.v(LOGGING_TAG, "execute '" + command + "' on '" + device + "' : EOF hit. Read: " + count);
                             }
                         else
                             {
@@ -645,27 +645,27 @@ namespace Managed.Adb
                             string sdataTrimmed = sdata.Trim();
                             if (sdataTrimmed.EndsWith($"{cmd[0]}: not found"))
                                 {
-                                Log.w(LOGGING_TAG, "The remote execution returned: '{0}: not found'", cmd[0]);
+                                Log.v(LOGGING_TAG, "The remote execution returned: '{0}: not found'", cmd[0]);
                                 throw new FileNotFoundException($"The remote execution returned: '{cmd[0]}: not found'");
                                 }
 
                             if (sdataTrimmed.EndsWith("No such file or directory"))
                                 {
-                                Log.w(LOGGING_TAG, "The remote execution returned: {0}", sdataTrimmed);
+                                Log.v(LOGGING_TAG, "The remote execution returned: {0}", sdataTrimmed);
                                 throw new FileNotFoundException($"The remote execution returned: {sdataTrimmed}");
                                 }
 
                             // for "unknown options"
                             if (sdataTrimmed.Contains("Unknown option"))
                                 {
-                                Log.w(LOGGING_TAG, "The remote execution returned: {0}", sdataTrimmed);
+                                Log.v(LOGGING_TAG, "The remote execution returned: {0}", sdataTrimmed);
                                 throw new UnknownOptionException(sdataTrimmed);
                                 }
 
                             // for "aborting" commands
                             if (sdataTrimmed.IsMatch("Aborting.$"))
                                 {
-                                Log.w(LOGGING_TAG, "The remote execution returned: {0}", sdataTrimmed);
+                                Log.v(LOGGING_TAG, "The remote execution returned: {0}", sdataTrimmed);
                                 throw new CommandAbortingException(sdataTrimmed);
                                 }
 
@@ -673,7 +673,7 @@ namespace Managed.Adb
                             // cmd: applet not found
                             if (sdataTrimmed.IsMatch("applet not found$") && cmd.Length > 1)
                                 {
-                                Log.w(LOGGING_TAG, "The remote execution returned: '{0}'", sdataTrimmed);
+                                Log.v(LOGGING_TAG, "The remote execution returned: '{0}'", sdataTrimmed);
                                 throw new FileNotFoundException($"The remote execution returned: '{sdataTrimmed}'");
                                 }
 
@@ -681,7 +681,7 @@ namespace Managed.Adb
                             // workitem: 16822
                             if (sdataTrimmed.IsMatch("(permission|access) denied$"))
                                 {
-                                Log.w(LOGGING_TAG, "The remote execution returned: '{0}'", sdataTrimmed);
+                                Log.v(LOGGING_TAG, "The remote execution returned: '{0}'", sdataTrimmed);
                                 throw new PermissionDeniedException($"The remote execution returned: '{sdataTrimmed}'");
                                 }
 

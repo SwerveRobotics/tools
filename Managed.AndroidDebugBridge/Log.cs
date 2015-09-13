@@ -8,50 +8,44 @@ namespace Managed.Adb {
 	/// 
 	/// </summary>
 	public sealed class Log {
-		/// <summary>
-		/// Gets or sets the level.
-		/// </summary>
-		/// <value>The level.</value>
-		public static LogLevel.LogLevelInfo Level { get; set; }
 
-		/// <summary>
-		/// Gets or sets the <see cref="ILogOutput">LogOutput</see>
-		/// </summary>
-		public static ILogOutput LogOutput { get; set; }
+		public static ILogOutput            LogOutput      { get; set; }
+        private static LogLevel.LogLevelInfo g_thresholdLevel;
+        public static LogLevel.LogLevelInfo ThresholdLevel
+            {
+            get
+                {
+                return g_thresholdLevel;
+                }
+            set
+                {
+                g_thresholdLevel = value;
+                }
+            }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		private static char[] SpaceLine = new char[72];
-		/// <summary>
-		/// 
-		/// </summary>
+        private static char[] SpaceLine = new char[72];
 		private static readonly char[] HEXDIGIT = new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
 
-		/// <summary>
-		/// Static Initializer for the <see cref="Log"/> class.
-		/// </summary>
-		static Log ( ) {
-			/* prep for hex dump */
-			int i = SpaceLine.Length - 1;
-			while ( i >= 0 )
-				SpaceLine[i--] = ' ';
-			SpaceLine[0] = SpaceLine[1] = SpaceLine[2] = SpaceLine[3] = '0';
-			SpaceLine[4] = '-';
-			Level = DdmPreferences.LogLevel;
-		}
+        static Log()
+        // Static initializer
+            {
+            /* prep for hex dump */
+            int i = SpaceLine.Length - 1;
+            while (i >= 0)
+                SpaceLine[i--] = ' ';
+            SpaceLine[0] = SpaceLine[1] = SpaceLine[2] = SpaceLine[3] = '0';
+            SpaceLine[4] = '-';
+            ThresholdLevel = DdmPreferences.LogLevel;
+            }
 
-		/// <summary>
-		/// Cerates a new Instance of <see cref="Log"/>
-		/// </summary>
-		private Log ( ) {
+        private Log()
+            {
+            }
 
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		sealed class Config {
+        /// <summary>
+        /// 
+        /// </summary>
+        sealed class Config {
 			/// <summary>
 			/// Log Verbose
 			/// </summary>
@@ -311,49 +305,32 @@ namespace Managed.Adb {
         /// <param name="message"></param>
         private static void WriteLine(LogLevel.LogLevelInfo logLevel, string tag, string message)
             {
-            if (logLevel.Priority >= Level.Priority)
+            if (ThresholdLevel.Priority <= logLevel.Priority)
                 {
                 if (LogOutput != null)
-                    {
                     LogOutput.Write(logLevel, tag, message);
-                    }
                 else
-                    {
-                    Write(logLevel, tag, message);
-                    }
-                }
+                    WriteUnchecked(logLevel, tag, message);
 
-            // Always trace to debug, irrespective of the log level
-            WriteDebug(logLevel, tag, message);
+                WriteDebugUnchecked(logLevel, tag, message);
+                }
             }
 
 
-        /// <summary>
-        /// Prints a log message.
-        /// </summary>
-        /// <param name="logLevel"></param>
-        /// <param name="tag"></param>
-        /// <param name="message"></param>
-        public static void Write(LogLevel.LogLevelInfo logLevel, string tag, string message)
+        public static void WriteUnchecked(LogLevel.LogLevelInfo logLevel, string tag, string message)
             {
             Console.WriteLine(GetLogFormatString(logLevel, tag, message));
             }
 
-        public static void WriteDebug(LogLevel.LogLevelInfo logLevel, string tag, string message)
+        public static void WriteDebugUnchecked(LogLevel.LogLevelInfo logLevel, string tag, string message)
             {
-            System.Diagnostics.Debug.Write($"BotBug| {GetLogFormatString(logLevel, tag, message)}");
+            System.Diagnostics.Trace.Write($"{Util.TraceTag}| {GetLogFormatString(logLevel, tag, message)}");
             }
 
-        /// <summary>
-        /// Formats a log message.
-        /// </summary>
-        /// <param name="logLevel"></param>
-        /// <param name="tag"></param>
-        /// <param name="message"></param>
-        /// <returns></returns>
-        public static string GetLogFormatString ( LogLevel.LogLevelInfo logLevel, string tag, string message ) {
-			long msec = DateTime.Now.ToUnixEpoch ( );
-			return $"{(msec/60000)%60:00}:{(msec/1000)%60:00} {logLevel.Letter}/{tag}: {message}";
-		}
-	}
-}
+        public static string GetLogFormatString(LogLevel.LogLevelInfo logLevel, string tag, string message)
+            {
+            long msec = DateTime.Now.ToUnixEpoch();
+            return $"{(msec/60000)%60:00}:{(msec/1000)%60:00} {logLevel.Letter}/{tag}: {message}";
+            }
+        }
+    }

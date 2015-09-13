@@ -23,7 +23,7 @@ namespace Managed.Adb
         bool CloseHandle(IntPtr handle);
 
         public static bool ConsoleTracingEnabled = false;
-        public static string TraceTag = "BotBug: ";
+        public static string TraceTag = "BotBug";
 
         public static void ConsoleTraceError(string format, params object[] arguments)
             {
@@ -33,7 +33,7 @@ namespace Managed.Adb
         public static void Trace(string format, params object[] arguments)
             {
             string s = string.Format(format, arguments);
-            System.Diagnostics.Debug.WriteLine($"{TraceTag}{s}");
+            System.Diagnostics.Trace.WriteLine($"{TraceTag}| {s}");
             }
         public static void ConsoleTraceError(object o)
             {
@@ -43,7 +43,7 @@ namespace Managed.Adb
         public static void Trace(object o)
             {
             string s = o.ToString();
-            System.Diagnostics.Debug.WriteLine($"{TraceTag}{s}");
+            System.Diagnostics.Trace.WriteLine($"{TraceTag}| {s}");
             }
 
         public static bool FileExists(string fileName)

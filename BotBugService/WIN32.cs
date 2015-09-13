@@ -61,7 +61,7 @@ namespace Org.SwerveRobotics.BotBug.Service
 
             public override string ToString()
                 {
-                return String.Format("{0:X02}{1:X02}{2:X02}{3:X02}{4:X02}{5:X02}", this[0], this[1], this[2], this[3], this[4], this[5]);
+                return string.Format("{0:X02}{1:X02}{2:X02}{3:X02}{4:X02}{5:X02}", this[0], this[1], this[2], this[3], this[4], this[5]);
                 }
             }
 
@@ -246,44 +246,44 @@ namespace Org.SwerveRobotics.BotBug.Service
         [StructLayout(LayoutKind.Sequential)]
         public struct USB_CONFIGURATION_DESCRIPTOR
             {
-            public Byte bLength;
-            public Byte bDescriptorType;
+            public byte bLength;
+            public byte bDescriptorType;
             public ushort wTotalLength;
-            public Byte bNumInterfaces;
-            public Byte bConfigurationValue;
-            public Byte iConfiguration;
-            public Byte bmAttributes;
-            public Byte MaxPower;
+            public byte bNumInterfaces;
+            public byte bConfigurationValue;
+            public byte iConfiguration;
+            public byte bmAttributes;
+            public byte MaxPower;
             }
 
         [StructLayout(LayoutKind.Sequential)]
         public struct USB_INTERFACE_DESCRIPTOR
             {
-            public Byte bLength;
-            public Byte bDescriptorType;
-            public Byte bInterfaceNumber;
-            public Byte bAlternateSetting;
-            public Byte bNumEndpoints;
-            public Byte bInterfaceClass;
-            public Byte bInterfaceSubClass;
-            public Byte bInterfaceProtocol;
-            public Byte iInterface;
+            public byte bLength;
+            public byte bDescriptorType;
+            public byte bInterfaceNumber;
+            public byte bAlternateSetting;
+            public byte bNumEndpoints;
+            public byte bInterfaceClass;
+            public byte bInterfaceSubClass;
+            public byte bInterfaceProtocol;
+            public byte iInterface;
             }
 
         [StructLayout(LayoutKind.Sequential)]
         public struct WINUSB_PIPE_INFORMATION
             {
             public USBD_PIPE_TYPE PipeType;
-            public Byte PipeId;
+            public byte PipeId;
             public ushort MaximumPacketSize;
-            public Byte Interval;
+            public byte Interval;
             }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         public struct WINUSB_SETUP_PACKET
             {
-            public Byte RequestType;
-            public Byte Request;
+            public byte RequestType;
+            public byte Request;
             public ushort Value;
             public ushort Index;
             public ushort Length;
@@ -483,7 +483,7 @@ namespace Org.SwerveRobotics.BotBug.Service
                 case DBT_DEVTYP_DEVICEINTERFACE: return "DBT_DEVTYP_DEVICEINTERFACE";
                 case DBT_DEVTYP_HANDLE:          return "DBT_DEVTYP_HANDLE";
                     }
-                return String.Format("unknownType({0})", this.dbch_devicetype);
+                return string.Format("unknownType({0})", this.dbch_devicetype);
                 } }
             };
 
@@ -669,7 +669,7 @@ namespace Org.SwerveRobotics.BotBug.Service
             public System.Guid  dbcc_classguid;
         //  char                dbcc_name[1];
 
-            public unsafe String dbcc_name { get 
+            public unsafe string dbcc_name { get 
                 { 
                 return Util.ToStringAnsi(this.PbVariablePart, this.PbMax - this.PbVariablePart);
                 } }
@@ -693,7 +693,7 @@ namespace Org.SwerveRobotics.BotBug.Service
             public System.Guid  dbcc_classguid;
         //  wchar_t             dbcc_name[1];
 
-            public unsafe String dbcc_name { get 
+            public unsafe string dbcc_name { get 
                 { 
                 return Util.ToStringUni(this.PbVariablePart, this.PbMax - this.PbVariablePart);
                 } }
@@ -1082,10 +1082,10 @@ namespace Org.SwerveRobotics.BotBug.Service
         [DllImport("ole32.dll")] public static extern
         int CoCreateInstance(
             [In] ref Guid rclsid,
-            [In, MarshalAs(UnmanagedType.IUnknown)] Object pUnkOuter,
+            [In, MarshalAs(UnmanagedType.IUnknown)] object pUnkOuter,
             [In, MarshalAs(UnmanagedType.U4)] CLSCTX dwClsContext,
             [In] ref Guid riid,
-            [Out, MarshalAs(UnmanagedType.Interface)] out Object ppv);
+            [Out, MarshalAs(UnmanagedType.Interface)] out object ppv);
 
         [DllImport("ole32.dll")] public static extern 
         int CreateBindCtx(

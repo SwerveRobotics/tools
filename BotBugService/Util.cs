@@ -19,7 +19,7 @@ namespace Org.SwerveRobotics.BotBug.Service
         // String
         //--------------------------------------------------------------------------------------------
 
-        public unsafe static String ToStringUni(void* psz, long cbMax = Int64.MaxValue)
+        public unsafe static string ToStringUni(void* psz, long cbMax = long.MaxValue)
             { 
             long cchMax = cbMax / sizeof(char);
             char *pch = (char*) psz;
@@ -31,7 +31,7 @@ namespace Org.SwerveRobotics.BotBug.Service
             return result.ToString();
             }
 
-        public unsafe static String ToStringAnsi(void* psz, long cbMax = Int64.MaxValue)
+        public unsafe static string ToStringAnsi(void* psz, long cbMax = long.MaxValue)
             { 
             long cchMax = cbMax;
             byte *pch = (byte*) psz;
@@ -380,19 +380,19 @@ namespace Org.SwerveRobotics.BotBug.Service
 
         public static void TraceStdOut(string tag, string sFormat, params object[] data)
             {
-            String payload = String.Format(sFormat, data);
+            string payload = string.Format(sFormat, data);
             System.Console.WriteLine("{0}: {1}", tag, payload);
             }
 
         public static void TraceDebug(string tag, string sFormat, params object[] data)
             {
-            String payload = String.Format(sFormat, data);
-            System.Diagnostics.Debug.WriteLine("{0}: {1}", tag, payload);
+            string payload = string.Format(sFormat, data);
+            System.Diagnostics.Trace.WriteLine($"{tag}: {payload}");
             }
 
         public static void TraceDebug(string sFormat, params object[] data)
             {
-            System.Diagnostics.Debug.WriteLine(sFormat, data);
+            System.Diagnostics.Trace.WriteLine(string.Format(sFormat, data));
             }
 
         public static void ReportError(string sFormat, params object[] data)
@@ -402,7 +402,7 @@ namespace Org.SwerveRobotics.BotBug.Service
 
         public static RET_T Fail<RET_T>()
             {
-            System.Diagnostics.Debug.Fail("program exiting");
+            System.Diagnostics.Trace.Fail("program exiting");
             Environment.Exit(-1);
             return default(RET_T);
             }

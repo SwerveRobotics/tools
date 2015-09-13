@@ -150,6 +150,8 @@ namespace Org.SwerveRobotics.BotBug.Service
             {
             try
                 {
+                Log.ThresholdLevel = LogLevel.Debug;
+
                 this.bridge = AndroidDebugBridge.Create();
                 this.bridge.DeviceConnected += (object sender, Managed.Adb.DeviceEventArgs e) =>
                     {

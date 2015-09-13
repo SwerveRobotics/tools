@@ -37,7 +37,7 @@ namespace Managed.Adb {
 			}
 			set {
 				_logLevel = value;
-				Log.Level = value ;
+				Log.ThresholdLevel = value ;
 			}
 		}
 		public static int DebugPortBase { get; set; }

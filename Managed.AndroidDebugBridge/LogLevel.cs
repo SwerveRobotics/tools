@@ -9,62 +9,31 @@ namespace Managed.Adb {
 	/// </summary>
 	public static class LogLevel {
 
-		/// <summary>
-		/// Initializes the <see cref="LogLevel"/> class.
-		/// </summary>
-		static LogLevel ( ) {
+		static LogLevel () 
+            {
 			Levels = new Dictionary<string, LogLevelInfo> ( );
-			Verbose = new LogLevelInfo { Priority = 2, Value = "verbose", Letter = 'V' };
-			Debug = new LogLevelInfo { Priority = 3, Value = "debug", Letter = 'D' };
-			Info = new LogLevelInfo { Priority = 4, Value = "info", Letter = 'I' };
-			Warn = new LogLevelInfo { Priority = 5, Value = "warn", Letter = 'W' };
-			Error = new LogLevelInfo { Priority = 6, Value = "error", Letter = 'E' };
-			Assert = new LogLevelInfo { Priority = 7, Value = "assert", Letter = 'A' };
+			Verbose = new LogLevelInfo { Priority = 2, Value = "verbose",   Letter = 'V' };
+			Debug   = new LogLevelInfo { Priority = 3, Value = "debug",     Letter = 'D' };
+			Info    = new LogLevelInfo { Priority = 4, Value = "info",      Letter = 'I' };
+			Warn    = new LogLevelInfo { Priority = 5, Value = "warn",      Letter = 'W' };
+			Error   = new LogLevelInfo { Priority = 6, Value = "error",     Letter = 'E' };
+			Assert  = new LogLevelInfo { Priority = 7, Value = "assert",    Letter = 'A' };
 
-			Levels.Add ( Verbose.Value, Verbose );
-			Levels.Add ( Debug.Value, Debug );
-			Levels.Add ( Info.Value, Info );
-			Levels.Add ( Warn.Value, Warn );
-			Levels.Add ( Error.Value, Error );
-			Levels.Add ( Assert.Value, Assert );
+            Levels.Add(Verbose.Value, Verbose);
+            Levels.Add(Debug.Value, Debug);
+            Levels.Add(Info.Value, Info);
+            Levels.Add(Warn.Value, Warn);
+            Levels.Add(Error.Value, Error);
+            Levels.Add(Assert.Value, Assert);
+            }
 
-		}
+        public static LogLevelInfo Verbose  { get; private set; }
+		public static LogLevelInfo Debug    { get; private set; }
+		public static LogLevelInfo Info     { get; private set; }
+		public static LogLevelInfo Warn     { get; private set; }
+		public static LogLevelInfo Error    { get; private set; }
+		public static LogLevelInfo Assert   { get; private set; }
 
-		/// <summary>
-		/// Gets or sets the verbose log level.
-		/// </summary>
-		/// <value>The verbose log level.</value>
-		public static LogLevelInfo Verbose { get; private set; }
-		/// <summary>
-		/// Gets or sets the debug log level.
-		/// </summary>
-		/// <value>The debug log level.</value>
-		public static LogLevelInfo Debug { get; private set; }
-		/// <summary>
-		/// Gets or sets the info log level.
-		/// </summary>
-		/// <value>The info log level.</value>
-		public static LogLevelInfo Info { get; private set; }
-		/// <summary>
-		/// Gets or sets the warn log level.
-		/// </summary>
-		/// <value>The warn log level.</value>
-		public static LogLevelInfo Warn { get; private set; }
-		/// <summary>
-		/// Gets or sets the error log level.
-		/// </summary>
-		/// <value>The error log level.</value>
-		public static LogLevelInfo Error { get; private set; }
-		/// <summary>
-		/// Gets or sets the assert log level.
-		/// </summary>
-		/// <value>The assert log level.</value>
-		public static LogLevelInfo Assert { get; private set; }
-
-		/// <summary>
-		/// Gets or sets the levels.
-		/// </summary>
-		/// <value>The levels.</value>
 		public static Dictionary<string, LogLevelInfo> Levels { get; private set; }
 
         public static LogLevelInfo GetByString (string value ) {
