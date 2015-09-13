@@ -9,7 +9,7 @@ using System.IO.MemoryMappedFiles;
 namespace Org.SwerveRobotics.Tools.Util
     {
     /** A little utility that creates a shared-memory buffer for one process to read and another to write  */
-    public class BotBugSharedMemory : IDisposable
+    public abstract class BotBugSharedMemory : IDisposable
     // https://msdn.microsoft.com/EN-US/library/vstudio/dd267552(v=vs.100).aspx
     // TODO: Add security to this
         {
@@ -17,13 +17,13 @@ namespace Org.SwerveRobotics.Tools.Util
         // State
         //---------------------------------------------------------------------------------------
 
-        Mutex                  mutex;
-        EventWaitHandle        bufferChangedEvent;
-        MemoryMappedFile       memoryMappedFile;
-        MemoryMappedViewStream memoryViewStream;
-        BinaryReader           reader;
-        BinaryWriter           writer;
-        bool                   disposed;
+        protected Mutex                  mutex;
+        protected EventWaitHandle        bufferChangedEvent;
+        protected MemoryMappedFile       memoryMappedFile;
+        protected MemoryMappedViewStream memoryViewStream;
+        protected BinaryReader           reader;
+        protected BinaryWriter           writer;
+        private   bool                   disposed;
         
         //---------------------------------------------------------------------------------------
         // Construction
@@ -70,80 +70,6 @@ namespace Org.SwerveRobotics.Tools.Util
                 this.memoryViewStream?.Dispose();       this.memoryViewStream = null;
                 this.memoryMappedFile?.Dispose();       this.memoryMappedFile = null;
                 }
-            }
-
-        //---------------------------------------------------------------------------------------
-        // Operations
-        //---------------------------------------------------------------------------------------
-
-        /** Append a new message to the queue of messsages */ 
-        public void Write(string message)
-            {
-            this.mutex.WaitOne();
-            try {
-                // Read the message count at the start of the buffer
-                this.memoryViewStream.Seek(0, SeekOrigin.Begin);
-                int messageCount = reader.ReadInt32();
-
-                // Skip over that many messages
-                for (int i = 0; i < messageCount; i++)
-                    {
-                    reader.ReadString();
-                    }
-                
-                // Write the next string. 'May hit the buffer end and throw exception, but 
-                // that's ok; we'll just be ignoring this message
-                writer.Write(message); 
-
-                // Update the message count
-                this.memoryViewStream.Seek(0, SeekOrigin.Begin);
-                writer.Write(messageCount + 1);
-                
-                // Let the reader know there's new stuff
-                this.bufferChangedEvent.Set();
-                }
-            catch (Exception)
-                {
-                // Ignore write errors; they'll be at buffer end. The actual exeption we 
-                // see is a NotSupportedException thrown by the stream when asked to extend
-                // it's length
-                }
-            finally
-                {
-                this.mutex.ReleaseMutex();
-                }
-            }
-
-        /** Read all the messages in the queue */
-        public List<string> Read()
-            {
-            List<string> result = new List<string>();
-
-            // Wait until there's (probably) something new
-            this.bufferChangedEvent.WaitOne();
-
-            this.mutex.WaitOne();
-            try {
-                // Read the message count at the start of the buffer
-                this.memoryViewStream.Seek(0, SeekOrigin.Begin);
-                int messageCount = reader.ReadInt32();
-
-                // Read over that many messages
-                for (int i = 0; i < messageCount; i++)
-                    {
-                    result.Add(reader.ReadString());
-                    }
-
-                // Update the message count
-                this.memoryViewStream.Seek(0, SeekOrigin.Begin);
-                writer.Write((int)0);
-                }
-            finally
-                {
-                this.mutex.ReleaseMutex();
-                }
-
-            return result;
             }
         }
     }

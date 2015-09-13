@@ -17,7 +17,7 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
         //----------------------------------------------------------------------------
         
         NotifyIcon                  trayIcon;
-        BotBugSharedMemory          sharedMemory;
+        SharedMemoryStrings         sharedMemory;
         bool                        stopRequested;
         bool                        disposed;
         ManualResetEvent            threadStartedEvent;
@@ -31,7 +31,7 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
             {
             this.disposed = false;
             InitializeComponent();
-            this.sharedMemory = new BotBugSharedMemory();
+            this.sharedMemory = new SharedMemoryStrings();
 
             Application.ApplicationExit += (object sender, EventArgs e) => this.trayIcon.Visible = false;
             this.trayIcon.Visible = true;

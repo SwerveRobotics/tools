@@ -59,7 +59,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
         List<Guid>          deviceInterfacesOfInterest = null;
         List<IntPtr>        deviceNotificationHandles = null;
         AndroidDebugBridge  bridge = null;
-        BotBugSharedMemory  sharedMemory = new BotBugSharedMemory();
+        SharedMemoryStrings sharedMemory = new SharedMemoryStrings();
 
         //-----------------------------------------------------------------------------------------
         // Construction
