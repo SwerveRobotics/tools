@@ -59,7 +59,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
         List<Guid>          deviceInterfacesOfInterest = null;
         List<IntPtr>        deviceNotificationHandles = null;
         AndroidDebugBridge  bridge = null;
-        SharedMemoryStringQueue sharedMemory = new SharedMemoryStringQueue("BotBug");
+        SharedMemoryStringQueue sharedMemory = null;
 
         //-----------------------------------------------------------------------------------------
         // Construction
@@ -71,6 +71,8 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             this.tracer = tracer;
             this.notificationHandle = notificationHandle;
             this.notificationHandleIsService = notificationHandleIsService;
+            this.sharedMemory = new SharedMemoryStringQueue("BotBug");
+
             this.Initialize();
             }
 
@@ -84,7 +86,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             lock (theLock)
                 {
                 this.deviceInterfacesOfInterest = new List<Guid>();
-                this.deviceNotificationHandles = new List<IntPtr>();
+                this.deviceNotificationHandles  = new List<IntPtr>();
                 }
             this.started = false;
             }

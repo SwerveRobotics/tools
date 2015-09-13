@@ -91,6 +91,7 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
             this.stopRequested = false;
             this.threadStartedEvent = new ManualResetEvent(false);
             this.notificationThread = new Thread(this.NotificationThreadLoop);
+            this.notificationThread.Name = "Swerve Tray Notification Thread";
             this.notificationThread.Start();
             this.threadStartedEvent.WaitOne();
             }

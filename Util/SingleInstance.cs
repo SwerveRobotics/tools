@@ -25,7 +25,7 @@ namespace Org.SwerveRobotics.Tools.Util
 
         public SingleInstance(string uniquifier)
             {
-            this.mutex = new Mutex(false, $"SwerveSingleInstance({uniquifier})");
+            this.mutex = new Mutex(false, SharedMemory.User($"SwerveToolsSingleInstance({uniquifier})Mutex"));
             this.probe = null;
             this.uniquifier = uniquifier;
             this.isFirstInstance = false;
@@ -68,7 +68,7 @@ namespace Org.SwerveRobotics.Tools.Util
             try {
                 if (this.probe == null)
                     {
-                    string probeName = $"SwerveSingleInstance-probe({this.uniquifier})";
+                    string probeName = SharedMemory.User($"SwerveToolsSingleInstance({this.uniquifier})Probe");
                     try {
                         this.probe = Mutex.OpenExisting(probeName);
                         this.isFirstInstance = false;

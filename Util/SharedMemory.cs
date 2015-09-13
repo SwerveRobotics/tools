@@ -28,14 +28,17 @@ namespace Org.SwerveRobotics.Tools.Util
         //---------------------------------------------------------------------------------------
         // Construction
         //---------------------------------------------------------------------------------------
+        
+        public static string Global(string name) => $"Global\\{name}";
+        public static string User  (string name) => name;
 
         public SharedMemory(int cbBuffer, string uniquifier)
             {
             // Note: we rely on the fact that newly created memory is zeroed.
             // That makes the initial message count zero w/o us doing anything.
-            this.mutex              = new Mutex(false, $"SwerveBotBugMutex({uniquifier})");
-            this.bufferChangedEvent = new EventWaitHandle(false, EventResetMode.AutoReset, $"SwerveBotBugEvent{uniquifier}");
-            this.memoryMappedFile   = MemoryMappedFile.CreateOrOpen($"SwerveBotBugMemoryMap{uniquifier}", cbBuffer);
+            this.mutex              = new Mutex(false, Global($"SwerveToolsSharedMem({uniquifier})Mutex"));
+            this.bufferChangedEvent = new EventWaitHandle(false, EventResetMode.AutoReset, Global($"SwerveToolsSharedMem({uniquifier})Event"));
+            this.memoryMappedFile   = MemoryMappedFile.CreateOrOpen(Global($"SwerveToolsSharedMem({uniquifier})Map"), cbBuffer);
             this.memoryViewStream   = this.memoryMappedFile.CreateViewStream(0, cbBuffer);
             this.reader             = new BinaryReader(memoryViewStream);
             this.writer             = new BinaryWriter(memoryViewStream);
