@@ -13,7 +13,8 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
         // State
         //----------------------------------------------------------------------------
         
-        public static string LoggingTag = "BotBugTray";
+        public static string LoggingTag     = "BotBugTray";
+        public static string TrayUniquifier = "SwerveToolsTray";
 
         //----------------------------------------------------------------------------
         // Construction
@@ -22,13 +23,17 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
         [STAThread]
         static void Main()
             {
-            SingleInstance singleInstance = new SingleInstance("SwerveToolsTray");
+            Util.Util.Trace(LoggingTag, "starting SwerveToolsTray...");
+            //
+            SingleInstance singleInstance = new SingleInstance(TrayUniquifier);
             if (singleInstance.IsFirstInstance())
                 {
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
                 Application.Run(new TrayApplicationContext());
                 }
+            //
+            Util.Util.Trace(LoggingTag, "...exiting SwerveToolsTray");
             }
         }
     }

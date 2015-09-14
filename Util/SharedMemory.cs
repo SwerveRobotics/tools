@@ -33,9 +33,6 @@ namespace Org.SwerveRobotics.Tools.Util
         //---------------------------------------------------------------------------------------
         // Construction
         //---------------------------------------------------------------------------------------
-        
-        public static string Global(string name) => $"Global\\{name}";
-        public static string User  (string name) => name;
 
         public SharedMemory(bool create, int cbBuffer, string uniquifier)
             {
@@ -59,30 +56,25 @@ namespace Org.SwerveRobotics.Tools.Util
             
             this.mutex              = new Mutex
                                             (
-                                            false, 
-                                            Global($"SwerveToolsSharedMem({this.uniquifier})Mutex"), 
-                                            out createdNew, 
-                                            MutexSecurity()
+                                            false, Util.GlobalName("SharedMem", this.uniquifier, "Mutex"), 
+                                            out createdNew, Util.MutexSecurity()
                                             );
 
             this.bufferChangedEvent = new EventWaitHandle
                                             (
                                             false, 
-                                            EventResetMode.AutoReset, 
-                                            Global($"SwerveToolsSharedMem({this.uniquifier})Event"), 
-                                            out createdNew, 
-                                            EventSecurity()
+                                            EventResetMode.AutoReset, Util.GlobalName("SharedMem", this.uniquifier, "Event"), 
+                                            out createdNew, Util.EventSecurity()
                                             );
 
-            string path = Global($"SwerveToolsSharedMem({this.uniquifier})Map"); 
+            string path = Util.GlobalName("SharedMem", this.uniquifier, "Map"); 
             this.memoryMappedFile   = create 
                                     ? MemoryMappedFile.CreateOrOpen
                                             (
                                             path, 
                                             this.cbBuffer, 
                                             MemoryMappedFileAccess.ReadWrite, 
-                                            MemoryMappedFileOptions.None, 
-                                            MapSecurity(create), 
+                                            MemoryMappedFileOptions.None, Util.MapSecurity(create), 
                                             HandleInheritability.None
                                             )
                                      : MemoryMappedFile.OpenExisting(path, MemoryMappedFileRights.ReadWrite, HandleInheritability.None);
@@ -121,50 +113,5 @@ namespace Org.SwerveRobotics.Tools.Util
                 }
             }
 
-        //---------------------------------------------------------------------------------------
-        // ACL management
-        //---------------------------------------------------------------------------------------
-        
-        SecurityIdentifier GetEveryone()
-            {
-            return new SecurityIdentifier(WellKnownSidType.WorldSid, null);
-            }
-
-        MutexSecurity MutexSecurity()
-            {
-            SecurityIdentifier user = GetEveryone();
-            MutexSecurity result = new MutexSecurity();
-
-            MutexAccessRule rule = new MutexAccessRule(user, MutexRights.Synchronize | MutexRights.Modify | MutexRights.Delete, AccessControlType.Allow);
-            result.AddAccessRule(rule);
-
-            return result;
-            }
-
-        EventWaitHandleSecurity EventSecurity()
-            {
-            SecurityIdentifier user = GetEveryone();
-            EventWaitHandleSecurity result = new EventWaitHandleSecurity();
-
-            EventWaitHandleAccessRule  rule = new EventWaitHandleAccessRule(user, EventWaitHandleRights.FullControl, AccessControlType.Allow);
-            result.AddAccessRule(rule);
-
-            return result;
-            }
-
-        MemoryMappedFileSecurity MapSecurity(bool create)
-            {
-            SecurityIdentifier user = GetEveryone();
-            MemoryMappedFileSecurity result = new MemoryMappedFileSecurity();
-
-            MemoryMappedFileRights rights = MemoryMappedFileRights.ReadWrite;
-            if (create)
-                rights |= MemoryMappedFileRights.Delete;
-
-            AccessRule<MemoryMappedFileRights> rule = new AccessRule<MemoryMappedFileRights>(user, rights, AccessControlType.Allow);
-            result.AddAccessRule(rule);
-
-            return result;
-            }
         }
     }

@@ -27,9 +27,13 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             e.SavedState[key] = value;
             }
 
-        bool IsInstalling(InstallEventArgs e)
+        bool Installing(InstallEventArgs e)
             {
             return e.SavedState.Contains(key) && ((bool)e.SavedState[key]);
+            }
+        bool Uninstalling(InstallEventArgs e)
+            {
+            return !Installing(e);
             }
 
         //--------------------------------------------------------------------------------------
@@ -101,19 +105,22 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
         private void OnServiceInstallerOnCommitted(object sender, InstallEventArgs e)
             {
             TraceService("committed");
-            if (IsInstalling(e))
+            // Finished successful install: start
+            if (Installing(e))
                 StartService();
             }
         private void OnServiceInstallerOnBeforeRollback(object sender, InstallEventArgs e)
             {
             TraceService("before rollback");
-            if (!IsInstalling(e))
+            // About to rollback an install: stop
+            if (Installing(e))
                 StopService();
             }
         private void OnServiceInstallerOnAfterRollback(object sender, InstallEventArgs e)
             {
             TraceService("after rollback");
-            if (!IsInstalling(e))
+            // Finished rolling back an uninstall: start
+            if (Uninstalling(e))
                 StartService();
             }
 

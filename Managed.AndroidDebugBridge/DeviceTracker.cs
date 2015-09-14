@@ -51,6 +51,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
             {
             // Paranoia: stop, just in case
             StopDeviceTracking();
+            this.stopRequested = false;
 
             // Start the monitor thread a-going
             this.deviceTrackingThread = new Thread(new ThreadStart(DeviceTrackingThread));

@@ -24,6 +24,7 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
         bool                        disposed;
         ManualResetEvent            threadStartedEvent;
         Thread                      notificationThread;
+        ShutdownMonitor             shutdownMonitor;
 
         //----------------------------------------------------------------------------
         // Construction
@@ -33,12 +34,15 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
             {
             this.disposed = false;
             InitializeComponent();
-            this.sharedMemory = new SharedMemoryStringQueue(false, "BotBug");
+            this.sharedMemory    = new SharedMemoryStringQueue(false, "BotBug");    // uniquifier name must match that in BotBugService
+            this.shutdownMonitor = new ShutdownMonitor(Program.TrayUniquifier);
+            this.shutdownMonitor.ShutdownEvent += (sender, e) => ShutdownApp();
+            this.shutdownMonitor.StartMonitoring();
 
             Application.ApplicationExit += (object sender, EventArgs e) => this.trayIcon.Visible = false;
             this.trayIcon.Visible = true;
 
-            StartNotificationThread();
+            StartBotBugNotificationThread();
             }
         ~TrayApplicationContext()
             {
@@ -52,12 +56,14 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
             this.trayIcon.Text           = Resources.TrayIconText;
             this.trayIcon.Icon           = Util.Properties.Resources.SwerveIcon;
 
-            MenuItem menuItem = new MenuItem(Resources.MenuItemExit, (sender, e) =>
-                {
-                this.trayIcon.Visible = false;  // be doubly sure
-                ExitThread();
-                });
+            MenuItem menuItem = new MenuItem(Resources.MenuItemExit, (sender, e) => ShutdownApp());
             this.trayIcon.ContextMenu = new ContextMenu(new MenuItem[] { menuItem });
+            }
+
+        void ShutdownApp()
+            {
+            this.trayIcon.Visible = false;  // be doubly sure
+            ExitThread();
             }
 
         void IDisposable.Dispose()
@@ -66,29 +72,29 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
             GC.SuppressFinalize(this);
             }
 
-        protected override void Dispose(bool fromUserCode)
+        protected override void Dispose(bool notFinalizer)
             {
             if (!disposed)
                 {
                 this.disposed = true;
-                if (fromUserCode)
+                if (notFinalizer)
                     {
                     // Called from user's code. Can / should cleanup managed objects
-                    StopNotificationThread();
-                    this.sharedMemory?.Dispose();
-                    this.sharedMemory = null;
+                    StopBotBugNotificationThread();
+                    this.shutdownMonitor?.StopMonitoring();
                     }
-
                 // Called from finalizers (and user code). Avoid referencing other objects.
+                this.sharedMemory?.Dispose();
+                this.sharedMemory = null;
                 }
-            base.Dispose(fromUserCode);
+            base.Dispose(notFinalizer);
             }
 
         //----------------------------------------------------------------------------
         // Notification
         //----------------------------------------------------------------------------
         
-        void StartNotificationThread()
+        void StartBotBugNotificationThread()
             {
             this.stopRequested = false;
             this.threadStartedEvent = new ManualResetEvent(false);
@@ -98,7 +104,7 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
             this.threadStartedEvent.WaitOne();
             }
 
-        void StopNotificationThread()
+        void StopBotBugNotificationThread()
             {
             if (this.notificationThread != null)
                 {
