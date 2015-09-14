@@ -12,6 +12,9 @@ using Org.SwerveRobotics.Tools.Util;
 
 namespace Org.SwerveRobotics.Tools.SwerveToolsTray
     {
+    // http://devcity.net/PrintArticle.aspx?ArticleID=339
+    // http://blogs.msdn.com/b/rflaming/archive/2006/09/23/768248.aspx
+
     [RunInstaller(true)]
     public partial class ProjectInstaller : System.Configuration.Install.Installer
         {
@@ -113,8 +116,6 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
             {
             Trace("starting application...");
             Trace($"path={GetExeName()}");
-            ProcessStartInfo info = new ProcessStartInfo();
-
             System.Diagnostics.Process.Start(GetExeName());
             Trace("...started");
             }
