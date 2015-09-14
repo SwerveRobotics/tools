@@ -68,7 +68,14 @@ namespace Org.SwerveRobotics.Tools.Util
         /** Shutdown all the instances in that are currently monitoring */
         public void RequestShutdown()
             {
+            // Ask those other guys to stop
             this.shutdownRequestedEvent.Set();
+
+            // Hack wait a bit for the app to wake up and shut down. Ideally, we'd LIKE
+            // to wait on its/their process handle(s), as that's the only way of being
+            // assured that they've gone away, but for the moment at least it's not worth
+            // the trouble it would take of doing that
+            Thread.Sleep(200);
             }
         
         public void StartMonitoring()

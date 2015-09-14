@@ -3,10 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration.Install;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Org.SwerveRobotics.Tools.Util;
 
 namespace Org.SwerveRobotics.Tools.SwerveToolsTray
     {
@@ -111,7 +113,9 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
             {
             Trace("starting application...");
             Trace($"path={GetExeName()}");
-            // System.Diagnostics.Process.Start(GetExeName());
+            ProcessStartInfo info = new ProcessStartInfo();
+
+            System.Diagnostics.Process.Start(GetExeName());
             Trace("...started");
             }
 
@@ -119,7 +123,8 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
             {
             Trace("stopping application...");
             Trace($"path={GetExeName()}");
-            Trace("...started");
+            (new ShutdownMonitor(Program.TrayUniquifier)).RequestShutdown();
+            Trace("...stopped");
             }
 
         void Trace(string message)
