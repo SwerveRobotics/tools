@@ -1,7 +1,8 @@
 # Swerve Robotics Tools Suite
 
 Welcome to the Swerve Robotics Tools Suite. Here we hope you will find handy tools that will
-help make your FTC programming days more productive and enjoyable.
+help make your FTC programming days more productive and enjoyable. You might also enjoy our
+related project, the Swerve Robotics FTC Library, also here on GitHub.
 
 At the moment, the suite contains the following tool(s):
 
@@ -18,8 +19,14 @@ At the moment, the suite contains the following tool(s):
     there right now.
 
     Sorry, BotBug only runs on Windows (v7 or greater), and we don't have the knowledge 
-    or resources to port it ourselves to other platforms, though we would support anyone
+    or resources ourselves to port it to other platforms, though we would support anyone
     who might choose to undertake such a port.
+
+To install the Swerve Robotics Tools Suite, download a release from here on GitHub (look at
+the top of this page just above the thick green line), then run the downloaded file.
+
+We hope you find these tools to be useful. We'd love to hear what you think, and we will respond to
+questions or issues you have as promptly as we are able. Enjoy.
 
 Robert Atkinson,  
 bob@theatkinsons.org,  
