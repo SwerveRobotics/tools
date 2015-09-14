@@ -12,6 +12,361 @@ using Org.SwerveRobotics.Tools.BotBug.Service.Properties;
 
 namespace Org.SwerveRobotics.Tools.BotBug.Service
     {
+    public class USBMonitor : IDisposable
+        {
+        //-----------------------------------------------------------------------------------------
+        // State
+        //-----------------------------------------------------------------------------------------
+
+        bool                disposed    = false;
+        IDeviceEvents       eventRaiser = null;
+        ITracer             tracer      = null;
+        bool                started     = false;
+        IntPtr              notificationHandle;
+        bool                notificationHandleIsService;
+
+        readonly object         deviceConnectionLock            = new object();
+        readonly object         deviceListLock                  = new object();
+
+        List<Guid>              deviceInterfacesOfInterest      = null;
+        List<IntPtr>            deviceNotificationHandles       = null;
+        AndroidDebugBridge      bridge                          = null;
+        SharedMemoryStringQueue sharedMemUIMessageQueue         = null;
+        Device                  lastTCPCIPDevice                = null;
+        string                  lastTCPIPIpAddress              = null;
+        int                     lastTCPIPPortNumber             = 0;
+
+        //-----------------------------------------------------------------------------------------
+        // Construction
+        //-----------------------------------------------------------------------------------------
+
+        public USBMonitor(IDeviceEvents eventRaiser, ITracer tracer, IntPtr notificationHandle, bool notificationHandleIsService)
+            {
+            this.eventRaiser                 = eventRaiser;
+            this.tracer                      = tracer;
+            this.notificationHandle          = notificationHandle;
+            this.notificationHandleIsService = notificationHandleIsService;
+
+            this.sharedMemUIMessageQueue = new SharedMemoryStringQueue(true, "BotBug");
+            this.sharedMemUIMessageQueue.Initialize();
+            this.sharedMemUIMessageQueue.Write(Resources.StartingMessage);
+
+            this.deviceInterfacesOfInterest = new List<Guid>();
+            this.deviceNotificationHandles  = new List<IntPtr>();
+
+            this.started = false;
+            }
+
+        ~USBMonitor()
+            {
+            this.Dispose(false);
+            }
+
+        public void Dispose()
+            {
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+            }
+
+        protected virtual void Dispose(bool notFromFinalizer)
+            {
+            if (!disposed)
+                {
+                this.disposed = true;
+                if (notFromFinalizer)
+                    {
+                    // Called from user's code. Can / should cleanup managed objects
+                    this.sharedMemUIMessageQueue?.Write(Resources.StoppingMessage);
+                    this.sharedMemUIMessageQueue?.Dispose();
+                    this.sharedMemUIMessageQueue = null;
+                    }
+
+                // Called from finalizers (and user code). Avoid referencing other objects
+                this.ReleaseDeviceNotificationHandles();
+                }
+            }
+
+        //-----------------------------------------------------------------------------------------
+        // Device notification management
+        //-----------------------------------------------------------------------------------------
+
+        public void AddDeviceInterfaceOfInterest(Guid guid)
+            {
+            lock (this.deviceListLock)
+                {
+                this.deviceInterfacesOfInterest.Add(guid);
+                }
+
+            if (this.started)
+                {
+                GetUSBDeviceNotificationsFor(guid);
+                }
+            }
+
+        void GetUSBDeviceNotificationsFor(Guid guidDevInterface)
+            {
+            lock (this.deviceListLock)
+                {
+                DEV_BROADCAST_DEVICEINTERFACE_MANAGED filter = new DEV_BROADCAST_DEVICEINTERFACE_MANAGED();
+                filter.Initialize(guidDevInterface);
+
+                IntPtr hDeviceNotify = RegisterDeviceNotification(this.notificationHandle, filter, this.notificationHandleIsService ? DEVICE_NOTIFY_SERVICE_HANDLE : DEVICE_NOTIFY_WINDOW_HANDLE);
+                ThrowIfFail(hDeviceNotify);
+
+                this.deviceNotificationHandles.Add(hDeviceNotify);
+                }
+            }
+
+        void ReleaseDeviceNotificationHandles()
+            {
+            lock (this.deviceListLock)
+                {
+                foreach (IntPtr hDeviceNotify in this.deviceNotificationHandles)
+                    {
+                    UnregisterDeviceNotification(hDeviceNotify);
+                    }
+                this.deviceNotificationHandles = new List<IntPtr>();
+                }
+            }
+
+        public void Start()
+            {
+            try
+                {
+                Log.ThresholdLevel = LogLevel.Debug;
+
+                this.bridge = AndroidDebugBridge.Create();
+                this.bridge.DeviceConnected += (sender, e) =>
+                    {
+                    this.IgnoreADBExceptionsDuring(() => EnsureUSBConnectedDevicesAreOnTCPIP("ADB device connected notification"));
+                    };
+                this.bridge.ServerStartedOrReconnected += (sender, e) =>
+                    {
+                    this.IgnoreADBExceptionsDuring(() => 
+                        {
+                        lock (this.deviceConnectionLock)
+                            {
+                            // Ensure any USB-connected devices are on TCPIP
+                            bool anyDevices = EnsureUSBConnectedDevicesAreOnTCPIP("ADB server started notification");
+
+                            // If the server isn't in fact connected to ANYONE (maybe the server stopped
+                            // while no USB device was connected; closing Android Studio stops the server)
+                            // then try to connect it to the last TCPIP device we used
+                            if (!anyDevices)
+                                {
+                                ReconnectToLastTCPIPDevice();
+                                }
+                            }
+                        });
+                    };
+
+                this.eventRaiser.DeviceArrived        += OnDeviceArrived;
+                this.eventRaiser.DeviceRemoveComplete += OnDeviceRemoveComplete;
+
+                foreach (Guid guid in this.deviceInterfacesOfInterest)
+                    {
+                    GetUSBDeviceNotificationsFor(guid);
+                    }
+
+                this.IgnoreADBExceptionsDuring(() => EnsureUSBConnectedDevicesAreOnTCPIP("BotBug start"));
+                
+                this.started = true;
+                }
+            catch (Exception)
+                {
+                Stop();
+                throw;
+                }
+
+            }
+
+        public void Stop()
+            {
+            this.started = false;
+
+            this.ReleaseDeviceNotificationHandles();
+
+            this.eventRaiser.DeviceArrived        -= OnDeviceArrived;
+            this.eventRaiser.DeviceRemoveComplete -= OnDeviceRemoveComplete;
+
+            this.bridge?.StopTracking();
+            this.bridge = null;
+            }
+
+        //-----------------------------------------------------------------------------------------
+        // ADB
+        //-----------------------------------------------------------------------------------------
+        
+        void IgnoreADBExceptionsDuring(Action action)
+            {
+            try
+                {
+                action.Invoke();
+                }
+            catch (Exception ex) when (IsADBIOException(ex))
+                {
+                // Talking to ADB can throw exceptions, depending on how ADB server comes and goes, etc.
+                // We ignore those in the expectation that Managed.ADB will repair those and make us whole again
+                this.tracer.Trace($"ADB exception ignored: {ex}");
+                }
+            }
+
+        bool IsADBIOException(Exception e)
+        // We don't have a full enumeration of all exceptions that ADB may ACTUALLY throw, 
+        // so we are conservative
+            {
+            return true;
+            }
+        
+        bool EnsureUSBConnectedDevicesAreOnTCPIP(string reason)
+        // Iterate over all the extant Android devices (that ADB knows about) and make sure that each
+        // one of them is listening on TCPIP. This method is idempotent, so you can call it as often
+        // and as frequently as you like. Answer as to whether there were any devices known about by
+        // the ADB server.
+            {
+            bool result = false;
+
+            // We synchronize for paranoid reasons: we're not SURE we can be be called on
+            // a whole range of threads, possibly simultaneously, but why take the chance?
+            lock (this.deviceConnectionLock)
+                {
+                this.tracer.Trace("------");
+                this.tracer.Trace($"EnsureAdbDevicesAreOnTCPIP({reason})");
+
+                // Keep track of which devices are already listening as we want them to be
+                HashSet<string> ipAddressesAlreadyListening = new HashSet<string>(); 
+
+                // Get ourselves the list of extant devices
+                List<Device> devices = AdbHelper.Instance.GetDevices(AndroidDebugBridge.AdbServerSocketAddress);
+
+                // Iterate over that list, finding out who is already listening
+                this.tracer.Trace($"   current devices:");
+                foreach (Device device in devices)
+                    {
+                    // Yes, the server knows about devices
+                    result = true;
+                    this.tracer.Trace($"      serialNumber:{device.SerialNumber}");
+
+                    // If the device doesn't have an IP address, we can't do anything
+                    if (device.IpAddress != null)
+                        {
+                        // Is this guy already listening as we want him to?
+                        if (device.IsOnTCPIP)
+                            {
+                            ipAddressesAlreadyListening.Add(device.IpAddress);
+                            }
+                        }
+                    }
+
+                // Iterate again over that list, ensuring that any that are not listening start to do so
+                foreach (Device device in devices)
+                    {
+                    string ipAddress = device.IpAddress;
+                    if (ipAddress == null)
+                        {
+                        // If the device doesn't have an IP address, we can't do anything
+                        NotifyNoIpAddress(device);
+                        }
+                    else if (!ipAddressesAlreadyListening.Contains(ipAddress))
+                        {
+                        // If he's not already listening, connect him
+                        RestartAndConnect(device);
+                        }
+                    }
+                }
+
+            return result;
+            }
+
+        void RestartAndConnect(Device device)
+            {
+            string ipAddress = device.IpAddress;
+
+            // Restart the device listening on a port of interest
+            this.tracer.Trace($"   restarting {device.SerialNumber} in TCPIP mode at {ipAddress}");
+            int portNumber = 5555;
+            AdbHelper.Instance.TcpIp(portNumber, AndroidDebugBridge.AdbServerSocketAddress, device);
+                    
+            // Give it a chance to restart. The actual time used here is a total guess, but
+            // it does seem to work. Mostly (?).
+            Thread.Sleep(1000);
+
+            // Connect to the TCPIP version of that device
+            this.tracer.Trace($"   connecting to restarted {ipAddress} device");
+            AdbHelper.Instance.Connect(AndroidDebugBridge.AdbServerSocketAddress, ipAddress, portNumber);
+
+            this.tracer.Trace($"   connected to {ipAddress}:{portNumber}");
+            NotifyConnected(device, ipAddress, portNumber);
+
+            // Remember to whom we last connected for later ADB Server restarts
+            this.lastTCPCIPDevice    = device;
+            this.lastTCPIPIpAddress  = ipAddress;
+            this.lastTCPIPPortNumber = portNumber;
+            }
+
+        void ReconnectToLastTCPIPDevice()
+            {
+            string ipAddress  = this.lastTCPIPIpAddress;
+            int    portNumber = this.lastTCPIPPortNumber;
+
+            this.tracer.Trace($"   reconnecting to {ipAddress} previous device");
+            AdbHelper.Instance.Connect(AndroidDebugBridge.AdbServerSocketAddress, ipAddress, portNumber);
+            NotifyReconnected(this.lastTCPCIPDevice, ipAddress, portNumber);
+            }
+
+        void NotifyNoIpAddress(Device device)
+            {
+            string message = string.Format(Resources.NotifyNoIpAddress, device.SerialNumber);
+            this.sharedMemUIMessageQueue.Write(message, 100);
+            }
+
+        void NotifyConnected(Device device, string ipAddress, int portNumber)
+            {
+            string message = string.Format(Resources.NotifyConnected, device.SerialNumber, ipAddress, portNumber);
+            this.sharedMemUIMessageQueue.Write(message, 100);
+            }
+
+        void NotifyReconnected(Device device, string ipAddress, int portNumber)
+            {
+            string message = string.Format(Resources.NotifyReconnected, device.SerialNumber, ipAddress, portNumber);
+            this.sharedMemUIMessageQueue.Write(message, 100);
+            }
+
+        //-----------------------------------------------------------------------------------------
+        // Win32 Events
+        //-----------------------------------------------------------------------------------------
+
+        unsafe void OnDeviceArrived(object sender, DeviceEventArgs args)
+            {
+            if (args.pHeader->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
+                {
+                DEV_BROADCAST_DEVICEINTERFACE_W* pintf = (DEV_BROADCAST_DEVICEINTERFACE_W*)args.pHeader;
+                Trace("added", pintf);
+                EnsureUSBConnectedDevicesAreOnTCPIP("OnDeviceArrived");
+                }
+            }
+
+        unsafe void OnDeviceRemoveComplete(object sender, DeviceEventArgs args)
+            {
+            if (args.pHeader->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
+                {
+                DEV_BROADCAST_DEVICEINTERFACE_W* pintf = (DEV_BROADCAST_DEVICEINTERFACE_W*)args.pHeader;
+                Trace("removed", pintf);
+                }
+            }
+
+        unsafe void Trace(string message, DEV_BROADCAST_DEVICEINTERFACE_W* pintf)
+            {
+            this.tracer.Trace("{0}: ", message);
+            this.tracer.Trace("    devicePath={0}",     pintf->dbcc_name);
+            this.tracer.Trace("    guid={0}",           pintf->dbcc_classguid);
+            }
+        }
+
+    //===================================================================================================================
+    // Utilities
+    //===================================================================================================================
+    // 
     public interface ITracer
         { 
         void Trace(string format, params object[] args);
@@ -43,283 +398,5 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
         event EventHandler<EventArgs>             DeviceDevNodesChanged;
         }
 
-    public class USBMonitor : IDisposable
-        {
-        //-----------------------------------------------------------------------------------------
-        // State
-        //-----------------------------------------------------------------------------------------
-
-        bool                disposed    = false;
-        IDeviceEvents       eventRaiser = null;
-        ITracer             tracer      = null;
-        bool                started     = false;
-        IntPtr              notificationHandle;
-        bool                notificationHandleIsService;
-
-        readonly object     theLock = new object();
-        List<Guid>          deviceInterfacesOfInterest = null;
-        List<IntPtr>        deviceNotificationHandles = null;
-        AndroidDebugBridge  bridge = null;
-        SharedMemoryStringQueue sharedMemory = null;
-
-        //-----------------------------------------------------------------------------------------
-        // Construction
-        //-----------------------------------------------------------------------------------------
-
-        public USBMonitor(IDeviceEvents eventRaiser, ITracer tracer, IntPtr notificationHandle, bool notificationHandleIsService)
-            {
-            this.eventRaiser = eventRaiser;
-            this.tracer = tracer;
-            this.notificationHandle = notificationHandle;
-            this.notificationHandleIsService = notificationHandleIsService;
-
-            this.sharedMemory = new SharedMemoryStringQueue(true, "BotBug");
-            this.sharedMemory.Initialize();
-            this.sharedMemory.Write(Resources.StartingMessage);
-
-            this.Initialize();
-            }
-
-        ~USBMonitor()
-            {
-            this.Dispose(false);
-            }
-
-        void Initialize()
-            {
-            lock (theLock)
-                {
-                this.deviceInterfacesOfInterest = new List<Guid>();
-                this.deviceNotificationHandles  = new List<IntPtr>();
-                }
-            this.started = false;
-            }
-
-        public void Dispose()
-            {
-            this.Dispose(true);
-            GC.SuppressFinalize(this);
-            }
-
-        protected virtual void Dispose(bool fromUserCode)
-            {
-            if (!disposed)
-                {
-                this.disposed = true;
-                if (fromUserCode)
-                    {
-                    // Called from user's code. Can / should cleanup managed objects
-                    this.sharedMemory?.Write(Resources.StoppingMessage);
-                    this.sharedMemory?.Dispose();
-                    this.sharedMemory = null;
-                    }
-
-                // Called from finalizers (and user code). Avoid referencing other objects
-                this.ReleaseDeviceNotificationHandles();
-                }
-            }
-
-        //-----------------------------------------------------------------------------------------
-        // Device notification management
-        //-----------------------------------------------------------------------------------------
-
-        public void AddDeviceInterfaceOfInterest(Guid guid)
-            {
-            lock (theLock)
-                {
-                this.deviceInterfacesOfInterest.Add(guid);
-                }
-
-            if (this.started)
-                {
-                GetUSBDeviceNotificationsFor(guid);
-                }
-            }
-
-        void GetUSBDeviceNotificationsFor(Guid guidDevInterface)
-            {
-            lock (theLock)
-                {
-                DEV_BROADCAST_DEVICEINTERFACE_MANAGED filter = new DEV_BROADCAST_DEVICEINTERFACE_MANAGED();
-                filter.Initialize(guidDevInterface);
-
-                IntPtr hDeviceNotify = RegisterDeviceNotification(this.notificationHandle, filter, this.notificationHandleIsService ? DEVICE_NOTIFY_SERVICE_HANDLE : DEVICE_NOTIFY_WINDOW_HANDLE);
-                ThrowIfFail(hDeviceNotify);
-
-                this.deviceNotificationHandles.Add(hDeviceNotify);
-                }
-            }
-
-        void ReleaseDeviceNotificationHandles()
-            {
-            lock (theLock)
-                {
-                foreach (IntPtr hDeviceNotify in this.deviceNotificationHandles)
-                    {
-                    UnregisterDeviceNotification(hDeviceNotify);
-                    }
-                this.deviceNotificationHandles = new List<IntPtr>();
-                }
-            }
-
-        public void Start()
-            {
-            try
-                {
-                Log.ThresholdLevel = LogLevel.Debug;
-
-                this.bridge = AndroidDebugBridge.Create();
-                this.bridge.DeviceConnected += (object sender, Org.SwerveRobotics.Tools.ManagedADB.DeviceEventArgs e) =>
-                    {
-                    EnsureAdbDevicesAreOnTCPIP("ADB device connected notification");
-                    };
-                this.bridge.ServerStarted  += (object sender, Org.SwerveRobotics.Tools.ManagedADB.AndroidDebugBridgeEventArgs e) =>
-                    {
-                    EnsureAdbDevicesAreOnTCPIP("ADB server started notification");
-                    };
-
-                this.eventRaiser.DeviceArrived        += OnDeviceArrived;
-                this.eventRaiser.DeviceRemoveComplete += OnDeviceRemoveComplete;
-
-                foreach (Guid guid in this.deviceInterfacesOfInterest)
-                    {
-                    GetUSBDeviceNotificationsFor(guid);
-                    }
-
-                EnsureAdbDevicesAreOnTCPIP("start");
-                
-                this.started = true;
-                }
-            catch (Exception)
-                {
-                Stop();
-                throw;
-                }
-
-            }
-
-        public void Stop()
-            {
-            this.started = false;
-
-            this.ReleaseDeviceNotificationHandles();
-
-            this.eventRaiser.DeviceArrived        -= OnDeviceArrived;
-            this.eventRaiser.DeviceRemoveComplete -= OnDeviceRemoveComplete;
-
-            this.bridge?.StopTracking();
-            this.bridge = null;
-            }
-
-        //-----------------------------------------------------------------------------------------
-        // ADB
-        //-----------------------------------------------------------------------------------------
-
-        object ensureAdbDevicesAreOnTCPIPLock = new object();
-
-        void EnsureAdbDevicesAreOnTCPIP(string reason)
-        // Iterate over all the extant Android devices (that ADB knows about) and make sure that each
-        // one of them is listening on TCPIP. This method is idempotent, so you can call it as often
-        // and as frequently as you like.
-            {
-            // We synchronize for paranoid reasons: we're not SURE we can be be called on
-            // a whole range of threads, possibly simultaneously, but why take the chance?
-            lock (this.ensureAdbDevicesAreOnTCPIPLock)
-                {
-                this.tracer.Trace("------");
-                this.tracer.Trace($"EnsureAdbDevicesAreOnTCPIP({reason})");
-
-                // Keep track of which devices are already listening as we want them to be
-                HashSet<string> ipAddressesAlreadyListening = new HashSet<string>(); 
-
-                // Get ourselves the list of extant devices
-                List<Device> devices = AdbHelper.Instance.GetDevices(AndroidDebugBridge.SocketAddress);
-
-                // A regular expression that matches an IP address
-                const string ipPattern = "[0-9]{1,3}\\.*[0-9]{1,3}\\.*[0-9]{1,3}\\.*[0-9]{1,3}:[0-9]{1,5}";
-
-                // Iterate over that list, finding out who is already listening
-                this.tracer.Trace($"   current devices:");
-                foreach (Device device in devices)
-                    {
-                    // If the device doesn't have an IP address, we can't do anything
-                    if (device.GetIpAddress() == null)
-                        continue;
-
-                    this.tracer.Trace($"      serialNumber:{device.SerialNumber}");
-
-                    // Is this guy already listening as we want him to?
-                    if (device.SerialNumber.IsMatch(ipPattern))
-                        ipAddressesAlreadyListening.Add(device.GetIpAddress());
-                    }
-
-                // Iterate again over that list, ensuring that any that are not listening start to do so
-                foreach (Device device in devices)
-                    {
-                    string ipAddress = device.GetIpAddress();
-
-                    // If the device doesn't have an IP address, we can't do anything
-                    if (ipAddress == null)
-                        continue;
-
-                    // If he's already listening, we're good
-                    if (ipAddressesAlreadyListening.Contains(ipAddress))
-                        continue;
-
-                    // Restart the device listening on a port of interest
-                    this.tracer.Trace($"   restarting {device.SerialNumber} in TCPIP mode at {ipAddress}");
-                    int portNumber = 5555;
-                    AdbHelper.Instance.TcpIp(portNumber, AndroidDebugBridge.SocketAddress, device);
-                    
-                    // Give it a chance to restart. The actual time used here is a total guess, but
-                    // it does seem to work. Mostly (?).
-                    Thread.Sleep(1000);
-
-                    // Connect to the TCPIP version of that device
-                    this.tracer.Trace($"   connecting to restarted {ipAddress} device");
-                    AdbHelper.Instance.Connect(ipAddress, portNumber, AndroidDebugBridge.SocketAddress);
-
-                    this.tracer.Trace($"   connected to {ipAddress}");
-                    NotifyConnected(device);
-                    }
-                }
-            }
-
-        void NotifyConnected(Device device)
-            {
-            string message = string.Format(Resources.ConnectionNotificationString, device.SerialNumber, device.GetIpAddress());
-            this.sharedMemory.Write(message, 100);
-            }
-
-        //-----------------------------------------------------------------------------------------
-        // Win32 Events
-        //-----------------------------------------------------------------------------------------
-
-        unsafe void OnDeviceArrived(object sender, DeviceEventArgs args)
-            {
-            if (args.pHeader->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
-                {
-                DEV_BROADCAST_DEVICEINTERFACE_W* pintf = (DEV_BROADCAST_DEVICEINTERFACE_W*)args.pHeader;
-                Trace("added", pintf);
-                EnsureAdbDevicesAreOnTCPIP("OnDeviceArrived");
-                }
-            }
-
-        unsafe void OnDeviceRemoveComplete(object sender, DeviceEventArgs args)
-            {
-            if (args.pHeader->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
-                {
-                DEV_BROADCAST_DEVICEINTERFACE_W* pintf = (DEV_BROADCAST_DEVICEINTERFACE_W*)args.pHeader;
-                Trace("removed", pintf);
-                }
-            }
-
-        unsafe void Trace(string message, DEV_BROADCAST_DEVICEINTERFACE_W* pintf)
-            {
-            this.tracer.Trace("{0}: ", message);
-            this.tracer.Trace("    devicePath={0}",     pintf->dbcc_name);
-            this.tracer.Trace("    guid={0}",           pintf->dbcc_classguid);
-            }
-        }
     }
 

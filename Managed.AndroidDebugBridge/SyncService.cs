@@ -233,7 +233,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB {
 		/// </summary>
 		/// <param name="device">The device.</param>
 		public SyncService ( Device device )
-			: this ( AndroidDebugBridge.SocketAddress, device ) {
+			: this ( AndroidDebugBridge.AdbServerSocketAddress, device ) {
 
 		}
 

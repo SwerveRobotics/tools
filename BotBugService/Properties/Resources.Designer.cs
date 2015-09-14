@@ -61,11 +61,29 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Connected {0} on {1}.
+        ///   Looks up a localized string similar to Connected to phone {0} on {1}:{2}.
         /// </summary>
-        public static string ConnectionNotificationString {
+        public static string NotifyConnected {
             get {
-                return ResourceManager.GetString("ConnectionNotificationString", resourceCulture);
+                return ResourceManager.GetString("NotifyConnected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Phone {0} is not on WIFI.
+        /// </summary>
+        public static string NotifyNoIpAddress {
+            get {
+                return ResourceManager.GetString("NotifyNoIpAddress", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reconnected to phone {0} on {1}:{2}.
+        /// </summary>
+        public static string NotifyReconnected {
+            get {
+                return ResourceManager.GetString("NotifyReconnected", resourceCulture);
             }
         }
         

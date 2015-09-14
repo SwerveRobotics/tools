@@ -79,7 +79,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
         public bool                           HasClients         => this.Clients.Count > 0;
         public PackageManager                 PackageManager     => new PackageManager(this);
         public FileListingService             FileListingService => new FileListingService(this);
-        public RawImage                       Screenshot         => AdbHelper.Instance.GetFrameBuffer(AndroidDebugBridge.SocketAddress, this);
+        public RawImage                       Screenshot         => AdbHelper.Instance.GetFrameBuffer(AndroidDebugBridge.AdbServerSocketAddress, this);
 
         public event EventHandler<EventArgs>  StateChanged;
         public event EventHandler<EventArgs>  BuildInfoChanged;
@@ -285,7 +285,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
 
         public void Reboot(string into)
             {
-            AdbHelper.Instance.Reboot(into, AndroidDebugBridge.SocketAddress, this);
+            AdbHelper.Instance.Reboot(into, AndroidDebugBridge.AdbServerSocketAddress, this);
             }
 
         public void Reboot()
@@ -318,7 +318,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
             {
             get
                 {
-                SyncService syncService = new SyncService(AndroidDebugBridge.SocketAddress, this);
+                SyncService syncService = new SyncService(AndroidDebugBridge.AdbServerSocketAddress, this);
                 if (syncService.Open())
                     {
                     return syncService;
@@ -340,12 +340,12 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
 
         public void ExecuteShellCommand(string command, IShellOutputReceiver receiver, params object[] commandArgs)
             {
-            AdbHelper.Instance.ExecuteRemoteCommand(AndroidDebugBridge.SocketAddress, string.Format(command, commandArgs), this, receiver);
+            AdbHelper.Instance.ExecuteRemoteCommand(AndroidDebugBridge.AdbServerSocketAddress, string.Format(command, commandArgs), this, receiver);
             }
 
         public void ExecuteShellCommand(string command, IShellOutputReceiver receiver, int timeout, params object[] commandArgs)
             {
-            AdbHelper.Instance.ExecuteRemoteCommand(AndroidDebugBridge.SocketAddress, string.Format(command, commandArgs), this, receiver);
+            AdbHelper.Instance.ExecuteRemoteCommand(AndroidDebugBridge.AdbServerSocketAddress, string.Format(command, commandArgs), this, receiver);
             }
 
         public void ExecuteRootShellCommand(string command, IShellOutputReceiver receiver, int timeout)
@@ -365,24 +365,24 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
 
         public void ExecuteRootShellCommand(string command, IShellOutputReceiver receiver, int timeout, params object[] commandArgs)
             {
-            AdbHelper.Instance.ExecuteRemoteRootCommand(AndroidDebugBridge.SocketAddress, string.Format(command, commandArgs), this, receiver, timeout);
+            AdbHelper.Instance.ExecuteRemoteRootCommand(AndroidDebugBridge.AdbServerSocketAddress, string.Format(command, commandArgs), this, receiver, timeout);
             }
 
         public void RunEventLogService(LogReceiver receiver)
             {
-            AdbHelper.Instance.RunEventLogService(AndroidDebugBridge.SocketAddress, this, receiver);
+            AdbHelper.Instance.RunEventLogService(AndroidDebugBridge.AdbServerSocketAddress, this, receiver);
             }
 
         public void RunLogService(string logname, LogReceiver receiver)
             {
-            AdbHelper.Instance.RunLogService(AndroidDebugBridge.SocketAddress, this, logname, receiver);
+            AdbHelper.Instance.RunLogService(AndroidDebugBridge.AdbServerSocketAddress, this, logname, receiver);
             }
 
         public bool CreateForward(int localPort, int remotePort)
             {
             try
                 {
-                return AdbHelper.Instance.CreateForward(AndroidDebugBridge.SocketAddress, this, localPort, remotePort);
+                return AdbHelper.Instance.CreateForward(AndroidDebugBridge.AdbServerSocketAddress, this, localPort, remotePort);
                 }
             catch (IOException e)
                 {
@@ -395,7 +395,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
             {
             try
                 {
-                return AdbHelper.Instance.RemoveForward(AndroidDebugBridge.SocketAddress, this, localPort);
+                return AdbHelper.Instance.RemoveForward(AndroidDebugBridge.AdbServerSocketAddress, this, localPort);
                 }
             catch (IOException e)
                 {

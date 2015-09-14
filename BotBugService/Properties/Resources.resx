@@ -117,14 +117,19 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ConnectionNotificationString" xml:space="preserve">
-    <value>Connected {0} on {1}</value>
+  <data name="NotifyConnected" xml:space="preserve">
+    <value>Connected to phone {0} on {1}:{2}</value>
+  </data>
+  <data name="NotifyNoIpAddress" xml:space="preserve">
+    <value>Phone {0} is not on WIFI</value>
+  </data>
+  <data name="NotifyReconnected" xml:space="preserve">
+    <value>Reconnected to phone {0} on {1}:{2}</value>
   </data>
   <data name="StartingMessage" xml:space="preserve">
     <value>Swerve Tools BotBug has started</value>
   </data>
   <data name="StoppingMessage" xml:space="preserve">
     <value>Swerve Tools BotBug is stopping</value>
-    <comment> </comment>
   </data>
 </root>

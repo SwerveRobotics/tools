@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.Win32;
 using Microsoft.Win32.SafeHandles;
+using Org.SwerveRobotics.Tools.ManagedADB.Exceptions;
 using Org.SwerveRobotics.Tools.Util;
 using static Org.SwerveRobotics.Tools.ManagedADB.Util;
 
@@ -20,24 +21,23 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
         // State
         //---------------------------------------------------------------------------------------
 
-        public  static  IPEndPoint  SocketAddress   { get; private set; }
-        public  static  IPAddress   HostAddress     { get; }
+        public  static  IPEndPoint  AdbServerSocketAddress   { get; private set; }
+        public  static  IPAddress   AdbServerHostAddress     { get; }
+        public  const   int         AdbServerPort   = 5037;
+
         public  const   string      ADB_EXE         = "adb.exe";
         public  const   string      DDMS            = "monitor.bat";
-        public  const   int         ADB_PORT        = 5037;
 
         public          event EventHandler<DeviceEventArgs>              DeviceConnected;
         public          event EventHandler<DeviceEventArgs>              DeviceDisconnected;
         public          event EventHandler<AndroidDebugBridgeEventArgs>  ServerStartedOrReconnected;
         public          event EventHandler<AndroidDebugBridgeEventArgs>  ServerKilled;
 
-        private const   int         ADB_VERSION_MICRO_MIN = 20;
-        private const   int         ADB_VERSION_MICRO_MAX = -1;
         private const   string      ADB_VERSION_PATTERN = "^.*(\\d+)\\.(\\d+)\\.(\\d+)$";
 
-        private         string      pathToAdbExe;
+        private         string        pathToAdbExe;
+        private         Version       localAdbExeVersion;
         public          DeviceTracker deviceTracker;
-        private         bool        versionCheckMatched;
 
         /**
          * Returns the full pathname of the ADB executable.
@@ -139,24 +139,23 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                 throw new FileNotFoundException("unable to locate adb in the specified location");
                 }
 
-            this.pathToAdbExe = pathToAdbExe;
-            CheckAdbVersion();
+            this.pathToAdbExe       = pathToAdbExe;
+            this.localAdbExeVersion = CheckLocalAdbExeVersion(this.pathToAdbExe);
             }
 
         public AndroidDebugBridge() : this(AdbPath)
             {
             }
 
+        // throw on failure
         public static AndroidDebugBridge Create(string pathToAdbExe)
             {
             AndroidDebugBridge result = new AndroidDebugBridge(pathToAdbExe);
-            if (!result.StartTracking())
-                {
-                result = null;
-                }
+            result.StartTracking();
             return result;
             }
 
+        // throw on failure
         public static AndroidDebugBridge Create()
             {
             return Create(AdbPath);
@@ -167,8 +166,8 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
             {
             try
                 {
-                HostAddress     = IPAddress.Loopback;
-                SocketAddress   = new IPEndPoint(HostAddress, ADB_PORT);
+                AdbServerHostAddress     = IPAddress.Loopback;
+                AdbServerSocketAddress   = new IPEndPoint(AdbServerHostAddress, AdbServerPort);
                 }
             catch (ArgumentOutOfRangeException)
                 {
@@ -184,20 +183,19 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
         internal void OnEnsureServerStarted()                 => this.ServerStartedOrReconnected?.Invoke(null, new AndroidDebugBridgeEventArgs(this));
         internal void OnServerKilled()                        => this.ServerKilled?.Invoke(null, new AndroidDebugBridgeEventArgs(this));
 
-        public bool StartTracking()
+        // throws on failure
+        public void StartTracking()
             {
-            if (!this.versionCheckMatched)
-                return false;
+            if (this.localAdbExeVersion == null)
+                throw new InvalidADBVersionException();
 
-            if (!EnsureServerStarted())
-                return false;
+            EnsureSeverStartedVersion(this.localAdbExeVersion.Server);
 
             this.deviceTracker = new DeviceTracker(this);
             this.deviceTracker.StartDeviceTracking();
-
-            return true;
             }
 
+        // never throws
         public void StopTracking()
             {
             if (this.deviceTracker != null)
@@ -207,16 +205,22 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                 }
             }
 
-        /** Queries ADB for its version number and checks it against #MIN_VERSION_NUMBER and MAX_VERSION_NUMBER. */
-        private void CheckAdbVersion()
+        /**
+         * Queries ADB for its version number and checks it against Version.Required. Note that this checks the LOCAL ADB
+         * version number, not the version number of the ADB server which may happen to already be running. If an accept
+         * 
+         * Returns the version of ADB, or null if that can't be found or isn't acceptable.
+         * 
+         * Does not throw.
+         */
+        private static Version CheckLocalAdbExeVersion(string pathToAdbExe)
             {
-            // default is bad check
-            this.versionCheckMatched = false;
+            Version result = null;
             try
                 {
-                Log.d(DDMS, $"Checking '{this.pathToAdbExe} version'");
+                Log.d(DDMS, $"Checking '{pathToAdbExe} version'");
 
-                ProcessStartInfo psi = new ProcessStartInfo(this.pathToAdbExe, "version");
+                ProcessStartInfo psi = new ProcessStartInfo(pathToAdbExe, "version");
                 psi.WindowStyle             = ProcessWindowStyle.Hidden;
                 psi.CreateNoWindow          = true;
                 psi.UseShellExecute         = false;
@@ -244,7 +248,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                 bool versionFound = false;
                 foreach (string line in stdOutput)
                     {
-                    versionFound = ScanVersionLine(line);
+                    versionFound = FindAndCheckVersionLine(line, out result);
                     if (versionFound)
                         break;
                     }
@@ -253,7 +257,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                     {
                     foreach (string line in errorOutput)
                         {
-                        versionFound = ScanVersionLine(line);
+                        versionFound = FindAndCheckVersionLine(line, out result);
                         if (versionFound)
                             break;
                         }
@@ -265,23 +269,26 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                     Log.LogAndDisplay(LogLevel.Error, ADB_EXE, "Failed to parse the output of 'adb version'");
                     }
                 }
-            catch (IOException e)
+            catch (Exception e)
                 {
-                Log.LogAndDisplay(LogLevel.Error, ADB_EXE, "Failed to get the adb version: " + e.Message);
+                Log.LogAndDisplay(LogLevel.Error, ADB_EXE, $"exception checking ADB version: {e.Message}");
                 }
+
+            return result;
             }
 
         /**
-         * Scans a line resulting from 'adb version' for a potential version number. If a version number
-         * is found, it checks the version number against what is expected by this version of ddms.
-         *
+         * Scans a line resulting from 'adb version' for a potential version number. If a version number is found, it checks
+         * the version number against what is expected by this version of ddms.
+         * 
          * @param   line    The line to scan.
          *
          * @return  true if a version number was found (whether it is acceptable or not).
          */
-
-        private bool ScanVersionLine(string line)
+        private static bool FindAndCheckVersionLine(string line, out Version versionOk)
             {
+            versionOk = null;
+
             if (!string.IsNullOrEmpty(line))
                 {
                 Match matcher = Regex.Match(line, ADB_VERSION_PATTERN);
@@ -291,21 +298,16 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                     int minorVersion = int.Parse(matcher.Groups[2].Value);
                     int microVersion = int.Parse(matcher.Groups[3].Value);
 
-                    // check only the micro version for now.
-                    if (microVersion < ADB_VERSION_MICRO_MIN)
+                    Version version = new Version(majorVersion, minorVersion, microVersion);
+
+                    if (version < Version.Required)
                         {
-                        string message = string.Format("Required minimum version of adb: {0}.{1}.{2}. Current version is {0}.{1}.{3}", majorVersion, minorVersion, ADB_VERSION_MICRO_MIN, microVersion);
-                        Log.LogAndDisplay(LogLevel.Error, ADB_EXE, message);
-                        }
-                    else if (ADB_VERSION_MICRO_MAX != -1 && microVersion > ADB_VERSION_MICRO_MAX)
-                        {
-                        string message = string.Format("Required maximum version of adb: {0}.{1}.{2}. Current version is {0}.{1}.{3}",
-                            majorVersion, minorVersion, ADB_VERSION_MICRO_MAX, microVersion);
+                        string message = $"Required minimum version of adb: {Version.Required}. Current version is {version}";
                         Log.LogAndDisplay(LogLevel.Error, ADB_EXE, message);
                         }
                     else
                         {
-                        this.versionCheckMatched = true;
+                        versionOk = version;
                         }
                     return true;
                     }
@@ -313,16 +315,28 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
             return false;
             }
 
+        // throws on failure
+        public void EnsureSeverStartedVersion(int versionRequired)
+            {
+            // If it's the wrong server version, restart, once
+            EnsureServerStarted();
+            int serverVersion = AdbHelper.Instance.GetAdbServerVersion(AdbServerSocketAddress);
+            if (serverVersion != versionRequired)
+                {
+                KillServer();
+                EnsureServerStarted();
+                }
+            }
+
         /**
          * Ensures that the server is started. This will check for the presence of the ADB server
          * and if absent cause it to start running.
-         *
-         * @return  true if it succeeds, false if it fails.
+         * 
+         * Throws on failure
          */
-        public bool EnsureServerStarted()
+        public void EnsureServerStarted()
             {
-            int status = -1;
-            Log.d(DDMS, "'adb start-server' ...");
+            Log.d(DDMS, "EnsureServerStarted() ...");
 
             try
                 {
@@ -338,31 +352,21 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                     {
                     List<string> errorOutput = new List<string>();
                     List<string> stdOutput   = new List<string>();
-                    status = GrabProcessOutput(proc, errorOutput, stdOutput, false /* waitForReaders */);
+                    int exitCode = GrabProcessOutput(proc, errorOutput, stdOutput, false /* waitForReaders */);
+                    if (exitCode != 0)
+                        throw new ProcessErrorExitException(exitCode);
+
+                    // TODO (maybe): Check response?
                     }
-                }
-            catch (IOException ioe)
-                {
-                Log.d(DDMS, "Unable to run 'adb': {0}", ioe.Message);
-                }
-            catch (ThreadInterruptedException ie)
-                {
-                Log.d(DDMS, "Unable to run 'adb': {0}", ie.Message);
                 }
             catch (Exception e)
                 {
-                Log.e(DDMS, e);
+                Log.e(DDMS, $"exception in EnsureServerStarted: {e}");
+                throw;
                 }
 
-            if (status != 0)
-                {
-                Log.w(DDMS, "'adb start-server' failed -- run manually if necessary");
-                return false;
-                }
-
-            Log.d(DDMS, "...'adb start-server' succeeded");
+            Log.d(DDMS, "... EnsureServerStarted() succeeded");
             OnEnsureServerStarted();
-            return true;
             }
 
         public bool KillServer()
@@ -420,7 +424,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
          *
          * @return  the process return code.
          */
-        private int GrabProcessOutput(Process process, List<string> errorOutput, List<string> stdOutput, bool waitforReaders)
+        private static int GrabProcessOutput(Process process, List<string> errorOutput, List<string> stdOutput, bool waitforReaders)
             {
             if (errorOutput == null)
                 throw new ArgumentNullException(nameof(errorOutput));
@@ -507,6 +511,63 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
             // get the return code from the process
             process.WaitForExit();
             return process.ExitCode;
+            }
+
+        //---------------------------------------------------------------------------------------
+        // Types
+        //---------------------------------------------------------------------------------------
+        
+        public class Version
+            {
+            public readonly int Major;      // See ADB_VERSION_MAJOR  in Android sources
+            public readonly int Minor;      // See ADB_VERSION_MINOR  in Android sources
+            public readonly int Server;     // See ADB_SERVER_VERSION in Android sources
+
+            public static Version Required = new Version(1, 0, 32);
+
+            public Version(int major, int minor, int server)
+                {
+                this.Major = major;
+                this.Minor = minor;
+                this.Server = server;
+                }
+
+            public static bool operator >  (Version left, Version right) => !(right < left);
+            public static bool operator >= (Version left, Version right) => !(right <= left);
+            public static bool operator <  (Version left, Version right) => left.CompareLexicographically(right) < 0;
+            public static bool operator <= (Version left, Version right) => left.CompareLexicographically(right) <= 0;
+
+            public int CompareLexicographically(Version him)
+                {
+                if (this.Major < him.Major)
+                    return -1;
+                else if (this.Major == him.Major)
+                    {
+                    if (this.Minor < him.Minor)
+                        return -1;
+                    else if (this.Minor == him.Minor)
+                        {
+                        return this.Server - him.Server;
+                        }
+                    else 
+                        return 1;
+                    }
+                else 
+                    return 1;
+                }
+
+            public override string ToString()
+                {
+                return $"{Major}.{Minor}.{this.Server}";
+                }
+            public override bool Equals(object obj)
+                {
+                return (obj is Version) && (this.CompareLexicographically(obj as Version) == 0);
+                }
+            public override int GetHashCode()
+                {
+                return Major.GetHashCode() ^ Minor.GetHashCode() ^ this.Server.GetHashCode();
+                }
             }
 
         //---------------------------------------------------------------------------------------

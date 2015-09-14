@@ -73,4 +73,17 @@ namespace Org.SwerveRobotics.Tools.ManagedADB.Exceptions
     public class EndOfFileException : AdbException
         {
         }
+
+    public class InvalidADBVersionException : AdbException
+        {
+        }
+
+    public class ProcessErrorExitException : AdbException
+        {
+        public readonly int ExitCode;
+        public ProcessErrorExitException(int exitCode)
+            {
+            this.ExitCode = exitCode;
+            }
+        }
     }

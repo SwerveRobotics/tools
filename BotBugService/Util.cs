@@ -411,11 +411,6 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
         // Misc
         //--------------------------------------------------------------------------------------------
 
-        public static string GetIpAddress(this Org.SwerveRobotics.Tools.ManagedADB.IDevice device)
-            {
-            return device.GetProperty("dhcp.wlan0.ipaddress");
-            }
-
         public static string[] Lines(this string str, StringSplitOptions options = StringSplitOptions.None)
         // Split the string into its various lines, being careful about the various forms of 
         // line endings that exist in the world.

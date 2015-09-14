@@ -67,6 +67,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
         void AcquireSocketLock()    { this.socketLock.AcquireWriterLock(-1); }
         void ReleaseSocketLock()    { this.socketLock.ReleaseWriterLock();   }
 
+        // never throws
         public void StopDeviceTracking()
             {
             if (this.deviceTrackingThread != null)
@@ -113,9 +114,9 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                         this.serverFailedConnects++;
                         if (this.serverFailedConnects > 0)
                             {
+                            this.serverRestarts++;
                             this.bridge.KillServer();
                             this.bridge.EnsureServerStarted();
-                            this.serverRestarts++;
                             }
 
                         if (this.serverRestarts > 1)
@@ -173,7 +174,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
             // Right here we know that Start() hasn't yet returned. Do the interlock and let it return.
             this.startedEvent.Set();
 
-            // Loop until asked to stop
+            // Loop until asked to stop. Do that even in the face of failures and exceptions
             while (!this.stopRequested)
                 {
                 try
@@ -450,7 +451,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
             Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             try
                 {
-                socket.Connect(AndroidDebugBridge.SocketAddress);
+                socket.Connect(AndroidDebugBridge.AdbServerSocketAddress);
                 socket.NoDelay = true;
                 }
             catch (Exception)

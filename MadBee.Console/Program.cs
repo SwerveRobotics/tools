@@ -20,9 +20,7 @@ namespace Org.SwerveRobotics.Tools.MadBeeConsole
 
                 bridge.StartTracking();
 
-                AdbHelper.Instance.Connect("192.168.0.22", 5555, AndroidDebugBridge.SocketAddress);
-
-                System.Console.ReadLine();
+                AdbHelper.Instance.Connect(AndroidDebugBridge.AdbServerSocketAddress, "192.168.0.22", 5555);
                 }
             finally
                 {

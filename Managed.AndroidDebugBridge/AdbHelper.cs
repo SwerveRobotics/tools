@@ -154,13 +154,14 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
             throw new NotImplementedException();
             }
 
+        /** Returns the  version number of the currently running ADB server */
         public int GetAdbServerVersion(IPEndPoint address)
             {
-            byte[] request = FormAdbRequest("host:version");
-            byte[] reply;
-            Socket adbChan = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            try
+            using (Socket adbChan = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
                 {
+                byte[] request = FormAdbRequest("host:version");
+                byte[] reply;
+
                 adbChan.Connect(address);
                 adbChan.Blocking = true;
                 Write(adbChan, request);
@@ -169,26 +170,22 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                 if (!resp.IOSuccess || !resp.Okay)
                     {
                     Log.e(LOGGING_TAG, "Got timeout or unhappy response from ADB fb req: " + resp.Message);
-                    adbChan.Close();
                     return -1;
                     }
-
+                
+                // response is four hex bytes
                 reply = new byte[4];
                 Read(adbChan, reply);
 
                 string lenHex = reply.GetString(DEFAULT_ENCODING);
                 int len = int.Parse(lenHex, NumberStyles.HexNumber);
 
-                // the protocol version.
+                // the server version (NOT the server protocol version)
                 reply = new byte[len];
                 Read(adbChan, reply);
 
                 string sReply = reply.GetString(DEFAULT_ENCODING);
                 return int.Parse(sReply, NumberStyles.HexNumber);
-                }
-            finally
-                {
-                adbChan?.Close();
                 }
             }
 
@@ -339,7 +336,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
             Read(socket, reply);
             resp.IOSuccess      = true;
             resp.Okay           = IsOkay(reply);
-            if (resp.Okay)
+            if (!resp.Okay)
                 readDiagString = true; // look for a reason after the FAIL
 
             // not a loop -- use "while" so we can use "break"
@@ -400,6 +397,8 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
 
         // Read enough data to fill the buffer. Throw
         // if we don't get enough to do that, for whatever reason
+        //
+        // throws: EndOfFileException
         public void Read(Socket socket, byte[] data)
             {
             Read(socket, data, -1, DdmPreferences.Timeout);
@@ -407,6 +406,8 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
 
         // Read length bytes into the buffer. Throw if we don't
         // get enough data to do that, for whatever reason
+        //
+        // throws: EndOfFileException
         public void Read(Socket socket, byte[] data, int length, int timeout)
             {
             int cbExpected = length >=0 ? length : data.Length;
@@ -811,6 +812,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                 }
             }
 
+        /** Asks the device to have it's ADBD daemon listen on the indicated TCPI address */
         public void TcpIp(int port, IPEndPoint adbSockAddr, Device device)
             {
             byte[] request = FormAdbRequest($"tcpip:{port}");
@@ -828,7 +830,8 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                 }
             }
 
-        public bool Connect(string hostNameOrAddress, int port, IPEndPoint adbSockAddr)
+        /** Asks the local ADB server to connect to the indicated device over IP */
+        public bool Connect(IPEndPoint adbSockAddr, string hostNameOrAddress, int port)
         // Returns success/fail
             {
             bool result = false;
