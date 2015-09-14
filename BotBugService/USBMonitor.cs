@@ -285,7 +285,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             // Restart the device listening on a port of interest
             this.tracer.Trace($"   restarting {device.SerialNumber} in TCPIP mode at {ipAddress}");
             int portNumber = 5555;
-            AdbHelper.Instance.TcpIp(portNumber, AndroidDebugBridge.AdbServerSocketAddress, device);
+            AdbHelper.Instance.TcpIp(AndroidDebugBridge.AdbServerSocketAddress, device, portNumber);
                     
             // Give it a chance to restart. The actual time used here is a total guess, but
             // it does seem to work. Mostly (?).

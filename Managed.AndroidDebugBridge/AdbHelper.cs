@@ -813,7 +813,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
             }
 
         /** Asks the device to have it's ADBD daemon listen on the indicated TCPI address */
-        public void TcpIp(int port, IPEndPoint adbSockAddr, Device device)
+        public void TcpIp(IPEndPoint adbSockAddr, Device device, int port)
             {
             byte[] request = FormAdbRequest($"tcpip:{port}");
             using (Socket socket = ExecuteRawSocketCommand(adbSockAddr, device, request))
