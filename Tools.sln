@@ -25,6 +25,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MadBee.Console", "MadBee.Co
 EndProject
 Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "SwerveToolsSetup", "SwerveToolsSetup\SwerveToolsSetup.vdproj", "{13D87483-4EBB-4B1C-8EC2-C724DF95A7CF}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F542C1DC-46FC-4A79-B05C-331EB7447F7A}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
