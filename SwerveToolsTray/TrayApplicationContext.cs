@@ -12,6 +12,7 @@ using static Org.SwerveRobotics.Tools.Util.Util;
 
 namespace Org.SwerveRobotics.Tools.SwerveToolsTray
     {
+    // http://stackoverflow.com/questions/14723843/notifyicon-remains-in-tray-even-after-application-closing-but-disappears-on-mous
     class TrayApplicationContext : ApplicationContext, IDisposable
         {
         //----------------------------------------------------------------------------
