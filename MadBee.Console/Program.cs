@@ -9,25 +9,18 @@ namespace Org.SwerveRobotics.Tools.MadBeeConsole
     {
     class Program
         {
-        public enum Actions
-            {
-            Devices,
-            Monitor,
-            Kill_Server,
-            TCPIP,
-            }
-
         static void Main(string[] arguments)
             {
-            Arguments args = new Arguments(arguments);
             AndroidDebugBridge bridge = new AndroidDebugBridge();
             try {
-                bridge.DeviceConnected      += (sender, e) => System.Console.WriteLine($"Device connected: {e.Device.SerialNumber}\t{e.Device.State}");
-                bridge.DeviceDisconnected   += (sender, e) => System.Console.WriteLine($"Device disconnected: {e.Device.SerialNumber}\t{e.Device.State}");
-                bridge.ServerStarted        += (sender, b) => System.Console.WriteLine($"ADB server started");
-                bridge.ServerKilled         += (sender, b) => System.Console.WriteLine($"ADB server killed");
+                bridge.DeviceConnected              += (sender, e) => System.Console.WriteLine($"Device connected: {e.Device.SerialNumber}\t{e.Device.State}");
+                bridge.DeviceDisconnected           += (sender, e) => System.Console.WriteLine($"Device disconnected: {e.Device.SerialNumber}\t{e.Device.State}");
+                bridge.ServerStartedOrReconnected   += (sender, b) => System.Console.WriteLine($"ADB server started or reconnected");
+                bridge.ServerKilled                 += (sender, b) => System.Console.WriteLine($"ADB server killed");
 
                 bridge.StartTracking();
+
+                AdbHelper.Instance.Connect("192.168.0.22", 5555, AndroidDebugBridge.SocketAddress);
 
                 System.Console.ReadLine();
                 }

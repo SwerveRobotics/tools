@@ -41,6 +41,8 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
         [Obsolete("Use PROP_BUILD_API_LEVEL")] public const string PROP_BUILD_VERSION_NUMBER = PROP_BUILD_API_LEVEL;
 
         private const string RE_EMULATOR_SN             = @"emulator-(\d+)";
+        private const string RE_IPADDR_SN               = "[0-9]{1,3}\\.*[0-9]{1,3}\\.*[0-9]{1,3}\\.*[0-9]{1,3}:[0-9]{1,5}"; // A regular expression that matches an IP address
+
         private const string RE_DEVICELIST_INFO         = @"^([a-z0-9_-]+(?:\s?[\.a-z0-9_-]+)?(?:\:\d{1,})?)\s+(device|offline|unknown|bootloader|recovery|download)(?:\s+product:([\S]+)\s+model\:([\S]+)\s+device\:([\S]+))?$";
         
         private const string LOG_TAG                    = "Device";
@@ -60,27 +62,28 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
         public string                         Product { get; private set; }
         public string                         Model { get; private set; }
         public string                         DeviceProperty { get; private set; }
-        public DeviceState                    State { get; internal set; }
         public Dictionary<string, MountPoint> MountPoints { get; set; }
         public Dictionary<string, string>     Properties { get; }
         public Dictionary<string, string>     EnvironmentVariables { get; }
         public List<IClient>                  Clients { get; }
         public FileSystem                     FileSystem { get; }
         public BusyBox                        BusyBox { get; }
+        public bool                           IsEmulator         => this.SerialNumber.IsMatch(RE_EMULATOR_SN);
+        public bool                           IsOnTCPIP          => this.SerialNumber.IsMatch(RE_IPADDR_SN);
+        public string                         IpAddress          => this.GetProperty("dhcp.wlan0.ipaddress");
+        public DeviceState                    State             { get; internal set; }
+        public bool                           IsOnline           => this.State == DeviceState.Online;
+        public bool                           IsOffline          => this.State == DeviceState.Offline;
+        public bool                           IsBootLoader       => this.State == DeviceState.BootLoader;
+        public bool                           IsRecovery         => this.State == DeviceState.Recovery;
+        public bool                           HasClients         => this.Clients.Count > 0;
+        public PackageManager                 PackageManager     => new PackageManager(this);
+        public FileListingService             FileListingService => new FileListingService(this);
+        public RawImage                       Screenshot         => AdbHelper.Instance.GetFrameBuffer(AndroidDebugBridge.SocketAddress, this);
 
         public event EventHandler<EventArgs>  StateChanged;
         public event EventHandler<EventArgs>  BuildInfoChanged;
         public event EventHandler<EventArgs>  ClientListChanged;
-
-        public bool                           IsOnline { get { return this.State == DeviceState.Online; } }
-        public bool                           IsEmulator { get { return Regex.Match(this.SerialNumber, RE_EMULATOR_SN).Success; } }
-        public bool                           IsOffline { get { return this.State == DeviceState.Offline; } }
-        public bool                           IsBootLoader { get { return this.State == DeviceState.BootLoader; } }
-        public bool                           IsRecovery { get { return this.State == DeviceState.Recovery; } }
-        public bool                           HasClients { get { return this.Clients.Count > 0; } }
-        public PackageManager                 PackageManager { get { return new PackageManager(this); } }
-        public FileListingService             FileListingService { get { return new FileListingService(this); } }
-        public RawImage                       Screenshot { get { return AdbHelper.Instance.GetFrameBuffer(AndroidDebugBridge.SocketAddress, this); } }
 
         //-----------------------------------------------------------------------------------------
         // Construction
@@ -88,18 +91,18 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
 
         public Device(string serial, DeviceState state, string model, string product, string device)
             {
-            this.SerialNumber       = serial;
-            this.State              = state;
+            this.SerialNumber            = serial;
+            this.State                   = state;
+            this.Model                   = model;
+            this.Product                 = product;
+            this.DeviceProperty          = device;
+
             this.MountPoints             = new Dictionary<string, MountPoint>();
             this.Properties              = new Dictionary<string, string>();
             this.EnvironmentVariables    = new Dictionary<string, string>();
             this.Clients                 = new List<IClient>();
             this.FileSystem              = new FileSystem(this);
             this.BusyBox                 = new BusyBox(this);
-
-            this.Model                   = model;
-            this.Product                 = product;
-            this.DeviceProperty          = device;
 
             RetrieveDeviceInfo();
             }

@@ -52,6 +52,7 @@
     <Compile Include="SharedMemoryStringQueue.cs" />
     <Compile Include="ShutdownMonitor.cs" />
     <Compile Include="SingleInstance.cs" />
+    <Compile Include="HandshakeThreadStarter.cs" />
     <Compile Include="Util.cs" />
   </ItemGroup>
   <ItemGroup>

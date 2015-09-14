@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.Win32;
 using Microsoft.Win32.SafeHandles;
+using Org.SwerveRobotics.Tools.Util;
 using static Org.SwerveRobotics.Tools.ManagedADB.Util;
 
 namespace Org.SwerveRobotics.Tools.ManagedADB
@@ -27,7 +28,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
 
         public          event EventHandler<DeviceEventArgs>              DeviceConnected;
         public          event EventHandler<DeviceEventArgs>              DeviceDisconnected;
-        public          event EventHandler<AndroidDebugBridgeEventArgs>  ServerStarted;
+        public          event EventHandler<AndroidDebugBridgeEventArgs>  ServerStartedOrReconnected;
         public          event EventHandler<AndroidDebugBridgeEventArgs>  ServerKilled;
 
         private const   int         ADB_VERSION_MICRO_MIN = 20;
@@ -180,7 +181,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
 
         internal void OnDeviceConnected(DeviceEventArgs e)    => this.DeviceConnected?.Invoke(null, e);
         internal void OnDeviceDisconnected(DeviceEventArgs e) => this.DeviceDisconnected?.Invoke(null, e);
-        internal void OnServerStarted()                       => this.ServerStarted?.Invoke(null, new AndroidDebugBridgeEventArgs(this));
+        internal void OnEnsureServerStarted()                 => this.ServerStartedOrReconnected?.Invoke(null, new AndroidDebugBridgeEventArgs(this));
         internal void OnServerKilled()                        => this.ServerKilled?.Invoke(null, new AndroidDebugBridgeEventArgs(this));
 
         public bool StartTracking()
@@ -188,7 +189,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
             if (!this.versionCheckMatched)
                 return false;
 
-            if (!StartServer())
+            if (!EnsureServerStarted())
                 return false;
 
             this.deviceTracker = new DeviceTracker(this);
@@ -312,7 +313,13 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
             return false;
             }
 
-        public bool StartServer()
+        /**
+         * Ensures that the server is started. This will check for the presence of the ADB server
+         * and if absent cause it to start running.
+         *
+         * @return  true if it succeeds, false if it fails.
+         */
+        public bool EnsureServerStarted()
             {
             int status = -1;
             Log.d(DDMS, "'adb start-server' ...");
@@ -354,7 +361,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                 }
 
             Log.d(DDMS, "...'adb start-server' succeeded");
-            OnServerStarted();
+            OnEnsureServerStarted();
             return true;
             }
 
@@ -416,20 +423,22 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
         private int GrabProcessOutput(Process process, List<string> errorOutput, List<string> stdOutput, bool waitforReaders)
             {
             if (errorOutput == null)
-                throw new ArgumentNullException("errorOutput");
+                throw new ArgumentNullException(nameof(errorOutput));
             if (stdOutput == null)
-                throw new ArgumentNullException("stdOutput");
+                throw new ArgumentNullException(nameof(stdOutput));
 
             // read the lines as they come. if null is returned, it's
             // because the process finished
-            Thread t1 = new Thread(new ThreadStart(delegate
+            HandshakeThreadStarter t1 = new HandshakeThreadStarter("StdErr reader", (starter) =>
                 {
                 // create a buffer to read the stdoutput
                 try
                     {
                     using (StreamReader sr = process.StandardError)
                         {
-                        while (!sr.EndOfStream)
+                        starter.ThreadHasStarted();
+
+                        while (!starter.StopRequested && !sr.EndOfStream)
                             {
                             string line = sr.ReadLine();
                             if (!string.IsNullOrEmpty(line))
@@ -444,16 +453,18 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                     {
                     // do nothing.
                     }
-                }));
+                });
 
-            Thread t2 = new Thread(new ThreadStart(delegate
+            HandshakeThreadStarter t2 = new HandshakeThreadStarter("StdOut reader", (starter) =>
                 {
                 // create a buffer to read the std output
                 try
                     {
                     using (StreamReader sr = process.StandardOutput)
                         {
-                        while (!sr.EndOfStream)
+                        starter.ThreadHasStarted();
+
+                        while (!starter.StopRequested && !sr.EndOfStream)
                             {
                             string line = sr.ReadLine();
                             if (!string.IsNullOrEmpty(line))
@@ -467,7 +478,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                     {
                     // do nothing.
                     }
-                }));
+                });
 
             t1.Start();
             t2.Start();

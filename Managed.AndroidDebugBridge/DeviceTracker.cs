@@ -114,7 +114,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                         if (this.serverFailedConnects > 0)
                             {
                             this.bridge.KillServer();
-                            this.bridge.StartServer();
+                            this.bridge.EnsureServerStarted();
                             this.serverRestarts++;
                             }
 

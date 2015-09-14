@@ -132,6 +132,9 @@ namespace Org.SwerveRobotics.Tools.ManagedADB {
 		/// </value>
 		bool IsEmulator { get; }
 
+        bool IsOnTCPIP { get; }
+        string IpAddress { get; }
+
 		/// <summary>
 		/// Gets a value indicating whether this device is offline.
 		/// </summary>

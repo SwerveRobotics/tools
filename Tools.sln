@@ -17,6 +17,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Util", "Util\Util.csproj", "{F5051E49-157A-4FA7-9339-1F1D992AECC9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Managed.Adb", "Managed.AndroidDebugBridge\Managed.Adb.csproj", "{65473257-E70F-410B-9269-D0C0F771EA87}"
+	ProjectSection(ProjectDependencies) = postProject
+		{F5051E49-157A-4FA7-9339-1F1D992AECC9} = {F5051E49-157A-4FA7-9339-1F1D992AECC9}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MadBee.Console", "MadBee.Console\MadBee.Console.csproj", "{F9A436F4-0606-4326-8607-9EA4D9E6AF18}"
 EndProject

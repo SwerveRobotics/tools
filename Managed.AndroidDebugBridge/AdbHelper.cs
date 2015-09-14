@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using Org.SwerveRobotics.Tools.ManagedADB.Exceptions;
 using Org.SwerveRobotics.Tools.ManagedADB.Logs;
+using Org.SwerveRobotics.Tools.Util;
 using static Org.SwerveRobotics.Tools.ManagedADB.Util;
 
 #pragma warning disable 1591
@@ -251,13 +252,18 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
         // Low level reading and writing
         //----------------------------------------------------------------------------------------------------
 
+        /**
+         * @exception   AdbException    Thrown when an Adb error condition occurs.
+         * @exception   SocketException Thrown when a Socket error condition occurs.
+         * @exception   ObjectDisposedException                              
+         */
         public void Write(Socket socket, byte[] data)
             {
             try
                 {
                 Write(socket, data, -1, DdmPreferences.Timeout);
                 }
-            catch (IOException e)
+            catch (Exception e)
                 {
                 Log.e(LOGGING_TAG, e);
                 throw;
@@ -278,12 +284,10 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
          */
         public void Write(Socket socket, byte[] data, int length, int timeout)
             {
-            int numWaits = 0;
-            int count = -1;
-
             try
                 {
-                count = socket.Send(data, 0, length != -1 ? length : data.Length, SocketFlags.None);
+                int numWaits = 0;
+                int count = socket.Send(data, 0, length != -1 ? length : data.Length, SocketFlags.None);
                 if (count < 0)
                     {
                     throw new EndOfFileException();
@@ -314,16 +318,20 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
 
         public AdbResponse ReadAdbResponse(Socket socket)
             {
-            return ReadAdbResponseInternal(socket, false);
+            return ReadAdbResponseInternal(socket, false, false);
+            }
+        public AdbResponse ReadAdbResponseWithDiagnosis(Socket socket)
+            {
+            return ReadAdbResponseInternal(socket, false, true);
             }
         public AdbResponse ReadAdbResponseNoLogging(Socket socket)
             {
-            return ReadAdbResponseInternal(socket, true);
+            return ReadAdbResponseInternal(socket, true, false);
             }
 
         // Read and parse a response from the ADB server. Throw if we don't
         // get enough data from the server to form a response
-        public AdbResponse ReadAdbResponseInternal(Socket socket, bool suppressLogging)
+        public AdbResponse ReadAdbResponseInternal(Socket socket, bool suppressLogging, bool readDiagString)
             {
             AdbResponse resp = new AdbResponse();
 
@@ -331,7 +339,8 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
             Read(socket, reply);
             resp.IOSuccess      = true;
             resp.Okay           = IsOkay(reply);
-            bool readDiagString = !resp.Okay; // look for a reason after the FAIL
+            if (resp.Okay)
+                readDiagString = true; // look for a reason after the FAIL
 
             // not a loop -- use "while" so we can use "break"
             while (readDiagString)
@@ -805,10 +814,10 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
         public void TcpIp(int port, IPEndPoint adbSockAddr, Device device)
             {
             byte[] request = FormAdbRequest($"tcpip:{port}");
-            using (Socket adbChan = ExecuteRawSocketCommand(adbSockAddr, device, request))
+            using (Socket socket = ExecuteRawSocketCommand(adbSockAddr, device, request))
                 {
                 // Listen for the positive response. We 
-                string response = ReadLine(adbChan);
+                string response = ReadLine(socket);
                 string expectedResponsePrefix = "restarting in TCP mode".ToLowerInvariant();
                 string responsePrefix = response.Substring(0, Math.Min(response.Length, expectedResponsePrefix.Length)).ToLowerInvariant();
                 if (string.IsNullOrEmpty(response) || expectedResponsePrefix != responsePrefix)
@@ -819,8 +828,11 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                 }
             }
 
-        public void Connect(string hostNameOrAddress, int port, IPEndPoint adbSockAddr)
+        public bool Connect(string hostNameOrAddress, int port, IPEndPoint adbSockAddr)
+        // Returns success/fail
             {
+            bool result = false;
+
             string addressAndPort = $"{hostNameOrAddress}:{port}";
             byte[] request = FormAdbRequest($"host:connect:{addressAndPort}");
             using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
@@ -828,7 +840,19 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                 socket.Connect(adbSockAddr);
                 socket.Blocking = true;
                 Write(socket, request);
+
+                // The response is a length-prefixed OKAY string
+                AdbResponse resp = ReadAdbResponseWithDiagnosis(socket);
+                if (resp.IOSuccess && resp.Okay)
+                    {
+                    // The two 'success' cases are
+                    //      "already connected to %s"
+                    //      "connected to %s"
+                    result = "already connected to".IsPrefixOf(resp.Message) || "connected to".IsPrefixOf(resp.Message);
+                    }
                 }
+
+            return result;
             }
 
         private Socket ExecuteRawSocketCommand(IPEndPoint address, Device device, string command)
