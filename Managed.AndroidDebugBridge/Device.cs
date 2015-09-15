@@ -55,9 +55,13 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
         private bool            canSU                = false;
         private BatteryInfo     lastBatteryInfo      = null;
         private DateTime        lastBatteryCheckTime = DateTime.MinValue;
+        private string          usbSerialNumber      = null;
 
         public string                         SerialNumber { get; }
-        public string                         USBSerialNumber { get; set; }     // TODO: if we know it, otherwise null {[ro.boot.serialno, 2a28399]}
+        public string                         USBSerialNumber { 
+                                                    get { return this.GetProperty("ro.boot.serialno") ?? (this.SerialNumberIsUSB ? this.SerialNumber : this.usbSerialNumber); } 
+                                                    set { this.usbSerialNumber = value; }
+                                                    }
         public IPEndPoint                     Endpoint { get; private set; }
         public TransportType                  TransportType { get; private set; }
         public string                         Product { get; private set; }
@@ -95,7 +99,6 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
         public Device(string serial, DeviceState state, string model, string product, string device)
             {
             this.SerialNumber            = serial;
-            this.USBSerialNumber         = this.SerialNumberIsUSB ? serial : null;
             this.State                   = state;
             this.Model                   = model;
             this.Product                 = product;
@@ -210,13 +213,13 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
             return GetProperty(new[] {name});
             }
 
-        public string GetProperty(params string[] name)
+        public string GetProperty(params string[] names)
             {
-            foreach (string item in name)
+            foreach (string name in names)
                 {
-                if (this.Properties.ContainsKey(item))
+                if (this.Properties.ContainsKey(name))
                     {
-                    return this.Properties[item];
+                    return this.Properties[name];
                     }
                 }
 

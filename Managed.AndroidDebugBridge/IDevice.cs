@@ -111,11 +111,11 @@ namespace Org.SwerveRobotics.Tools.ManagedADB {
         /// <summary>
         /// Gets the first property that exists in the array of property names.
         /// </summary>
-        /// <param name="name">The array of property names.</param>
+        /// <param name="names">The array of property names.</param>
         /// <returns>
         /// the value or <code>null</code> if the property does not exist.
         /// </returns>
-        string GetProperty ( params string[] name );
+        string GetProperty ( params string[] names );
 
 		/// <summary>
 		/// Gets a value indicating whether the device is online.

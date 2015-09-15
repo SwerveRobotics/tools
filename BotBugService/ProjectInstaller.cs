@@ -49,42 +49,93 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
         // Operations
         //--------------------------------------------------------------------------------------
 
-        //public override void Install(IDictionary savedState)
-        //    {
-        //    ReportExceptions(() => 
-        //        {
-        //        TraceService("calling Install...");
-        //        base.Install(savedState);
-        //        TraceService("...Install called");
-        //        });
-        //    }
-        //public override void Uninstall(IDictionary savedState)
-        //    {
-        //    ReportExceptions(() => 
-        //        {
-        //        TraceService("calling Uninstall...");
-        //        base.Uninstall(savedState);
-        //        TraceService("...Uninstall called");
-        //        });
-        //    }
-        //public override void Commit(IDictionary savedState)
-        //    {
-        //    ReportExceptions(() => 
-        //        {
-        //        TraceService("calling Commit...");
-        //        base.Commit(savedState);
-        //        TraceService("...Commit called");
-        //        });
-        //    }
-        //public override void Rollback(IDictionary savedState)
-        //    {
-        //    ReportExceptions(() => 
-        //        {
-        //        TraceService("calling Rollback...");
-        //        base.Rollback(savedState);
-        //        TraceService("...Rollback called");
-        //        });
-        //    }
+        public override void Install(IDictionary savedState)
+            {
+            TraceProject("Calling Install...");
+            base.Install(savedState);
+            TraceProject("...Install Called");
+            }
+        public override void Uninstall(IDictionary savedState)
+            {
+            TraceProject("Calling Uninstall...");
+            base.Uninstall(savedState);
+            TraceProject("...Uninstall Called");
+            }
+        public override void Commit(IDictionary savedState)
+            {
+            TraceProject("Calling Commit...");
+            base.Commit(savedState);
+            TraceProject("...Commit called");
+            }
+        public override void Rollback(IDictionary savedState)
+            {
+            TraceProject("Calling Rollback...");
+            base.Rollback(savedState);
+            TraceProject("...Rollback Called");
+            }
+
+        //--------------------------------------------------------------------------------------
+        // Operations
+        //--------------------------------------------------------------------------------------
+
+        private void ProjectInstaller_BeforeInstall(object sender, InstallEventArgs e)
+            {
+            ReportExceptions(() => 
+                {
+                TraceProject("before install");
+                SetInstalling(e, true);
+                });
+            }
+        private void ProjectInstaller_AfterInstall(object sender, InstallEventArgs e)
+            {
+            ReportExceptions(() => 
+                {
+                TraceProject("after install");
+                });
+           }
+        private void ProjectInstaller_BeforeUninstall(object sender, InstallEventArgs e)
+            {
+            ReportExceptions(() => 
+                {
+                TraceProject("before uninstall");
+                SetInstalling(e, false);
+                });
+            }
+        private void ProjectInstaller_AfterUninstall(object sender, InstallEventArgs e)
+            {
+            ReportExceptions(() => 
+                {
+                TraceProject("after uninstall");
+                });
+            }
+        private void ProjectInstaller_BeforeRollback(object sender, InstallEventArgs e)
+            {
+            ReportExceptions(() => 
+                {
+                TraceProject("before rollback");
+                });
+            }
+        private void ProjectInstaller_AfterRollback(object sender, InstallEventArgs e)
+            {
+            ReportExceptions(() => 
+                {
+                TraceProject("after rollback");
+                });
+            }
+        private void ProjectInstaller_Committing(object sender, InstallEventArgs e)
+            {
+            ReportExceptions(() => 
+                {
+                TraceProject("committing");
+                });
+            }
+        private void ProjectInstaller_Committed(object sender, InstallEventArgs e)
+            {
+            ReportExceptions(() => 
+                {
+                TraceProject("committed");
+                });
+            }
 
         //--------------------------------------------------------------------------------------
         // Service events
@@ -96,6 +147,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                 {
                 TraceService("before install");
                 SetInstalling(e, true);
+                StopService();
                 });
             }
         private void OnServiceInstallerOnAfterInstall(object sender, InstallEventArgs e)
@@ -249,7 +301,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             Trace("starting service...");
             using (ServiceController sc = new ServiceController(this.serviceInstaller.ServiceName))
                 {
-                sc.Start();
+                sc.Start();     // may throw
                 }
             Trace("...started");
             }
@@ -274,6 +326,10 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
         void Trace(string message)
             {
             System.Diagnostics.Trace.WriteLine($"BotBug: installer: {message}");
+            }
+        void TraceProject(string message)
+            {
+            Trace($"project: {message}");
             }
         void TraceService(string message)
             {

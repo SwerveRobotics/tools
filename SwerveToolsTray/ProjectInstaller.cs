@@ -48,6 +48,35 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
             }
 
         //--------------------------------------------------------------------------------------
+        // Operations
+        //--------------------------------------------------------------------------------------
+
+        public override void Install(IDictionary savedState)
+            {
+            TraceProject("Calling Install...");
+            base.Install(savedState);
+            TraceProject("...Install Called");
+            }
+        public override void Uninstall(IDictionary savedState)
+            {
+            TraceProject("Calling Uninstall...");
+            base.Uninstall(savedState);
+            TraceProject("...Uninstall Called");
+            }
+        public override void Commit(IDictionary savedState)
+            {
+            TraceProject("Calling Commit...");
+            base.Commit(savedState);
+            TraceProject("...Commit Called");
+            }
+        public override void Rollback(IDictionary savedState)
+            {
+            TraceProject("Calling Rollback...");
+            base.Rollback(savedState);
+            TraceProject("...Rollback Called");
+            }
+
+        //--------------------------------------------------------------------------------------
         // Installation events
         //--------------------------------------------------------------------------------------
 
@@ -55,7 +84,7 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
             {
             ReportExceptions(() => 
                 {
-                Trace("before install");
+                TraceProject("before install");
                 SetInstalling(e, true);
                 });
             }
@@ -64,7 +93,7 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
             {
             ReportExceptions(() => 
                 {
-                Trace("after install");
+                TraceProject("after install");
                 });
             }
 
@@ -72,7 +101,7 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
             {
             ReportExceptions(() => 
                 {
-                Trace("before uninstall");
+                TraceProject("before uninstall");
                 SetInstalling(e, false);
                 StopApplication();
                 });
@@ -82,7 +111,7 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
             {
             ReportExceptions(() => 
                 {
-                Trace("after uninstall");
+                TraceProject("after uninstall");
                 });
             }
 
@@ -90,7 +119,7 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
             {
             ReportExceptions(() => 
                 {
-                Trace("committing");
+                TraceProject("committing");
                 });
             }
 
@@ -98,7 +127,7 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
             {
             ReportExceptions(() => 
                 {
-                Trace("committed");
+                TraceProject("committed");
                 // Finished successful install: start
                 if (Installing(e))
                     StartApplication();
@@ -109,7 +138,7 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
             {
             ReportExceptions(() => 
                 {
-                Trace("before rollback");
+                TraceProject("before rollback");
                 // About to rollback an install: stop
                 if (Installing(e))
                     StopApplication();
@@ -120,7 +149,7 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
             {
             ReportExceptions(() => 
                 {
-                Trace("after rollback");
+                TraceProject("after rollback");
                 // Finished rolling back an uninstall: start
                 if (Uninstalling(e))
                     StartApplication();
@@ -139,7 +168,7 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
                 }
             catch (Exception e)
                 {
-                Trace($"exception ignored: {e}");
+                TraceProject($"exception ignored: {e}");
                 }
             }
        
@@ -150,27 +179,27 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
        
         void StartApplication()
             {
-            Trace("starting application...");
-            Trace($"path={GetExeName()}");
+            TraceProject("starting application...");
+            TraceProject($"path={GetExeName()}");
             System.Diagnostics.Process.Start(GetExeName());
-            Trace("...started");
+            TraceProject("...started");
             }
 
         void StopApplication()
             {
-            Trace("stopping application...");
-            Trace($"path={GetExeName()}");
+            TraceProject("stopping application...");
+            TraceProject($"path={GetExeName()}");
             try {
                 (new ShutdownMonitor(Program.TrayUniquifier)).RequestShutdown();
                 }
             catch (Exception e)
                 {
-                Trace($"StopApplication: exception ignored: {e}");
+                TraceProject($"StopApplication: exception ignored: {e}");
                 }
-            Trace("...stopped");
+            TraceProject("...stopped");
             }
 
-        void Trace(string message)
+        void TraceProject(string message)
             {
             System.Diagnostics.Trace.WriteLine($"BotBug: SwerveToolsTray: installer: {message}");
             }

@@ -65,10 +65,18 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             // 
             // ProjectInstaller
             // 
+            this.Committed += new System.Configuration.Install.InstallEventHandler(this.ProjectInstaller_Committed);
+            this.AfterInstall += new System.Configuration.Install.InstallEventHandler(this.ProjectInstaller_AfterInstall);
+            this.AfterRollback += new System.Configuration.Install.InstallEventHandler(this.ProjectInstaller_AfterRollback);
+            this.AfterUninstall += new System.Configuration.Install.InstallEventHandler(this.ProjectInstaller_AfterUninstall);
+            this.Committing += new System.Configuration.Install.InstallEventHandler(this.ProjectInstaller_Committing);
+            this.BeforeInstall += new System.Configuration.Install.InstallEventHandler(this.ProjectInstaller_BeforeInstall);
+            this.BeforeRollback += new System.Configuration.Install.InstallEventHandler(this.ProjectInstaller_BeforeRollback);
+            this.BeforeUninstall += new System.Configuration.Install.InstallEventHandler(this.ProjectInstaller_BeforeUninstall);
+            // 
             this.Installers.AddRange(new System.Configuration.Install.Installer[] {
             this.serviceProcessInstaller,
             this.serviceInstaller});
-
             }
 
         #endregion

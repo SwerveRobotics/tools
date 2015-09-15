@@ -512,9 +512,9 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                 {
                 result = Encoding.Default.GetString(reply);
                 }
-            catch (DecoderFallbackException uee)
+            catch (DecoderFallbackException e)
                 {
-                Log.e(LOGGING_TAG, uee);
+                Log.e(LOGGING_TAG, e);
                 result = "";
                 }
             return result;
@@ -552,9 +552,10 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                         try {
                             device = Device.CreateFromAdbData(deviceData);
                             }
-                        catch (Exception)
+                        catch (Exception e)
                             {
                             device = null;
+                            Log.e(LOGGING_TAG, e);
                             }
                         if (device != null)
                             {
@@ -563,9 +564,9 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                         }
                     }
                 }
-            catch (Exception)
+            catch (Exception e)
                 {
-                // ignored;
+                Log.e(LOGGING_TAG, e);
                 }
             return result;
             }
