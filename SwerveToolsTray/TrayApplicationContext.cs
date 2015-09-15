@@ -150,13 +150,10 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
                                 if (balloonText.Length > 0)
                                     balloonText.Append("\n");
                                 balloonText.Append(message);
-                                Trace(Program.LoggingTag, $"message: {message}");
                                 }
 
                             // Display them to the user
-                            this.trayIcon.BalloonTipTitle = Resources.TrayIconBalloonTipTitle;
-                            this.trayIcon.BalloonTipText = balloonText.ToString();
-                            this.trayIcon.ShowBalloonTip(10000);
+                            ShowBalloon(balloonText.ToString());
                             }
                         }
                     catch (ThreadInterruptedException)
@@ -170,6 +167,14 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
                 Trace(Program.LoggingTag, "===== ... NotificationThreadLoop stop");
                 }
 
+            }
+
+        void ShowBalloon(string text)
+            {
+            Trace(Program.LoggingTag, $"showing balloon: '{text}'");
+            this.trayIcon.BalloonTipTitle = Resources.TrayIconBalloonTipTitle;
+            this.trayIcon.BalloonTipText = text;
+            this.trayIcon.ShowBalloonTip(10000);
             }
 
         }
