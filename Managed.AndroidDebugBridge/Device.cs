@@ -57,7 +57,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
         private DateTime        lastBatteryCheckTime = DateTime.MinValue;
 
         public string                         SerialNumber { get; }
-        public string                         USBSerialNumber { get; set; }     // if we know it, otherwise null
+        public string                         USBSerialNumber { get; set; }     // TODO: if we know it, otherwise null {[ro.boot.serialno, 2a28399]}
         public IPEndPoint                     Endpoint { get; private set; }
         public TransportType                  TransportType { get; private set; }
         public string                         Product { get; private set; }

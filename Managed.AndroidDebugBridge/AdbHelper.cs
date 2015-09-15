@@ -333,7 +333,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
             AdbResponse resp = new AdbResponse();
 
             byte[] reply = new byte[4];
-            Read(socket, reply);
+            Read(socket, reply);    // throws
             resp.IOSuccess      = true;
             resp.Okay           = IsOkay(reply);
             if (!resp.Okay)
@@ -344,7 +344,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                 {
                 // length string is in next 4 bytes
                 byte[] lenBuf = new byte[4];
-                Read(socket, lenBuf);
+                Read(socket, lenBuf);   // throws
 
                 string lenStr = ReplyToString(lenBuf);
 
@@ -520,23 +520,54 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
             return result;
             }
 
+        /**
+         * Returns the list of devices currently known to the ADB server at the 
+         * indicated endpoint. Never throws; rather, an possibly incomplete list
+         * of devices is returned instead.
+         */
         public List<Device> GetDevices(IPEndPoint address)
             {
-            // -l will return additional data
-            using (Socket socket = ExecuteRawSocketCommand(address, "host:devices-l"))
-                {
-                byte[] reply = new byte[4];
-                Read(socket, reply);
+            List<Device> result = new List<Device>();
 
-                string lenHex = reply.GetString(Encoding.Default);
-                int len = int.Parse(lenHex, NumberStyles.HexNumber);
+            try {
+                // -l will return additional data
+                using (Socket socket = ExecuteRawSocketCommand(address, "host:devices-l"))
+                    {
+                    byte[] reply = new byte[4];
+                    Read(socket, reply);    // throws
 
-                reply = new byte[len];
-                Read(socket, reply);
+                    string lenHex = reply.GetString(Encoding.Default);
+                    int len = int.Parse(lenHex, NumberStyles.HexNumber);
 
-                string[] data = reply.GetString(Encoding.Default).Split(new[] {"\r\n", "\n"}, StringSplitOptions.RemoveEmptyEntries);
-                return data.Select(Device.CreateFromAdbData).ToList();
+                    reply = new byte[len];
+                    Read(socket, reply);    //throws
+
+                    string[] data = reply.GetString(Encoding.Default).Split(new[] {"\r\n", "\n"}, StringSplitOptions.RemoveEmptyEntries);
+                
+                    // Device might disappear before we get to it, which might cause throwing. 
+                    // Ignore in that case: what else could we do? 
+                    foreach (string deviceData in data)
+                        {
+                        Device device;
+                        try {
+                            device = Device.CreateFromAdbData(deviceData);
+                            }
+                        catch (Exception)
+                            {
+                            device = null;
+                            }
+                        if (device != null)
+                            {
+                            result.Add(device);
+                            }
+                        }
+                    }
                 }
+            catch (Exception)
+                {
+                // ignored;
+                }
+            return result;
             }
 
         public RawImage GetFrameBuffer(IPEndPoint adbSockAddr, IDevice device)
