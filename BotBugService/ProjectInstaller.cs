@@ -277,7 +277,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             }
         void TraceService(string message)
             {
-            Trace($"service:        {message}");
+            Trace($"service: {message}");
             }
         void TraceServiceProcess(string message)
             {

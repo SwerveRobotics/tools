@@ -123,7 +123,7 @@
   <data name="NotifyConnectedFail" xml:space="preserve">
     <value>Failed to connected to phone {0} on {1}:{2}</value>
   </data>
-  <data name="NotifyNoIpAddress" xml:space="preserve">
+  <data name="NotifyNotOnNetwork" xml:space="preserve">
     <value>Phone {0} is not on WIFI</value>
   </data>
   <data name="NotifyReconnected" xml:space="preserve">

@@ -112,7 +112,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
          *
          * @return  true if we opened a new socket
          */
-        bool OpenSocketIfNecessary()
+        bool OpenSocketIfNecessary(HandshakeThreadStarter starter)
             {
             bool result = false;
             this.AcquireSocketLock();
@@ -131,8 +131,14 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                         if (this.serverFailedConnects > 0)
                             {
                             this.serverRestarts++;
+
+                            if (starter.StopRequested) return result;
                             this.bridge.KillServer();
+
+                            if (starter.StopRequested) return result;
                             this.bridge.EnsureServerStarted();
+
+                            if (starter.StopRequested) return result;
                             }
 
                         if (this.serverRestarts > 1)
@@ -195,7 +201,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                 {
                 try
                     {
-                    if (OpenSocketIfNecessary())
+                    if (OpenSocketIfNecessary(starter))
                         {
                         // Ask the ADB server to give us device notifications
                         this.IsTrackingDevices = RequestDeviceNotifications();
@@ -296,9 +302,10 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
          */
         private void UpdateDevices(List<Device> newCurrentDevices)
             {
-            Log.d(loggingTag, "---------");
+            Log.d(loggingTag, "---- ADB reports current devices -----");
             foreach (Device device in newCurrentDevices)
-                Log.d(loggingTag, $"device reported: {device.SerialNumber}");
+                Log.d(loggingTag, $"   device:{device.SerialNumber}");
+            Log.d(loggingTag, "----       end report            -----");
 
             lock (this.Devices)
                 {
@@ -398,7 +405,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                     QueryNewDeviceForMountingPoint(device);
 
                     // now get the emulator Virtual Device name (if applicable).
-                    if (device.IsEmulator)
+                    if (device.SerialNumberIsEmulator)
                         {
                         /*EmulatorConsole console = EmulatorConsole.getConsole ( device );
 						if ( console != null ) {

@@ -57,6 +57,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
         private DateTime        lastBatteryCheckTime = DateTime.MinValue;
 
         public string                         SerialNumber { get; }
+        public string                         USBSerialNumber { get; set; }     // if we know it, otherwise null
         public IPEndPoint                     Endpoint { get; private set; }
         public TransportType                  TransportType { get; private set; }
         public string                         Product { get; private set; }
@@ -68,9 +69,11 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
         public List<IClient>                  Clients { get; }
         public FileSystem                     FileSystem { get; }
         public BusyBox                        BusyBox { get; }
-        public bool                           IsEmulator         => this.SerialNumber.IsMatch(RE_EMULATOR_SN);
-        public bool                           IsOnTCPIP          => this.SerialNumber.IsMatch(RE_IPADDR_SN);
-        public string                         IpAddress          => this.GetProperty("dhcp.wlan0.ipaddress");
+        public bool                           SerialNumberIsUSB         => !this.SerialNumberIsEmulator && !this.SerialNumberIsTCPIP;
+        public bool                           SerialNumberIsEmulator    => this.SerialNumber.IsMatch(RE_EMULATOR_SN);
+        public bool                           SerialNumberIsTCPIP       => this.SerialNumber.IsMatch(RE_IPADDR_SN);
+        public string                         IpAddress                 => this.GetProperty("dhcp.wlan0.ipaddress");
+        public bool                           WifiIsOn                  => this.GetProperty("init.svc.dhcpcd_wlan0")=="running";
         public DeviceState                    State             { get; internal set; }
         public bool                           IsOnline           => this.State == DeviceState.Online;
         public bool                           IsOffline          => this.State == DeviceState.Offline;
@@ -92,6 +95,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
         public Device(string serial, DeviceState state, string model, string product, string device)
             {
             this.SerialNumber            = serial;
+            this.USBSerialNumber         = this.SerialNumberIsUSB ? serial : null;
             this.State                   = state;
             this.Model                   = model;
             this.Product                 = product;
@@ -193,7 +197,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
             get { return this.avdName; }
             set
                 {
-                if (!this.IsEmulator)
+                if (!this.SerialNumberIsEmulator)
                     {
                     throw new ArgumentException("Cannot set the AVD name of the device is not an emulator");
                     }

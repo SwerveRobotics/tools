@@ -230,59 +230,86 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             // a whole range of threads, possibly simultaneously, but why take the chance?
             lock (this.deviceConnectionLock)
                 {
-                this.tracer.Trace("------");
-                this.tracer.Trace($"EnsureAdbDevicesAreOnTCPIP({reason})");
+                this.tracer.Trace($"v-----EnsureAdbDevicesAreOnTCPIP({reason})-----v");
 
                 // Keep track of which devices are already listening as we want them to be
-                HashSet<string> ipAddressesAlreadyListening = new HashSet<string>(); 
+                HashSet<string> ipAddressesAlreadyConnectedToAdbServer = new HashSet<string>(); 
+                Dictionary<string,List<Device>> mpIpAddressDevice = new Dictionary<string, List<Device>>();
 
                 // Get ourselves the list of extant devices
-                List<Device> devices = AdbHelper.Instance.GetDevices(AndroidDebugBridge.AdbServerSocketAddress);
+                List<Device> devicesConnectedToAdbServer = AdbHelper.Instance.GetDevices(AndroidDebugBridge.AdbServerSocketAddress);
 
                 // Iterate over that list, finding out who is already listening
-                this.tracer.Trace($"   current devices:");
-                foreach (Device device in devices)
+                foreach (Device device in devicesConnectedToAdbServer)
                     {
                     // Yes, the server knows about devices
                     result = true;
-                    this.tracer.Trace($"      serialNumber:{device.SerialNumber}");
+                    this.tracer.Trace($"   serialNumber:{device.SerialNumber} ipAddress:{device.IpAddress} wifi:{(device.WifiIsOn?"on":"off")}");
 
                     // If the device doesn't have an IP address, we can't do anything
                     if (device.IpAddress != null)
                         {
+                        // Keep track of multiple endpoints of the same device
+                        List<Device> devices;
+                        if (mpIpAddressDevice.TryGetValue(device.IpAddress, out devices))
+                            devices.Add(device);
+                        else
+                            mpIpAddressDevice[device.IpAddress] = new List<Device> { device };
+
                         // Is this guy already listening as we want him to?
-                        if (device.IsOnTCPIP)
+                        if (device.SerialNumberIsTCPIP)
                             {
-                            ipAddressesAlreadyListening.Add(device.IpAddress);
+                            ipAddressesAlreadyConnectedToAdbServer.Add(device.IpAddress);
                             }
                         }
                     }
 
-                // Iterate again over that list, ensuring that any that are not listening start to do so
-                foreach (Device device in devices)
+                // Crosspolinate USB serial numbers. This will be useful for reconnecting to the last device, for example
+                foreach (KeyValuePair<string, List<Device>> pair in mpIpAddressDevice)
                     {
-                    string ipAddress = device.IpAddress;
-                    if (ipAddress == null)
+                    string serialUSB = null;
+                    foreach (Device device in pair.Value)
                         {
-                        // If the device doesn't have an IP address, we can't do anything
-                        NotifyNoIpAddress(device);
+                        if (device.USBSerialNumber != null)
+                            {
+                            serialUSB = device.USBSerialNumber;
+                            break;
+                            }
                         }
-                    else if (!ipAddressesAlreadyListening.Contains(ipAddress))
+                    foreach (Device device in pair.Value)
                         {
-                        // If he's not already listening, connect him
-                        RestartAndConnect(device);
+                        device.USBSerialNumber = serialUSB;
                         }
                     }
-                }
+
+                // Iterate again over that list, ensuring that any that are not listening start to do so
+                foreach (Device device in devicesConnectedToAdbServer)
+                    {
+                    // Connect him if we can
+                    if (device.IpAddress == null || !device.WifiIsOn)
+                        {
+                        // The device doesn't have an IP address or wifi is off, Adb server won't be able to connect
+                        NotifyNotOnNetwork(device);
+                        }
+                    else if (!ipAddressesAlreadyConnectedToAdbServer.Contains(device.IpAddress))
+                        {
+                        // He's not already connected, connect him
+                        TcpipAndConnect(device);
+                        }
+                    }
+
+               this.tracer.Trace($"^-----EnsureAdbDevicesAreOnTCPIP({reason})-----^"); 
+               }
 
             return result;
             }
 
-        void RestartAndConnect(Device device)
+        void TcpipAndConnect(Device device)
             {
             string ipAddress = device.IpAddress;
 
-            // Restart the device listening on a port of interest
+            // Restart the device listening on a port of interest. We don't know if he got there,
+            // as we get no response from the command issued.
             this.tracer.Trace($"   restarting {device.SerialNumber} in TCPIP mode at {ipAddress}");
             int portNumber = 5555;
             AdbHelper.Instance.TcpIp(AndroidDebugBridge.AdbServerSocketAddress, device, portNumber);
@@ -295,7 +322,6 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             this.tracer.Trace($"   connecting to restarted {ipAddress} device");
             if (AdbHelper.Instance.Connect(AndroidDebugBridge.AdbServerSocketAddress, ipAddress, portNumber))
                 {
-                this.tracer.Trace($"   connected to {ipAddress}:{portNumber}");
                 NotifyConnected(Resources.NotifyConnected, device, ipAddress, portNumber);
 
                 // Remember to whom we last connected for later ADB Server restarts
@@ -315,28 +341,31 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             string ipAddress  = this.lastTCPIPIpAddress;
             int    portNumber = this.lastTCPIPPortNumber;
 
-            this.tracer.Trace($"   reconnecting to {ipAddress} previous device");
+            this.tracer.Trace($"   reconnecting to {this.lastTCPCIPDevice.USBSerialNumber} on {ipAddress}:{portNumber}");
             if (AdbHelper.Instance.Connect(AndroidDebugBridge.AdbServerSocketAddress, ipAddress, portNumber))
                 NotifyReconnected(Resources.NotifyReconnected, this.lastTCPCIPDevice, ipAddress, portNumber);
             else
                 NotifyReconnected(Resources.NotifyReconnectedFail, this.lastTCPCIPDevice, ipAddress, portNumber);
             }
 
-        void NotifyNoIpAddress(Device device)
+        void NotifyNotOnNetwork(Device device)
             {
-            string message = string.Format(Resources.NotifyNoIpAddress, device.SerialNumber);
+            string message = string.Format(Resources.NotifyNotOnNetwork, device.USBSerialNumber??device.SerialNumber);
+            this.tracer.Trace($"   {message}");
             this.sharedMemUIMessageQueue.Write(message, 100);
             }
 
         void NotifyConnected(string format, Device device, string ipAddress, int portNumber)
             {
-            string message = string.Format(format, device.SerialNumber, ipAddress, portNumber);
+            string message = string.Format(format, device.USBSerialNumber??device.SerialNumber, ipAddress, portNumber);
+            this.tracer.Trace($"   {message}");
             this.sharedMemUIMessageQueue.Write(message, 100);
             }
 
         void NotifyReconnected(string format, Device device, string ipAddress, int portNumber)
             {
-            string message = string.Format(format, device.SerialNumber, ipAddress, portNumber);
+            string message = string.Format(format, device.USBSerialNumber??device.SerialNumber, ipAddress, portNumber);
+            this.tracer.Trace($"   {message}");
             this.sharedMemUIMessageQueue.Write(message, 100);
             }
 

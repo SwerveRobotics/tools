@@ -81,9 +81,9 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Phone {0} is not on WIFI.
         /// </summary>
-        public static string NotifyNoIpAddress {
+        public static string NotifyNotOnNetwork {
             get {
-                return ResourceManager.GetString("NotifyNoIpAddress", resourceCulture);
+                return ResourceManager.GetString("NotifyNotOnNetwork", resourceCulture);
             }
         }
         

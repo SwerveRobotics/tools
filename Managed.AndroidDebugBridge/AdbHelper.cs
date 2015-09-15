@@ -365,7 +365,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
 
                 resp.Message = ReplyToString(msg);
                 if (!suppressLogging)
-                    Log.e(LOGGING_TAG, "Got reply '{0}', diag='{1}'", ReplyToString(reply), resp.Message);
+                    Log.e(LOGGING_TAG, "reply='{0}', diag='{1}'", ReplyToString(reply), resp.Message);
 
                 break;
                 }
@@ -812,7 +812,9 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                 }
             }
 
-        /** Asks the device to have it's ADBD daemon listen on the indicated TCPI address */
+        /** Asks the device to have it's ADBD daemon listen on the indicated TCPI address     
+          * No error or return is given, as we don't know how to obtain same reliably.
+          */
         public void TcpIp(IPEndPoint adbSockAddr, Device device, int port)
             {
             byte[] request = FormAdbRequest($"tcpip:{port}");
@@ -873,6 +875,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
             return ExecuteRawSocketCommand(address, null, command);
             }
 
+        // throws on socket issues
         private Socket ExecuteRawSocketCommand(IPEndPoint address, Device device, byte[] command)
             {
             if (device != null && !device.IsOnline)

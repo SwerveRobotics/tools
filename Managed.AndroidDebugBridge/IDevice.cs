@@ -130,10 +130,11 @@ namespace Org.SwerveRobotics.Tools.ManagedADB {
 		/// <value>
 		/// 	<c>true</c> if this device is emulator; otherwise, <c>false</c>.
 		/// </value>
-		bool IsEmulator { get; }
+		bool SerialNumberIsEmulator { get; }
 
-        bool IsOnTCPIP { get; }
+        bool SerialNumberIsTCPIP { get; }
         string IpAddress { get; }
+        bool WifiIsOn { get; }
 
 		/// <summary>
 		/// Gets a value indicating whether this device is offline.

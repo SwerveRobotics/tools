@@ -421,6 +421,8 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
         private unsafe bool HandleCommandCallback(int command)
         // Return true if handled
             { 
+            this.HandleCommandCallbackPreHook(command);
+
             fixed (WIN32.SERVICE_STATUS* service_statusRef = &this.status)
                 {
                 if (command == WIN32.SERVICE_CONTROL_INTERROGATE)
@@ -471,7 +473,10 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
 
             return false;
             }
-
+        protected virtual void HandleCommandCallbackPreHook(int command)
+            {
+            // for subclasses
+            }
 
         private unsafe void ServiceCommandCallback(int command)
             {
@@ -572,9 +577,13 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                 this.status.currentState = 2;
                 if (WIN32.SetServiceStatus(this.statusHandle, service_statusRef))
                     {
+                    // Execute the startup work in a separate thread. Not exactly sure why, as 
+                    // we wait until it's fully complete before going on.
                     this.startCompletedSignal = new ManualResetEvent(false);
                     ThreadPool.QueueUserWorkItem(new WaitCallback(this.ServiceQueuedMainCallback), state);
                     this.startCompletedSignal.WaitOne();
+
+                    // Report our status
                     if (!WIN32.SetServiceStatus(this.statusHandle, service_statusRef))
                         {
                         this.WriteEventLogEntry(Res.GetString("StartFailed", new Win32Exception().Message), EventLogEntryType.Error);
@@ -592,8 +601,8 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                 {
                 this.OnStart(args);
                 this.WriteEventLogEntry(Res.GetString("StartSuccessful"));
-                this.status.checkPoint = 0;
-                this.status.waitHint = 0;
+                this.status.checkPoint   = 0;
+                this.status.waitHint     = 0;
                 this.status.currentState = 4;
                 }
             catch (Exception exception)

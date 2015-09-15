@@ -45,6 +45,11 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                 }
             }
 
+        protected override void HandleCommandCallbackPreHook(int command)
+            {
+            Trace($"HandleCommandCallback({command})");
+            }
+
         //------------------------------------------------------------------------------------------
         // USB Notifications
         //------------------------------------------------------------------------------------------
@@ -53,7 +58,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
 
         protected override void OnStart(string[] args)
             {
-            this.Trace("starting");
+            this.Trace("service is starting...");
             //
             try {
                 WIN32.OleInitialize(IntPtr.Zero);
@@ -71,12 +76,12 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                 throw;
                 }
             //
-            this.Trace("started");
+            this.Trace("...service has started");
             }
 
         protected override void OnStop()
             {
-            this.Trace("stopping");
+            this.Trace("service is stopping...");
             //
             if (null != this.usbMonitor)
                 {
@@ -86,7 +91,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                 }
             this.OleUninitialize();
             //
-            this.Trace("stopped");
+            this.Trace("...service has stopped");
             }
 
         protected unsafe override bool ShouldDeferCustomCommandEx(int command, int eventType, IntPtr eventData, IntPtr eventContext)
