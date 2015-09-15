@@ -28,13 +28,13 @@
         "Entry"
         {
         "MsmKey" = "8:_417CA27EB0219A04C8161573CD2600D0"
-        "OwnerKey" = "8:_C9EE96A481164CD38A6B7249DDAB428B"
+        "OwnerKey" = "8:_379CED761849A1F67388DBCD021A7B22"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_417CA27EB0219A04C8161573CD2600D0"
-        "OwnerKey" = "8:_379CED761849A1F67388DBCD021A7B22"
+        "OwnerKey" = "8:_C9EE96A481164CD38A6B7249DDAB428B"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -82,7 +82,7 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_379CED761849A1F67388DBCD021A7B22"
+        "OwnerKey" = "8:_A86589CDF6A64F5DB8F78029D4AE1664"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -94,7 +94,7 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_A86589CDF6A64F5DB8F78029D4AE1664"
+        "OwnerKey" = "8:_379CED761849A1F67388DBCD021A7B22"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -321,11 +321,6 @@
             "AssemblyAsmDisplayName" = "8:ManagedADB, Version=0.5.5735.40599, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_379CED761849A1F67388DBCD021A7B22"
-                    {
-                    "Name" = "8:ManagedADB.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:ManagedADB.dll"
             "TargetName" = "8:"
@@ -352,11 +347,6 @@
             "AssemblyAsmDisplayName" = "8:SwerveToolsUtil, Version=0.5.5735.40599, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_417CA27EB0219A04C8161573CD2600D0"
-                    {
-                    "Name" = "8:SwerveToolsUtil.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:SwerveToolsUtil.dll"
             "TargetName" = "8:"
@@ -542,7 +532,7 @@
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:TRUE"
-        "ProductVersion" = "8:0.5.0"
+        "ProductVersion" = "8:0.51"
         "Manufacturer" = "8:Swerve Robotics"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
@@ -1150,7 +1140,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_A86589CDF6A64F5DB8F78029D4AE1664"
             {
-            "SourcePath" = "8:..\\SwerveToolsTray\\obj\\Debug\\SwerveToolsTray.exe"
+            "SourcePath" = "8:..\\SwerveToolsTray\\obj\\Release\\SwerveToolsTray.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_91B08F9544EE48C4936C8AB67C41C2D4"
@@ -1178,7 +1168,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_C9EE96A481164CD38A6B7249DDAB428B"
             {
-            "SourcePath" = "8:..\\BotBugService\\obj\\Debug\\BotBugService.exe"
+            "SourcePath" = "8:..\\BotBugService\\obj\\Release\\BotBugService.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_91B08F9544EE48C4936C8AB67C41C2D4"
