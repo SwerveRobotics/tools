@@ -201,7 +201,7 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
 
         void TraceProject(string message)
             {
-            System.Diagnostics.Trace.WriteLine($"BotBug: SwerveToolsTray: installer: {message}");
+            System.Diagnostics.Trace.WriteLine($"BotBug: installer: tray: {message}");
             }
 
         }
