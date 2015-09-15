@@ -20,21 +20,21 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
         // State
         //--------------------------------------------------------------------------------------
         
-        const string key = "installing";
+        const string keyInstalling = "installing";
+        const string keyRunning    = "serviceWasRunning";
 
         void SetInstalling(InstallEventArgs e, bool value)
             {
-            e.SavedState[key] = value;
+            e.SavedState[keyInstalling] = value;
+            }
+        void SetServiceWasRunning(InstallEventArgs e, bool value)
+            {
+            e.SavedState[keyRunning] = value;
             }
 
-        bool Installing(InstallEventArgs e)
-            {
-            return e.SavedState.Contains(key) && ((bool)e.SavedState[key]);
-            }
-        bool Uninstalling(InstallEventArgs e)
-            {
-            return !Installing(e);
-            }
+        bool ServiceWasRunning(InstallEventArgs e) => e.SavedState.Contains(keyRunning) && ((bool)e.SavedState[keyRunning]);
+        bool        Installing(InstallEventArgs e) => e.SavedState.Contains(keyInstalling) && ((bool)e.SavedState[keyInstalling]);
+        bool      Uninstalling(InstallEventArgs e) => !Installing(e);
 
         //--------------------------------------------------------------------------------------
         // Construction
@@ -147,6 +147,11 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                 {
                 TraceService("before install");
                 SetInstalling(e, true);
+                
+                // Remember whether the service was running, then stop it.
+                // All because having the service running during a setup
+                // just isn't a good thing.
+                SetServiceWasRunning(e, ServiceIsRunning());
                 StopService();
                 });
             }
@@ -163,6 +168,11 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                 {
                 TraceService("before uninstall");
                 SetInstalling(e, false);
+
+                // Remember whether the service was running, then stop it.
+                // All because having the service running during a setup 
+                // just isn't a good thing.
+                SetServiceWasRunning(e, ServiceIsRunning());
                 StopService();
                 });
             }
@@ -171,6 +181,35 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             ReportExceptions(() => 
                 {
                 TraceService("after uninstall");
+                });
+            }
+
+        private void OnServiceInstallerOnBeforeRollback(object sender, InstallEventArgs e)
+            {
+            ReportExceptions(() => 
+                {
+                TraceService("before rollback");
+                });
+            }
+        private void OnServiceInstallerOnAfterRollback(object sender, InstallEventArgs e)
+            {
+            ReportExceptions(() => 
+                {
+                TraceService("after rollback");
+                if (Installing(e))
+                    {
+                    // Rolling back an install: set the service state to what it
+                    // was before we came in here.
+                    if (ServiceWasRunning(e))
+                        StartService();
+                    else
+                        StopService();
+                    }
+                else
+                    {
+                    // Does this ever happen?
+                    TraceService("**** unexpected: rolling back an uninstall ****");
+                    }
                 });
             }
 
@@ -188,26 +227,6 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                 TraceService("committed");
                 // Finished successful install: start
                 if (Installing(e))
-                    StartService();
-                });
-            }
-        private void OnServiceInstallerOnBeforeRollback(object sender, InstallEventArgs e)
-            {
-            ReportExceptions(() => 
-                {
-                TraceService("before rollback");
-                // About to rollback an install: stop
-                if (Installing(e))
-                    StopService();
-                });
-            }
-        private void OnServiceInstallerOnAfterRollback(object sender, InstallEventArgs e)
-            {
-            ReportExceptions(() => 
-                {
-                TraceService("after rollback");
-                // Finished rolling back an uninstall: start
-                if (Uninstalling(e))
                     StartService();
                 });
             }
@@ -294,6 +313,27 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                 {
                 Trace($"exception ignored: {e}");
                 }
+            }
+
+        bool ServiceIsRunning()
+            {
+            bool result = false;
+            Trace("querying service status...");
+            using (ServiceController sc = new ServiceController(this.serviceInstaller.ServiceName))
+                {
+                switch (sc.Status)
+                    {
+                case ServiceControllerStatus.Stopped:
+                case ServiceControllerStatus.StopPending:
+                    result = false;
+                    break;
+                default:
+                    result = true;
+                    break;
+                    }
+                }
+            Trace($"...service is {(result ? "running" : "stopped")} ");
+            return result;
             }
        
         void StartService()
