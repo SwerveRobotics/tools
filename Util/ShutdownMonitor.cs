@@ -38,6 +38,7 @@ namespace Org.SwerveRobotics.Tools.Util
         public void Dispose()
             {
             Dispose(true);
+            GC.SuppressFinalize(this);
             }
         
         protected virtual void Dispose(bool notFinalizer)

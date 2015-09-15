@@ -121,8 +121,13 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
                         }
                     catch (FileNotFoundException)
                         {
+                        Trace(Program.LoggingTag, "service hasn't created shared mem");
                         thrown = true;
                         Thread.Sleep(2000);
+                        }
+                    catch (Exception e)
+                        {
+                        Trace(Program.LoggingTag, $"exception thrown: {e}");
                         }
                     }
 
@@ -133,7 +138,9 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
                     try {
                         // Get messages from writer. This will block until there's
                         // (probably) messages for us to read
+                        Trace(Program.LoggingTag, "waiting for message...");
                         List<string> messages = this.sharedMemory.Read();
+                        Trace(Program.LoggingTag, "...messages received");
                         if (messages.Count > 0)
                             {
                             // Separate the messages with newlines.
@@ -146,9 +153,7 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
                                 }
 
                             // Display them to the user
-                            this.trayIcon.BalloonTipTitle = Resources.TrayIconBalloonTipTitle;
-                            this.trayIcon.BalloonTipText = balloonText.ToString();
-                            this.trayIcon.ShowBalloonTip(10000);
+                            ShowBalloon(balloonText.ToString());
                             }
                         }
                     catch (ThreadInterruptedException)
@@ -162,6 +167,14 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
                 Trace(Program.LoggingTag, "===== ... NotificationThreadLoop stop");
                 }
 
+            }
+
+        void ShowBalloon(string text)
+            {
+            Trace(Program.LoggingTag, $"showing balloon: '{text}'");
+            this.trayIcon.BalloonTipTitle = Resources.TrayIconBalloonTipTitle;
+            this.trayIcon.BalloonTipText = text;
+            this.trayIcon.ShowBalloonTip(10000);
             }
 
         }
