@@ -27,6 +27,7 @@ Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "SwerveToolsSetup", "SwerveT
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F542C1DC-46FC-4A79-B05C-331EB7447F7A}"
 	ProjectSection(SolutionItems) = preProject
+		SwerveToolsSetup\PostBuildEvent.js = SwerveToolsSetup\PostBuildEvent.js
 		README.md = README.md
 	EndProjectSection
 EndProject
