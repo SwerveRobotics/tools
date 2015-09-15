@@ -121,8 +121,13 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
                         }
                     catch (FileNotFoundException)
                         {
+                        Trace(Program.LoggingTag, "service hasn't created shared mem");
                         thrown = true;
                         Thread.Sleep(2000);
+                        }
+                    catch (Exception e)
+                        {
+                        Trace(Program.LoggingTag, $"exception thrown: {e}");
                         }
                     }
 
@@ -133,7 +138,9 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
                     try {
                         // Get messages from writer. This will block until there's
                         // (probably) messages for us to read
+                        Trace(Program.LoggingTag, "waiting for message...");
                         List<string> messages = this.sharedMemory.Read();
+                        Trace(Program.LoggingTag, "...messages received");
                         if (messages.Count > 0)
                             {
                             // Separate the messages with newlines.
@@ -143,6 +150,7 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
                                 if (balloonText.Length > 0)
                                     balloonText.Append("\n");
                                 balloonText.Append(message);
+                                Trace(Program.LoggingTag, $"message: {message}");
                                 }
 
                             // Display them to the user

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Org.SwerveRobotics.Tools.Util;
+using static Org.SwerveRobotics.Tools.Util.Util;
 
 namespace Org.SwerveRobotics.Tools.SwerveToolsTray
     {
@@ -13,7 +14,7 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
         // State
         //----------------------------------------------------------------------------
         
-        public static string LoggingTag     = "BotBugTray";
+        public static string LoggingTag     = "BotBug: tray";
         public static string TrayUniquifier = "SwerveToolsTray";
 
         //----------------------------------------------------------------------------
@@ -23,7 +24,7 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
         [STAThread]
         static void Main()
             {
-            Util.Util.Trace(LoggingTag, "starting SwerveToolsTray...");
+            Trace(LoggingTag, "SwerveToolsTray starting...");
             //
             SingleInstance singleInstance = new SingleInstance(TrayUniquifier);
             if (singleInstance.IsFirstInstance())
@@ -32,8 +33,12 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
                 Application.SetCompatibleTextRenderingDefault(false);
                 Application.Run(new TrayApplicationContext());
                 }
+            else
+                {
+                Trace(LoggingTag, "not first instance");
+                }
             //
-            Util.Util.Trace(LoggingTag, "...exiting SwerveToolsTray");
+            Trace(LoggingTag, "...exiting SwerveToolsTray");
             }
         }
     }
