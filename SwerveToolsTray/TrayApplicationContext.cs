@@ -21,10 +21,8 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
         
         NotifyIcon                  trayIcon;
         SharedMemoryStringQueue     sharedMemory;
-        bool                        stopRequested;
         bool                        disposed;
-        ManualResetEvent            threadStartedEvent;
-        Thread                      notificationThread;
+        HandshakeThreadStarter      threadStarter;
         ShutdownMonitor             shutdownMonitor;
 
         //----------------------------------------------------------------------------
@@ -38,11 +36,13 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
             this.sharedMemory    = new SharedMemoryStringQueue(false, "BotBug");    // uniquifier name must match that in BotBugService
             this.shutdownMonitor = new ShutdownMonitor(Program.TrayUniquifier);
             this.shutdownMonitor.ShutdownEvent += (sender, e) => ShutdownApp();
-            this.shutdownMonitor.StartMonitoring();
+
+            this.threadStarter = new HandshakeThreadStarter("Swerve Tray Notification Thread", this.NotificationThreadLoop);
 
             Application.ApplicationExit += (object sender, EventArgs e) => this.trayIcon.Visible = false;
             this.trayIcon.Visible = true;
 
+            this.shutdownMonitor.StartMonitoring();
             StartBotBugNotificationThread();
             }
         ~TrayApplicationContext()
@@ -85,8 +85,8 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
                     this.shutdownMonitor?.StopMonitoring();
                     }
                 // Called from finalizers (and user code). Avoid referencing other objects.
-                this.sharedMemory?.Dispose();
-                this.sharedMemory = null;
+                this.sharedMemory?.Dispose();  this.sharedMemory = null;
+                this.threadStarter?.Dispose(); this.threadStarter = null;
                 }
             base.Dispose(notFinalizer);
             }
@@ -97,35 +97,23 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
         
         void StartBotBugNotificationThread()
             {
-            this.stopRequested = false;
-            this.threadStartedEvent = new ManualResetEvent(false);
-            this.notificationThread = new Thread(this.NotificationThreadLoop);
-            this.notificationThread.Name = "Swerve Tray Notification Thread";
-            this.notificationThread.Start();
-            this.threadStartedEvent.WaitOne();
+            this.threadStarter.Start();
             }
 
         void StopBotBugNotificationThread()
             {
-            if (this.notificationThread != null)
-                {
-                this.stopRequested = true;
-                this.notificationThread.Interrupt();
-                this.notificationThread.Join();
-                this.notificationThread = null;
-                this.threadStartedEvent.Reset();
-                }
+            this.threadStarter.Stop();
             }
 
-        void NotificationThreadLoop()
+        void NotificationThreadLoop(HandshakeThreadStarter starter)
             {
             Trace(Program.LoggingTag, "===== NotificationThreadLoop start ... ");
             try {
                 // Interlock with StartNotificationThread
-                this.threadStartedEvent.Set();
+                starter.ThreadHasStarted();
 
                 // Spin, waiting for kernel to make the section for us
-                for (bool thrown = true; !this.stopRequested && thrown; )
+                for (bool thrown = true; !starter.StopRequested && thrown; )
                     {
                     try {
                         thrown = false;
@@ -140,7 +128,7 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
 
                 Trace(Program.LoggingTag, "===== NotificationThreadLoop listening");
 
-                while (!this.stopRequested)
+                while (!starter.StopRequested)
                     {
                     try {
                         // Get messages from writer. This will block until there's

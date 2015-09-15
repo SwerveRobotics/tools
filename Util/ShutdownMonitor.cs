@@ -14,9 +14,7 @@ namespace Org.SwerveRobotics.Tools.Util
         //----------------------------------------------------------------------------
 
         EventWaitHandle         shutdownRequestedEvent;
-        Thread                  shutdownMonitorThread;
-        ManualResetEventSlim    shutdownMonitorStartedEvent;
-        bool                    stopRequested;
+        HandshakeThreadStarter  threadStarter;
         bool                    disposed;
 
         public event EventHandler ShutdownEvent;
@@ -27,11 +25,9 @@ namespace Org.SwerveRobotics.Tools.Util
         
         public ShutdownMonitor(string uniquifier)
             {
-            this.shutdownRequestedEvent      = new EventWaitHandle(false, EventResetMode.ManualReset, Util.GlobalName("ShutDownMonitor", uniquifier, "Event"));
-            this.shutdownMonitorStartedEvent = new ManualResetEventSlim(false);   
-            this.stopRequested               = false;
-            this.shutdownMonitorThread       = null;
-            this.disposed                    = false;
+            this.shutdownRequestedEvent = new EventWaitHandle(false, EventResetMode.ManualReset, Util.GlobalName("ShutDownMonitor", uniquifier, "Event"));
+            this.threadStarter          = new HandshakeThreadStarter("ShutdownMonitorThread", ShutdownMonitorThread);
+            this.disposed               = false;
             }
 
         ~ShutdownMonitor()
@@ -56,8 +52,8 @@ namespace Org.SwerveRobotics.Tools.Util
                         StopMonitoring();
                         }
                     }
-                this.shutdownRequestedEvent?.Dispose();
-                this.shutdownMonitorStartedEvent?.Dispose();
+                this.shutdownRequestedEvent?.Dispose();     this.shutdownRequestedEvent = null;
+                this.threadStarter?.Dispose();              this.threadStarter = null;
                 }
             }
 
@@ -83,13 +79,7 @@ namespace Org.SwerveRobotics.Tools.Util
             lock (this)
                 {
                 StopMonitoring();
-                this.stopRequested = false;
-
-                this.shutdownMonitorThread = new Thread(ShutdownMonitorThread);
-                this.shutdownMonitorThread.Name = "ShutdownMonitorThread";
-                this.shutdownMonitorThread.Start();
-
-                this.shutdownMonitorStartedEvent.Wait();
+                this.threadStarter.Start();
                 }
             }
 
@@ -97,20 +87,14 @@ namespace Org.SwerveRobotics.Tools.Util
             {
             lock (this)
                 {
-                if (this.shutdownMonitorThread != null)
-                    {
-                    this.stopRequested = true;
-                    this.shutdownMonitorThread.Interrupt();
-                    this.shutdownMonitorThread.Join();
-                    this.shutdownMonitorThread = null;
-                    }
+                this.threadStarter.Stop();
                 }
             }
 
-        void ShutdownMonitorThread()
+        void ShutdownMonitorThread(HandshakeThreadStarter starter)
             {
-            this.shutdownMonitorStartedEvent.Set();
-            while (!this.stopRequested)
+            starter.ThreadHasStarted();
+            while (!starter.StopRequested)
                 {
                 try {
                     this.shutdownRequestedEvent.WaitOne();

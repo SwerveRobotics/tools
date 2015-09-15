@@ -51,27 +51,39 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
 
         public override void Install(IDictionary savedState)
             {
-            TraceService("calling Install...");
-            base.Install(savedState);
-            TraceService("...Install called");
+            ReportExceptions(() => 
+                {
+                TraceService("calling Install...");
+                base.Install(savedState);
+                TraceService("...Install called");
+                });
             }
         public override void Uninstall(IDictionary savedState)
             {
-            TraceService("calling Uninstall...");
-            base.Uninstall(savedState);
-            TraceService("...Uninstall called");
+            ReportExceptions(() => 
+                {
+                TraceService("calling Uninstall...");
+                base.Uninstall(savedState);
+                TraceService("...Uninstall called");
+                });
             }
         public override void Commit(IDictionary savedState)
             {
-            TraceService("calling Commit...");
-            base.Commit(savedState);
-            TraceService("...Commit called");
+            ReportExceptions(() => 
+                {
+                TraceService("calling Commit...");
+                base.Commit(savedState);
+                TraceService("...Commit called");
+                });
             }
         public override void Rollback(IDictionary savedState)
             {
-            TraceService("calling Rollback...");
-            base.Rollback(savedState);
-            TraceService("...Rollback called");
+            ReportExceptions(() => 
+                {
+                TraceService("calling Rollback...");
+                base.Rollback(savedState);
+                TraceService("...Rollback called");
+                });
             }
 
         //--------------------------------------------------------------------------------------
@@ -80,48 +92,72 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
 
         private void OnServiceInstallerOnBeforeInstall(object sender, InstallEventArgs e)
             {
-            TraceService("before install");
-            SetInstalling(e, true);
+            ReportExceptions(() => 
+                {
+                TraceService("before install");
+                SetInstalling(e, true);
+                });
             }
         private void OnServiceInstallerOnAfterInstall(object sender, InstallEventArgs e)
             {
-            TraceService("after install");
+            ReportExceptions(() => 
+                {
+                TraceService("after install");
+                });
             }
         private void OnServiceInstallerOnBeforeUninstall(object sender, InstallEventArgs e)
             {
-            TraceService("before uninstall");
-            SetInstalling(e, false);
-            StopService();
+            ReportExceptions(() => 
+                {
+                TraceService("before uninstall");
+                SetInstalling(e, false);
+                StopService();
+                });
             }
         private void OnServiceInstallerOnAfterUninstall(object sender, InstallEventArgs e)
             {
-            TraceService("after uninstall");
+            ReportExceptions(() => 
+                {
+                TraceService("after uninstall");
+                });
             }
 
         private void OnServiceInstallerOnCommitting(object sender, InstallEventArgs e)
             {
-            TraceService("committing");
+            ReportExceptions(() => 
+                {
+                TraceService("committing");
+                });
             }
         private void OnServiceInstallerOnCommitted(object sender, InstallEventArgs e)
             {
-            TraceService("committed");
-            // Finished successful install: start
-            if (Installing(e))
-                StartService();
+            ReportExceptions(() => 
+                {
+                TraceService("committed");
+                // Finished successful install: start
+                if (Installing(e))
+                    StartService();
+                });
             }
         private void OnServiceInstallerOnBeforeRollback(object sender, InstallEventArgs e)
             {
-            TraceService("before rollback");
-            // About to rollback an install: stop
-            if (Installing(e))
-                StopService();
+            ReportExceptions(() => 
+                {
+                TraceService("before rollback");
+                // About to rollback an install: stop
+                if (Installing(e))
+                    StopService();
+                });
             }
         private void OnServiceInstallerOnAfterRollback(object sender, InstallEventArgs e)
             {
-            TraceService("after rollback");
-            // Finished rolling back an uninstall: start
-            if (Uninstalling(e))
-                StartService();
+            ReportExceptions(() => 
+                {
+                TraceService("after rollback");
+                // Finished rolling back an uninstall: start
+                if (Uninstalling(e))
+                    StartService();
+                });
             }
 
         //--------------------------------------------------------------------------------------
@@ -130,47 +166,83 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
 
         private void serviceProcessInstaller_BeforeInstall(object sender, InstallEventArgs e)
             {
-            TraceServiceProcess("before install");
+            ReportExceptions(() => 
+                {
+                TraceServiceProcess("before install");
+                });
             }
 
         private void serviceProcessInstaller_AfterInstall(object sender, InstallEventArgs e)
             {
-            TraceServiceProcess("after install");
+            ReportExceptions(() => 
+                {
+                TraceServiceProcess("after install");
+                });
             }
 
         private void serviceProcessInstaller_BeforeUninstall(object sender, InstallEventArgs e)
             {
-            TraceServiceProcess("before uninstall");
+            ReportExceptions(() => 
+                {
+                TraceServiceProcess("before uninstall");
+                });
             }
 
         private void serviceProcessInstaller_AfterUninstall(object sender, InstallEventArgs e)
             {
-            TraceServiceProcess("after uninstall");
+            ReportExceptions(() => 
+                {
+                TraceServiceProcess("after uninstall");
+                });
             }
 
         private void serviceProcessInstaller_Committing(object sender, InstallEventArgs e)
             {
-            TraceServiceProcess("committing");
+            ReportExceptions(() => 
+                {
+                TraceServiceProcess("committing");
+                });
             }
 
         private void serviceProcessInstaller_Committed(object sender, InstallEventArgs e)
             {
-            TraceServiceProcess("committed");
+            ReportExceptions(() => 
+                {
+                TraceServiceProcess("committed");
+                });
             }
 
         private void serviceProcessInstaller_BeforeRollback(object sender, InstallEventArgs e)
             {
-            TraceServiceProcess("before rollback");
+            ReportExceptions(() => 
+                {
+                TraceServiceProcess("before rollback");
+                });
             }
 
         private void serviceProcessInstaller_AfterRollback(object sender, InstallEventArgs e)
             {
-            TraceServiceProcess("after rollback");
+            ReportExceptions(() => 
+                {
+                TraceServiceProcess("after rollback");
+                });
             }
 
         //--------------------------------------------------------------------------------------
         // Utility
         //--------------------------------------------------------------------------------------
+        
+        void ReportExceptions(Action action)
+            {
+            try
+                {
+                action.Invoke();
+                }
+            catch (Exception e)
+                {
+                Trace($"exception ignored: {e}");
+                }
+            }
        
         void StartService()
             {
@@ -192,9 +264,9 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                     sc.Stop();
                     }
                 }
-            catch (Exception)
+            catch (Exception e)
                 {
-                // ignored
+                Trace($"StopService: exception ignored: {e}");
                 }
             Trace("...stopped");
             }

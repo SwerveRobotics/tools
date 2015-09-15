@@ -68,7 +68,11 @@ namespace Org.SwerveRobotics.Tools.Util
         //------------------------------------------------------------------------------
         // Operations
         //------------------------------------------------------------------------------
-        
+
+        /**
+         * Starts the thread going. Blocks until the thread actually runs and calls  
+         * starter.ThreadIsRunning().  
+         */
         public void Start()
             {
             lock (this)
@@ -85,6 +89,19 @@ namespace Org.SwerveRobotics.Tools.Util
                 }
             }
 
+        public bool IsStarted { get { lock (this) { return this.started; } } }
+
+        public void RequestStop()
+            {
+            lock (this)
+                {
+                this.stopRequested = true;
+                }
+            }
+
+        /**
+         *  Stops the thread, if currently running. Blocks until thread terminates.
+         */
         public void Stop()
             {
             lock (this)

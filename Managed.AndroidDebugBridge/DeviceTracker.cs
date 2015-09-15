@@ -7,6 +7,7 @@ using System.IO;
 using System.Net.Sockets;
 using System.Threading;
 using Org.SwerveRobotics.Tools.ManagedADB.Exceptions;
+using Org.SwerveRobotics.Tools.Util;
 
 namespace Org.SwerveRobotics.Tools.ManagedADB
     {
@@ -14,7 +15,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
      * A Device monitor. This connects to the Android Debug Bridge and get device and debuggable
      * process information from it.
      */
-    public class DeviceTracker
+    public class DeviceTracker : IDisposable
         {
         //---------------------------------------------------------------------------------------------
         // State
@@ -27,40 +28,59 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
         private readonly AndroidDebugBridge bridge;
         private int                         serverFailedConnects;
         private int                         serverRestarts;
-        private bool                        stopRequested;
         private Socket                      socketTrackDevices;
-        private Thread                      deviceTrackingThread;
+        private HandshakeThreadStarter      threadStarter;
         private const string                loggingTag   = "DeviceMonitor";
-        private ManualResetEventSlim        startedEvent = new ManualResetEventSlim(false);
         private ReaderWriterLock            socketLock   = new ReaderWriterLock();
+        private bool                        disposed     = false;
 
         //---------------------------------------------------------------------------------------------
-        // Constructoin 
+        // Construction
         // ---------------------------------------------------------------------------------------------
 
         public DeviceTracker(AndroidDebugBridge bridge)
             {
             this.bridge        = bridge;
             this.Devices       = new List<Device>();
-            this.stopRequested = false;
             this.serverFailedConnects = 0;
             this.serverRestarts = 0;
+            this.threadStarter = new HandshakeThreadStarter("Device List Monitor", DeviceTrackingThread);
             }
+
+        ~DeviceTracker()
+            {
+            Dispose(false);
+            }
+
+        public void Dispose()
+            {
+            Dispose(true);
+            }
+
+        protected virtual void Dispose(bool notFromFinalizer)
+            {
+            if (!this.disposed)
+                {
+                this.disposed = true;
+                if (notFromFinalizer)
+                    {
+                    }
+                this.threadStarter?.Dispose();
+                this.threadStarter = null;
+                }
+            }
+
+        //---------------------------------------------------------------------------------------------
+        // Tracking
+        // ---------------------------------------------------------------------------------------------
 
         public void StartDeviceTracking()
             {
             // Paranoia: stop, just in case
             StopDeviceTracking();
-            this.stopRequested = false;
 
             // Start the monitor thread a-going
-            this.deviceTrackingThread = new Thread(new ThreadStart(DeviceTrackingThread));
-            this.deviceTrackingThread.Name = "Device List Monitor";
-            this.deviceTrackingThread.Start();
-
-            // Wait until the thread actually starts; this allows us to shut it down reliably
-            // as we will actually have access to it's socket
-            this.startedEvent.Wait();
+            this.threadStarter.Start();
             }
 
         // A lock for controlling access to the right to set the socket variable
@@ -70,21 +90,18 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
         // never throws
         public void StopDeviceTracking()
             {
-            if (this.deviceTrackingThread != null)
+            if (this.threadStarter.IsStarted)
                 {
                 Log.d(loggingTag, "requesting device tracking stop...");
 
                 // Set the flag for he gets around to lookign
-                this.stopRequested = true;
+                this.threadStarter.RequestStop();
                 
                 // Close the socket to get him out of Receive() if he's there
                 this.CloseSocket(ref socketTrackDevices);
                 
                 // Interrupt the thread just in case there are other waits
-                this.deviceTrackingThread.Interrupt();
-
-                this.deviceTrackingThread.Join();
-                this.deviceTrackingThread = null;
+                this.threadStarter.Stop();
 
                 Log.d(loggingTag, "...device tracking stop request complete");
                 }
@@ -104,7 +121,6 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                 // If we haven't a socket, try to open one
                 if (this.socketTrackDevices == null || !this.socketTrackDevices.Connected)
                     {
-                    Debug.Assert(!this.stopRequested);
                     CloseSocket(ref this.socketTrackDevices);
                     this.socketTrackDevices = ConnectToServer();
                     //
@@ -167,15 +183,15 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                 }
             }
 
-        void DeviceTrackingThread()
+        void DeviceTrackingThread(HandshakeThreadStarter starter)
             {
             Log.d(loggingTag, "::: DeviceTrackingThread started :::");
 
             // Right here we know that Start() hasn't yet returned. Do the interlock and let it return.
-            this.startedEvent.Set();
+            starter.ThreadHasStarted();
 
             // Loop until asked to stop. Do that even in the face of failures and exceptions
-            while (!this.stopRequested)
+            while (!starter.StopRequested)
                 {
                 try
                     {

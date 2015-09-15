@@ -245,71 +245,72 @@ namespace Org.SwerveRobotics.Tools.ManagedADB {
             // this is a asynchronous call.
             // we launch a thread that will do ls and give the listing
             // to the receiver
-            Thread t = new Thread(new ParameterizedThreadStart(delegate (object stateData)
-                {
-                ThreadState state = stateData as ThreadState;
+            throw new NotImplementedException();    // BUG: thread needs handshake
+            //Thread t = new Thread(new ParameterizedThreadStart(delegate (object stateData)
+            //    {
+            //    ThreadState state = stateData as ThreadState;
 
-                DoLS(entry);
+            //    DoLS(entry);
 
-                receiver.SetChildren(state.Entry, state.Entry.Children.ToArray());
+            //    receiver.SetChildren(state.Entry, state.Entry.Children.ToArray());
 
-                FileEntry[] children = state.Entry.Children.ToArray();
-                if (children.Length > 0 && children[0].IsApplicationPackage)
-                    {
-                    Dictionary<string, FileEntry> map = new Dictionary<string, FileEntry>();
-                    foreach (FileEntry child in children)
-                        {
-                        map.Add(child.FullPath, child);
-                        }
+            //    FileEntry[] children = state.Entry.Children.ToArray();
+            //    if (children.Length > 0 && children[0].IsApplicationPackage)
+            //        {
+            //        Dictionary<string, FileEntry> map = new Dictionary<string, FileEntry>();
+            //        foreach (FileEntry child in children)
+            //            {
+            //            map.Add(child.FullPath, child);
+            //            }
 
-                    // call pm.
-                    string command = PM_FULL_LISTING;
-                    try
-                        {
-                        this.Device.ExecuteShellCommand(command, new PackageManagerListingReceiver(map, receiver));
-                        }
-                    catch (IOException e)
-                        {
-                        // adb failed somehow, we do nothing.
-                        Log.e("FileListingService", e);
-                        }
-                    }
+            //        // call pm.
+            //        string command = PM_FULL_LISTING;
+            //        try
+            //            {
+            //            this.Device.ExecuteShellCommand(command, new PackageManagerListingReceiver(map, receiver));
+            //            }
+            //        catch (IOException e)
+            //            {
+            //            // adb failed somehow, we do nothing.
+            //            Log.e("FileListingService", e);
+            //            }
+            //        }
 
 
-                // if another thread is pending, launch it
-                lock (Threads)
-                    {
-                    // first remove ourselves from the list
-                    Threads.Remove(state.Thread);
+            //    // if another thread is pending, launch it
+            //    lock (Threads)
+            //        {
+            //        // first remove ourselves from the list
+            //        Threads.Remove(state.Thread);
 
-                    // then launch the next one if applicable.
-                    if (Threads.Count > 0)
-                        {
-                        Thread ct = Threads[0];
-                        ct.Start(new ThreadState { Thread = ct, Entry = entry });
-                        }
-                    }
+            //        // then launch the next one if applicable.
+            //        if (Threads.Count > 0)
+            //            {
+            //            Thread ct = Threads[0];
+            //            ct.Start(new ThreadState { Thread = ct, Entry = entry });
+            //            }
+            //        }
 
-                }));
-            t.Name = "ls " + entry.FullPath;
+            //    }));
+            //t.Name = "ls " + entry.FullPath;
 
-            // we don't want to run multiple ls on the device at the same time, so we
-            // store the thread in a list and launch it only if there's no other thread running.
-            // the thread will launch the next one once it's done.
-            lock (Threads)
-                {
-                // add to the list
-                Threads.Add(t);
+            //// we don't want to run multiple ls on the device at the same time, so we
+            //// store the thread in a list and launch it only if there's no other thread running.
+            //// the thread will launch the next one once it's done.
+            //lock (Threads)
+            //    {
+            //    // add to the list
+            //    Threads.Add(t);
 
-                // if it's the only one, launch it.
-                if (Threads.Count == 1)
-                    {
-                    t.Start(new ThreadState { Thread = t });
-                    }
-                }
+            //    // if it's the only one, launch it.
+            //    if (Threads.Count == 1)
+            //        {
+            //        t.Start(new ThreadState { Thread = t });
+            //        }
+            //    }
 
-            // and we return null.
-            return null;
+            //// and we return null.
+            //return null;
             }
 
         /// <summary>
@@ -360,11 +361,11 @@ namespace Org.SwerveRobotics.Tools.ManagedADB {
 			/// <summary>
 			/// 
 			/// </summary>
-			public Thread Thread;
+			// public Thread Thread;
 			/// <summary>
 			/// 
 			/// </summary>
-			public FileEntry Entry;
+			// public FileEntry Entry;
 
 		}
 

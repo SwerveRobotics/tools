@@ -53,60 +53,96 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
 
         private void ProjectInstaller_BeforeInstall(object sender, InstallEventArgs e)
             {
-            Trace("before install");
-            SetInstalling(e, true);
+            ReportExceptions(() => 
+                {
+                Trace("before install");
+                SetInstalling(e, true);
+                });
             }
 
         private void ProjectInstaller_AfterInstall(object sender, InstallEventArgs e)
             {
-            Trace("after install");
+            ReportExceptions(() => 
+                {
+                Trace("after install");
+                });
             }
 
         private void ProjectInstaller_BeforeUninstall(object sender, InstallEventArgs e)
             {
-            Trace("before uninstall");
-            SetInstalling(e, false);
-            StopApplication();
+            ReportExceptions(() => 
+                {
+                Trace("before uninstall");
+                SetInstalling(e, false);
+                StopApplication();
+                });
             }
 
         private void ProjectInstaller_AfterUninstall(object sender, InstallEventArgs e)
             {
-            Trace("after uninstall");
+            ReportExceptions(() => 
+                {
+                Trace("after uninstall");
+                });
             }
 
         private void ProjectInstaller_Committing(object sender, InstallEventArgs e)
             {
-            Trace("committing");
+            ReportExceptions(() => 
+                {
+                Trace("committing");
+                });
             }
 
         private void ProjectInstaller_Committed(object sender, InstallEventArgs e)
             {
-            Trace("committed");
-            // Finished successful install: start
-            if (Installing(e))
-                StartApplication();
+            ReportExceptions(() => 
+                {
+                Trace("committed");
+                // Finished successful install: start
+                if (Installing(e))
+                    StartApplication();
+                });
             }
 
         private void ProjectInstaller_BeforeRollback(object sender, InstallEventArgs e)
             {
-            Trace("before rollback");
-            // About to rollback an install: stop
-            if (Installing(e))
-                StopApplication();
+            ReportExceptions(() => 
+                {
+                Trace("before rollback");
+                // About to rollback an install: stop
+                if (Installing(e))
+                    StopApplication();
+                });
             }
 
         private void ProjectInstaller_AfterRollback(object sender, InstallEventArgs e)
             {
-            Trace("after rollback");
-            // Finished rolling back an uninstall: start
-            if (Uninstalling(e))
-                StartApplication();
+            ReportExceptions(() => 
+                {
+                Trace("after rollback");
+                // Finished rolling back an uninstall: start
+                if (Uninstalling(e))
+                    StartApplication();
+                });
             }
 
         //--------------------------------------------------------------------------------------
         // Utility
         //--------------------------------------------------------------------------------------
         
+        void ReportExceptions(Action action)
+            {
+            try
+                {
+                action.Invoke();
+                }
+            catch (Exception e)
+                {
+                Trace($"exception ignored: {e}");
+                }
+            }
+       
         string GetExeName()
             {
             return Assembly.GetExecutingAssembly().Location;
@@ -124,7 +160,13 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
             {
             Trace("stopping application...");
             Trace($"path={GetExeName()}");
-            (new ShutdownMonitor(Program.TrayUniquifier)).RequestShutdown();
+            try {
+                (new ShutdownMonitor(Program.TrayUniquifier)).RequestShutdown();
+                }
+            catch (Exception e)
+                {
+                Trace($"StopApplication: exception ignored: {e}");
+                }
             Trace("...stopped");
             }
 
