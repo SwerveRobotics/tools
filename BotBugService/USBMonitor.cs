@@ -293,15 +293,21 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
 
             // Connect to the TCPIP version of that device
             this.tracer.Trace($"   connecting to restarted {ipAddress} device");
-            AdbHelper.Instance.Connect(AndroidDebugBridge.AdbServerSocketAddress, ipAddress, portNumber);
+            if (AdbHelper.Instance.Connect(AndroidDebugBridge.AdbServerSocketAddress, ipAddress, portNumber))
+                {
+                this.tracer.Trace($"   connected to {ipAddress}:{portNumber}");
+                NotifyConnected(Resources.NotifyConnected, device, ipAddress, portNumber);
 
-            this.tracer.Trace($"   connected to {ipAddress}:{portNumber}");
-            NotifyConnected(device, ipAddress, portNumber);
-
-            // Remember to whom we last connected for later ADB Server restarts
-            this.lastTCPCIPDevice    = device;
-            this.lastTCPIPIpAddress  = ipAddress;
-            this.lastTCPIPPortNumber = portNumber;
+                // Remember to whom we last connected for later ADB Server restarts
+                this.lastTCPCIPDevice    = device;
+                this.lastTCPIPIpAddress  = ipAddress;
+                this.lastTCPIPPortNumber = portNumber;
+                }
+            else
+                {
+                this.tracer.Trace($"   failed to connect to {ipAddress}:{portNumber}");
+                NotifyConnected(Resources.NotifyConnectedFail, device, ipAddress, portNumber);
+                }
             }
 
         void ReconnectToLastTCPIPDevice()
@@ -310,8 +316,10 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             int    portNumber = this.lastTCPIPPortNumber;
 
             this.tracer.Trace($"   reconnecting to {ipAddress} previous device");
-            AdbHelper.Instance.Connect(AndroidDebugBridge.AdbServerSocketAddress, ipAddress, portNumber);
-            NotifyReconnected(this.lastTCPCIPDevice, ipAddress, portNumber);
+            if (AdbHelper.Instance.Connect(AndroidDebugBridge.AdbServerSocketAddress, ipAddress, portNumber))
+                NotifyReconnected(Resources.NotifyReconnected, this.lastTCPCIPDevice, ipAddress, portNumber);
+            else
+                NotifyReconnected(Resources.NotifyReconnectedFail, this.lastTCPCIPDevice, ipAddress, portNumber);
             }
 
         void NotifyNoIpAddress(Device device)
@@ -320,15 +328,15 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             this.sharedMemUIMessageQueue.Write(message, 100);
             }
 
-        void NotifyConnected(Device device, string ipAddress, int portNumber)
+        void NotifyConnected(string format, Device device, string ipAddress, int portNumber)
             {
-            string message = string.Format(Resources.NotifyConnected, device.SerialNumber, ipAddress, portNumber);
+            string message = string.Format(format, device.SerialNumber, ipAddress, portNumber);
             this.sharedMemUIMessageQueue.Write(message, 100);
             }
 
-        void NotifyReconnected(Device device, string ipAddress, int portNumber)
+        void NotifyReconnected(string format, Device device, string ipAddress, int portNumber)
             {
-            string message = string.Format(Resources.NotifyReconnected, device.SerialNumber, ipAddress, portNumber);
+            string message = string.Format(format, device.SerialNumber, ipAddress, portNumber);
             this.sharedMemUIMessageQueue.Write(message, 100);
             }
 

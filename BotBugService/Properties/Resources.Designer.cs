@@ -70,6 +70,15 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to connected to phone {0} on {1}:{2}.
+        /// </summary>
+        public static string NotifyConnectedFail {
+            get {
+                return ResourceManager.GetString("NotifyConnectedFail", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Phone {0} is not on WIFI.
         /// </summary>
         public static string NotifyNoIpAddress {
@@ -84,6 +93,15 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service.Properties {
         public static string NotifyReconnected {
             get {
                 return ResourceManager.GetString("NotifyReconnected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to reconnected to phone {0} on {1}:{2}.
+        /// </summary>
+        public static string NotifyReconnectedFail {
+            get {
+                return ResourceManager.GetString("NotifyReconnectedFail", resourceCulture);
             }
         }
         
