@@ -318,7 +318,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:SwerveToolsUtil, Version=0.51.5736.19390, Culture=neutral, processorArchitecture=MSIL"
+            "AssemblyAsmDisplayName" = "8:SwerveToolsUtil, Version=0.52.5736.19390, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
                     "_38B5812318DF911B00C0B6077A1D78FC"
@@ -409,7 +409,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:ManagedADB, Version=0.51.5736.19390, Culture=neutral, processorArchitecture=MSIL"
+            "AssemblyAsmDisplayName" = "8:ManagedADB, Version=0.52.5736.19390, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
                     "_ADE9D65264837FB206B1EF53569FC9F9"
@@ -542,7 +542,7 @@
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:TRUE"
-        "ProductVersion" = "8:0.51"
+        "ProductVersion" = "8:0.52"
         "Manufacturer" = "8:Swerve Robotics"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
