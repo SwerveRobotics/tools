@@ -130,7 +130,7 @@
     <value>Reconnected to phone {0} on {1}:{2}</value>
   </data>
   <data name="NotifyReconnectedFail" xml:space="preserve">
-    <value>Failed to reconnected to phone {0} on {1}:{2}</value>
+    <value>Failed to reconnect to phone {0} on {1}:{2}</value>
   </data>
   <data name="StartingMessage" xml:space="preserve">
     <value>Swerve Tools BotBug has started</value>

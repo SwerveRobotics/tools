@@ -97,7 +97,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to reconnected to phone {0} on {1}:{2}.
+        ///   Looks up a localized string similar to Failed to reconnect to phone {0} on {1}:{2}.
         /// </summary>
         public static string NotifyReconnectedFail {
             get {
