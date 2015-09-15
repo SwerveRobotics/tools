@@ -148,6 +148,7 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
                         List<string> messages = this.sharedMemory.Read();
                         if (messages.Count > 0)
                             {
+                            // Separate the messages with newlines.
                             StringBuilder balloonText = new StringBuilder();
                             foreach (string message in messages)
                                 {
@@ -156,6 +157,7 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
                                 balloonText.Append(message);
                                 }
 
+                            // Display them to the user
                             this.trayIcon.BalloonTipTitle = Resources.TrayIconBalloonTipTitle;
                             this.trayIcon.BalloonTipText = balloonText.ToString();
                             this.trayIcon.ShowBalloonTip(10000);
