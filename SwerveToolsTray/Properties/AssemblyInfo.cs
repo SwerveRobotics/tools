@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("BotBug Service Monitor")]
+[assembly: AssemblyTitle("Swerve Robotics BotBug Monitor")]
 [assembly: AssemblyDescription("Part of the Swerve Robotics FTC Tools suite")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Swerve Robotics")]

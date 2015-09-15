@@ -51,7 +51,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             // serviceInstaller
             // 
             this.serviceInstaller.Description = "Auto configures FTC robot controllers for wireless debugging";
-            this.serviceInstaller.DisplayName = "BotBug";
+            this.serviceInstaller.DisplayName = "BotBug Service";
             this.serviceInstaller.ServiceName = "BotBug";
             this.serviceInstaller.StartType = System.ServiceProcess.ServiceStartMode.Automatic;
             this.serviceInstaller.Committed += new System.Configuration.Install.InstallEventHandler(this.OnServiceInstallerOnCommitted);
