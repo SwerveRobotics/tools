@@ -49,42 +49,42 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
         // Operations
         //--------------------------------------------------------------------------------------
 
-        public override void Install(IDictionary savedState)
-            {
-            ReportExceptions(() => 
-                {
-                TraceService("calling Install...");
-                base.Install(savedState);
-                TraceService("...Install called");
-                });
-            }
-        public override void Uninstall(IDictionary savedState)
-            {
-            ReportExceptions(() => 
-                {
-                TraceService("calling Uninstall...");
-                base.Uninstall(savedState);
-                TraceService("...Uninstall called");
-                });
-            }
-        public override void Commit(IDictionary savedState)
-            {
-            ReportExceptions(() => 
-                {
-                TraceService("calling Commit...");
-                base.Commit(savedState);
-                TraceService("...Commit called");
-                });
-            }
-        public override void Rollback(IDictionary savedState)
-            {
-            ReportExceptions(() => 
-                {
-                TraceService("calling Rollback...");
-                base.Rollback(savedState);
-                TraceService("...Rollback called");
-                });
-            }
+        //public override void Install(IDictionary savedState)
+        //    {
+        //    ReportExceptions(() => 
+        //        {
+        //        TraceService("calling Install...");
+        //        base.Install(savedState);
+        //        TraceService("...Install called");
+        //        });
+        //    }
+        //public override void Uninstall(IDictionary savedState)
+        //    {
+        //    ReportExceptions(() => 
+        //        {
+        //        TraceService("calling Uninstall...");
+        //        base.Uninstall(savedState);
+        //        TraceService("...Uninstall called");
+        //        });
+        //    }
+        //public override void Commit(IDictionary savedState)
+        //    {
+        //    ReportExceptions(() => 
+        //        {
+        //        TraceService("calling Commit...");
+        //        base.Commit(savedState);
+        //        TraceService("...Commit called");
+        //        });
+        //    }
+        //public override void Rollback(IDictionary savedState)
+        //    {
+        //    ReportExceptions(() => 
+        //        {
+        //        TraceService("calling Rollback...");
+        //        base.Rollback(savedState);
+        //        TraceService("...Rollback called");
+        //        });
+        //    }
 
         //--------------------------------------------------------------------------------------
         // Service events
