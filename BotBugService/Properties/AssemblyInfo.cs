@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("BotBugService")]
+[assembly: AssemblyTitle("BotBug Service")]
 [assembly: AssemblyDescription("Part of the Swerve Robotics FTC Tools suite")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Swerve Robotics")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("141bfe96-621d-4d30-9b23-8748962a870d")]
+[assembly: Guid("a5b9a282-7f1c-4790-9aaf-407b7dec2810")]
 
 // Version information for an assembly consists of the following four values:
 //
