@@ -26,10 +26,21 @@ namespace Org.SwerveRobotics.Tools.Util
 
         public SingleInstance(string uniquifier)
             {
-            this.uniquifier = uniquifier;
-            this.mutex = new Mutex(false, GlobalName("SingleInstance", this.uniquifier, "Mutex"));
-            this.probe = null;
+            this.uniquifier      = uniquifier;
+            this.probe           = null;
             this.isFirstInstance = false;
+            this.mutex           = null;
+
+            // If there's another instance around who happens to be running under an incompatible 
+            // user identity (like SYSTEM vs our 'user') then this may get an access denied. Annoying,
+            // but also an indication that we're not the first instance! A bit of a hack, perhaps, but
+            // not unreasonable.
+            try {
+                this.mutex = new Mutex(false, GlobalName("SingleInstance", this.uniquifier, "Mutex"));
+                }
+            catch (UnauthorizedAccessException)
+                {
+                }
             }
 
         ~SingleInstance()
@@ -65,6 +76,9 @@ namespace Org.SwerveRobotics.Tools.Util
 
         public bool IsFirstInstance()
             {
+            if (this.mutex == null)
+                return false;       // see comment in ctor
+
             if (this.mutex.WaitOneNoExcept()) 
                 {
                 try {
@@ -88,6 +102,7 @@ namespace Org.SwerveRobotics.Tools.Util
                     this.mutex.ReleaseMutex();
                     }
                 }
+    
             return true;    // err on safe side of having process run
             }
         }
