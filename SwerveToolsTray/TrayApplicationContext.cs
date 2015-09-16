@@ -111,7 +111,7 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
             Trace(Program.LoggingTag, "===== NotificationThreadLoop start ... ");
             try {
                 // Interlock with StartNotificationThread
-                starter.ThreadHasStarted();
+                starter.Handshake();
 
                 // Spin, waiting for kernel to make the section for us
                 for (bool thrown = true; !starter.StopRequested && thrown; )

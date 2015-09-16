@@ -440,7 +440,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                     {
                     using (StreamReader sr = process.StandardError)
                         {
-                        starter.ThreadHasStarted();
+                        starter.Handshake();
 
                         while (!starter.StopRequested && !sr.EndOfStream)
                             {
@@ -466,7 +466,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                     {
                     using (StreamReader sr = process.StandardOutput)
                         {
-                        starter.ThreadHasStarted();
+                        starter.Handshake();
 
                         while (!starter.StopRequested && !sr.EndOfStream)
                             {

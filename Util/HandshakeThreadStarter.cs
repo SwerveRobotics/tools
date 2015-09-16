@@ -135,7 +135,7 @@ namespace Org.SwerveRobotics.Tools.Util
                 }
             }
 
-        public void ThreadHasStarted()
+        public void Handshake()
             {
             this.startedEvent.Set();
             }

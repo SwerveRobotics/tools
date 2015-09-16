@@ -195,7 +195,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
             Log.d(loggingTag, "::: DeviceTrackingThread started :::");
 
             // Right here we know that Start() hasn't yet returned. Do the interlock and let it return.
-            starter.ThreadHasStarted();
+            starter.Handshake();
 
             // Loop until asked to stop. Do that even in the face of failures and exceptions
             while (!starter.StopRequested)
