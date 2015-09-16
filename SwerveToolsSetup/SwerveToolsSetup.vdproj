@@ -88,13 +88,13 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_417CA27EB0219A04C8161573CD2600D0"
+        "OwnerKey" = "8:_A86589CDF6A64F5DB8F78029D4AE1664"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_A86589CDF6A64F5DB8F78029D4AE1664"
+        "OwnerKey" = "8:_417CA27EB0219A04C8161573CD2600D0"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -318,7 +318,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:ManagedADB, Version=0.52.5737.22380, Culture=neutral, processorArchitecture=MSIL"
+            "AssemblyAsmDisplayName" = "8:ManagedADB, Version=0.52.5737.25409, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
                     "_379CED761849A1F67388DBCD021A7B22"
@@ -349,7 +349,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:SwerveToolsUtil, Version=0.52.5737.22380, Culture=neutral, processorArchitecture=MSIL"
+            "AssemblyAsmDisplayName" = "8:SwerveToolsUtil, Version=0.52.5737.25408, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
                     "_417CA27EB0219A04C8161573CD2600D0"
@@ -475,7 +475,7 @@
             }
             "{3C67513D-01DD-4637-8A68-80971EB9504F}:_91B08F9544EE48C4936C8AB67C41C2D4"
             {
-            "DefaultLocation" = "8:[ProgramFiles64Folder][Manufacturer]\\Tools Suite"
+            "DefaultLocation" = "8:[ProgramFilesFolder][Manufacturer]\\Tools Suite"
             "Name" = "8:#1925"
             "AlwaysCreate" = "11:FALSE"
             "Condition" = "8:"
