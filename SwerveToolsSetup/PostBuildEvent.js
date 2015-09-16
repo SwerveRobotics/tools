@@ -13,20 +13,48 @@ var msiViewModifyAssign = 3;
 var msiViewModifyReplace = 4;
 var msiViewModifyDelete = 6;
 
-var msidbCustomActionTypeRollback       = 0x00000100;
-var msidbCustomActionTypeCommit         = 0x00000200;
-var msidbCustomActionTypeInScript       = 0x00000400;
-var msidbCustomActionTypeNoImpersonate  = 0x00000800;
+// from msidefs.h
+var msidbCustomActionTypeDll              = 0x00000001;  // Target = entry point name
+var msidbCustomActionTypeExe              = 0x00000002;  // Target = command line args
+var msidbCustomActionTypeTextData         = 0x00000003;  // Target = text string to be formatted and set into property
+var msidbCustomActionTypeJScript          = 0x00000005;  // Target = entry point name; null if none to call
+var msidbCustomActionTypeVBScript         = 0x00000006;  // Target = entry point name; null if none to call
+var msidbCustomActionTypeInstall          = 0x00000007;  // Target = property list for nested engine initialization
 
+// source of code
+var msidbCustomActionTypeBinaryData       = 0x00000000;  // Source = Binary.Name; data stored in stream
+var msidbCustomActionTypeSourceFile       = 0x00000010;  // Source = File.File; file part of installation
+var msidbCustomActionTypeDirectory        = 0x00000020;  // Source = Directory.Directory; folder containing existing file
+var msidbCustomActionTypeProperty         = 0x00000030;  // Source = Property.Property; full path to executable
+
+// return processing                  // default is syncronous execution; process return code
+var msidbCustomActionTypeContinue         = 0x00000040;  // ignore action return status; continue running
+var msidbCustomActionTypeAsync            = 0x00000080;  // run asynchronously
+	
+// execution scheduling flags               // default is execute whenever sequenced
+var msidbCustomActionTypeFirstSequence    = 0x00000100;  // skip if UI sequence already run
+var msidbCustomActionTypeOncePerProcess   = 0x00000200;  // skip if UI sequence already run in same process
+var msidbCustomActionTypeClientRepeat     = 0x00000300;  // run on client only if UI already run on client
+var msidbCustomActionTypeInScript         = 0x00000400;  // queue for execution within script
+var msidbCustomActionTypeRollback         = 0x00000100;  // in conjunction with InScript: queue in Rollback script
+var msidbCustomActionTypeCommit           = 0x00000200;  // in conjunction with InScript: run Commit ops from script on success
+ 
+// security context flag; default to impersonate as user; valid only if InScript
+var msidbCustomActionTypeNoImpersonate    = 0x00000800;  // no impersonation; run in system context
+ 
 // We're provided with the path to the .msi we're building.
 // We assume that this is in the same directory as all the other
 // build outputs
 var msiPath = WScript.Arguments(0);
-var outDir = msiPath.substr(0, msiPath.lastIndexOf("\\")+1);
+var outDir = msiPath.substr(0, msiPath.lastIndexOf("\\") + 1);
+
 var trayLauncherFile = "SwerveToolsSetupTrayLauncher.dll";
 var trayLauncherPath = outDir + trayLauncherFile;
 
-WScript.StdErr.WriteLine(WScript.ScriptName + ": processing '" + msiPath + "' with '" + trayLauncherPath + "'");
+var appLauncherFile = "SetupAppLauncher.exe";
+var appLauncherPath = outDir + appLauncherFile;
+
+WScript.StdErr.WriteLine(WScript.ScriptName + ": processing '" + msiPath + "' with '" + appLauncherPath + "'");
 
 try {
     //----------------------------------------------------------------------------------------------------------------------
@@ -37,6 +65,9 @@ try {
     // https://msdn.microsoft.com/en-us/library/aa369432(v=vs.85).aspx
     var installer = WScript.CreateObject("WindowsInstaller.Installer");
     var database = installer.OpenDatabase(msiPath, msiOpenDatabaseModeTransact);
+    var view;
+    var record;
+    var type;
 
     //----------------------------------------------------------------------------------------------------------------------
     // Disable both the modify and repair options in Add/Remove programs
@@ -48,7 +79,6 @@ try {
     // https://github.com/Excel-DNA/WiXInstaller/blob/master/Source/WiRunSQL.vbs
     // https://msdn.microsoft.com/en-us/library/aa367523(v=vs.85).aspx              adding binary data
 
-    var view;
     view = database.OpenView("INSERT INTO `Property` (`Property`.`Property`, `Property`.`Value`) VALUES ('ARPNOMODIFY', '1')");
     view.Execute();
 
@@ -90,18 +120,33 @@ try {
     // https://msdn.microsoft.com/en-us/library/aa367521(v=vs.85).aspx
     //----------------------------------------------------------------------------------------------------------------------
 
-    // Insert our custom action DLL as a binary blob in the MSI
-    var record = installer.CreateRecord(1);
+    // Insert tray launcher dll as a binary blob in the MSI
+    record = installer.CreateRecord(1);
     record.SetStream(1, trayLauncherPath);
     view = database.OpenView("INSERT INTO `Binary` (`Name`, `Data`) VALUES ('"+ trayLauncherFile +"', ?)");
     view.Execute(record);
 
-    // Create a custom action that references that blob
-    view = database.OpenView("INSERT INTO `CustomAction` (`Action`, `Type`, `Source`, `Target`) VALUES ('Launch', '65', '" + trayLauncherFile + "', 'LaunchTray')");
+    // Insert app launcher exe as a binary blob in the MSI
+    record = installer.CreateRecord(1);
+    record.SetStream(1, appLauncherPath);
+    view = database.OpenView("INSERT INTO `Binary` (`Name`, `Data`) VALUES ('" + appLauncherFile + "', ?)");
+    view.Execute(record);
+
+    // Create a custom action that references tray launcher dll blob
+    type = (msidbCustomActionTypeDll | msidbCustomActionTypeContinue);
+    view = database.OpenView("INSERT INTO `CustomAction` (`Action`, `Type`, `Source`, `Target`) VALUES ('LaunchUsingDll', '" + type + "', '" + trayLauncherFile + "', 'LaunchTray')");
     view.Execute();
 
-    // Run that custom action when the user closes the final dialog
-    view = database.OpenView("INSERT INTO `ControlEvent` (`Dialog_`, `Control_`, `Event`, `Argument`, `Condition`, `Ordering`) VALUES ('FinishedForm', 'CloseButton', 'DoAction', 'Launch', 'NOT Installed', '1')");
+    // Create a custom action that references app launcher exe blob
+    type = (msidbCustomActionTypeExe | msidbCustomActionTypeContinue);
+    view = database.OpenView("INSERT INTO `CustomAction` (`Action`, `Type`, `Source`, `Target`) VALUES ('LaunchUsingExe', '" + type + "', '" + appLauncherFile + "', 'command line parameters here')");
+    view.Execute();
+
+    // Run custom action when the user closes the final dialog
+    view = database.OpenView("INSERT INTO `ControlEvent` (`Dialog_`, `Control_`, `Event`, `Argument`, `Condition`, `Ordering`) VALUES ('FinishedForm', 'CloseButton', 'DoAction', 'LaunchUsingDll', 'NOT Installed', '1')");
+    view.Execute();
+
+    view = database.OpenView("INSERT INTO `ControlEvent` (`Dialog_`, `Control_`, `Event`, `Argument`, `Condition`, `Ordering`) VALUES ('FinishedForm', 'CloseButton', 'DoAction', 'LaunchUsingExe', 'NOT Installed', '2')");
     view.Execute();
 
     //----------------------------------------------------------------------------------------------------------------------
