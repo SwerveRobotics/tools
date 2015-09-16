@@ -74,6 +74,15 @@ try {
     view.Execute();
 
     //----------------------------------------------------------------------------------------------------------------------
+    // Change default 'files in use' to 'continue' from Retry
+    //----------------------------------------------------------------------------------------------------------------------
+
+    view = database.OpenView("UPDATE `Dialog` SET `Dialog`.`Control_First`='ContinueButton'  WHERE `Dialog`.`Dialog`='FilesInUse'");
+    view.Execute();
+    view = database.OpenView("UPDATE `Dialog` SET `Dialog`.`Control_Default`='ContinueButton'  WHERE `Dialog`.`Dialog`='FilesInUse'");
+    view.Execute();
+
+    //----------------------------------------------------------------------------------------------------------------------
     // Exit and commit
     //----------------------------------------------------------------------------------------------------------------------
 
