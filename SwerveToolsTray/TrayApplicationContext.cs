@@ -85,6 +85,7 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
                     this.shutdownMonitor?.StopMonitoring();
                     }
                 // Called from finalizers (and user code). Avoid referencing other objects.
+                this.trayIcon?.Dispose();      this.trayIcon = null;
                 this.sharedMemory?.Dispose();  this.sharedMemory = null;
                 this.threadStarter?.Dispose(); this.threadStarter = null;
                 }
