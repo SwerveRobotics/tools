@@ -76,6 +76,15 @@ try {
     view.Execute();
 
     //----------------------------------------------------------------------------------------------------------------------
+    // Change default selected button 'files in use' to 'continue' from Retry
+    //----------------------------------------------------------------------------------------------------------------------
+
+    view = database.OpenView("UPDATE `Dialog` SET `Dialog`.`Control_First`='ContinueButton'  WHERE `Dialog`.`Dialog`='FilesInUse'");
+    view.Execute();
+    view = database.OpenView("UPDATE `Dialog` SET `Dialog`.`Control_Default`='ContinueButton'  WHERE `Dialog`.`Dialog`='FilesInUse'");
+    view.Execute();
+
+    //----------------------------------------------------------------------------------------------------------------------
     // Add custom action to launch tray on setup exit
     // https://msdn.microsoft.com/en-us/library/aa367527(v=vs.85).aspx
     // https://msdn.microsoft.com/en-us/library/aa367521(v=vs.85).aspx
