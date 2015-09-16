@@ -48,11 +48,11 @@ var msidbCustomActionTypeNoImpersonate    = 0x00000800;  // no impersonation; ru
 var msiPath = WScript.Arguments(0);
 var outDir = msiPath.substr(0, msiPath.lastIndexOf("\\") + 1);
 
-var trayLauncherFile = "SwerveToolsSetupTrayLauncher.dll";
-var trayLauncherPath = outDir + trayLauncherFile;
-
-var appLauncherFile = "SetupAppLauncher.exe";
-var appLauncherPath = outDir + appLauncherFile;
+var trayLauncherFile    = "SwerveToolsSetupTrayLauncher.dll";
+var trayLauncherPath    = outDir + trayLauncherFile;
+var appLauncherFile     = "SetupAppLauncher.exe";
+var appLauncherPath     = outDir + appLauncherFile;
+var swerveToolsTrayFile = "SwerveToolsTray.exe";
 
 WScript.StdErr.WriteLine(WScript.ScriptName + ": processing '" + msiPath + "' with '" + appLauncherPath + "'");
 
@@ -139,7 +139,7 @@ try {
 
     // Create a custom action that references app launcher exe blob
     type = (msidbCustomActionTypeExe | msidbCustomActionTypeContinue);
-    view = database.OpenView("INSERT INTO `CustomAction` (`Action`, `Type`, `Source`, `Target`) VALUES ('LaunchUsingExe', '" + type + "', '" + appLauncherFile + "', 'command line parameters here')");
+    view = database.OpenView("INSERT INTO `CustomAction` (`Action`, `Type`, `Source`, `Target`) VALUES ('LaunchUsingExe', '" + type + "', '" + appLauncherFile + "', '[TARGETDIR]"+ swerveToolsTrayFile +"')");
     view.Execute();
 
     // Run custom action when the user closes the final dialog
