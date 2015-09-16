@@ -96,6 +96,7 @@ namespace Org.SwerveRobotics.Tools.Util
             lock (this)
                 {
                 this.stopRequested = true;
+                // TODO: should we also interrupt here?
                 }
             }
 
@@ -108,11 +109,17 @@ namespace Org.SwerveRobotics.Tools.Util
                 {
                 if (this.started)
                     {
-                    this.stopRequested = true;
-                    this.thread.Interrupt();
-                    this.thread.Join();
-                    this.thread  = null;
-                    this.started = false;
+                    try 
+                        {
+                        this.stopRequested = true;
+                        this.thread.Interrupt();
+                        this.thread.Join();     // may throw?
+                        }
+                    finally
+                        {
+                        this.thread  = null;
+                        this.started = false;
+                        }
                     }
                 }
             }
