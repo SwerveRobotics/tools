@@ -129,8 +129,8 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
                 {
                 TraceProject("committed");
                 // Finished successful install: start
-                if (Installing(e))
-                    StartApplication();
+                //if (Installing(e))
+                //    StartApplication();       // we now start using the MSI directly (we leave stop for good measure, though)
                 });
             }
 
@@ -151,8 +151,8 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
                 {
                 TraceProject("after rollback");
                 // Finished rolling back an uninstall: start
-                if (Uninstalling(e))
-                    StartApplication();
+                //if (Uninstalling(e))
+                //    StartApplication();       // we now start using the MSI directly (we leave stop for good measure, though)
                 });
             }
 
