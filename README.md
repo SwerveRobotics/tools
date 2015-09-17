@@ -1,7 +1,7 @@
 # Swerve Robotics Tools Suite
 
-Welcome to the Swerve Robotics Tools Suite. Here we hope you will find that will
-help make your FTC programming more productive and enjoyable. You might also enjoy our
+Welcome to the Swerve Robotics Tools Suite. Here you will find tools that we hope will
+make your FTC programming more productive and enjoyable. You might also enjoy our
 related project, the Swerve Robotics FTC Library, also here on GitHub.
 
 At the moment, the suite contains just one tool:
@@ -28,7 +28,7 @@ To install the Swerve Robotics Tools Suite, download a release from here on GitH
 the top of this page just above the thick green line), then run the downloaded file.
 
 We hope you find these tools to be useful. We'd love to hear what you think, and we will respond to
-questions or issues you have as promptly as we are able. Enjoy.
+questions or issues you have as promptly as we are able.
 
 Robert Atkinson,  
 bob@theatkinsons.org,  
