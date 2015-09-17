@@ -57,7 +57,7 @@
     <StartupObject />
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>..\util\resources\SwerveIcon.ico</ApplicationIcon>
+    <ApplicationIcon>..\util\resources\SwerveLogo.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />

@@ -63,9 +63,9 @@ namespace Org.SwerveRobotics.Tools.Util.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
         /// </summary>
-        public static System.Drawing.Icon SwerveIcon {
+        public static System.Drawing.Icon SwerveLogo {
             get {
-                object obj = ResourceManager.GetObject("SwerveIcon", resourceCulture);
+                object obj = ResourceManager.GetObject("SwerveLogo", resourceCulture);
                 return ((System.Drawing.Icon)(obj));
             }
         }
