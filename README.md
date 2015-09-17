@@ -25,7 +25,8 @@ At the moment, the suite contains just one tool:
     who might choose to undertake such a port.
 
 To install the Swerve Robotics Tools Suite, download a release from here on GitHub (look at
-the top of this page just above the thick green line), then run the downloaded file.
+the top of this page just above the thick green line), then run the downloaded file. BotBug
+is always on and ready whenever your computer is powered; to turn it off, please uninstall.
 
 We hope you find these tools to be useful. We'd love to hear what you think, and we will respond to
 questions or issues you have as promptly as we are able.
