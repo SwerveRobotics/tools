@@ -10,9 +10,9 @@ At the moment, the suite contains just one tool:
     robot controller phones for Wifi debugging whenever they connect to your PC using USB.
 
     To setup Wifi debugging, configure your robot controller phone normally, just as instructed in the FTC Guide, then take 
-    the one additional step of also connecting the phone to a Wifi network which is also
-    accessible to your PC (so: the phone is *both* on Wifi Direct and this other network). Then
-    plug the phone using USB, acknowledge the one-time "allow USB debugging" prompt if 
+    the one additional step of also connecting the phone to a Wifi network which is 
+    visible to your PC (so: the phone is *both* on Wifi Direct and this other network). Then
+    plug in the phone using USB, acknowledge the one-time "allow USB debugging" prompt if 
     needed, and BotBug will take care of the rest. Once BotBug has done its job, you can detach
     the phone from USB.
 
