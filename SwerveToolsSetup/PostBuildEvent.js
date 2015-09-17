@@ -70,6 +70,15 @@ try {
     var type;
 
     //----------------------------------------------------------------------------------------------------------------------
+    // Update the .NET download link to point to 4.6 instead of 4.5
+    // Was http://go.microsoft.com/fwlink/?LinkId=395269
+    // Now http://www.microsoft.com/en-us/download/details.aspx?id=48130
+    //----------------------------------------------------------------------------------------------------------------------
+
+    view = database.OpenView("UPDATE `_VsdLaunchCondition` SET `Url`='http://www.microsoft.com/en-us/download/details.aspx?id=48130'  WHERE `Condition`='VSDFXAvailable'");
+    view.Execute();
+
+    //----------------------------------------------------------------------------------------------------------------------
     // Disable both the modify and repair options in Add/Remove programs
     //----------------------------------------------------------------------------------------------------------------------
 
