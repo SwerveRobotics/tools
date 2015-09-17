@@ -1,18 +1,20 @@
 # Swerve Robotics Tools Suite
 
-Welcome to the Swerve Robotics Tools Suite. Here we hope you will find handy tools that will
-help make your FTC programming days more productive and enjoyable. You might also enjoy our
+Welcome to the Swerve Robotics Tools Suite. Here we hope you will find that will
+help make your FTC programming more productive and enjoyable. You might also enjoy our
 related project, the Swerve Robotics FTC Library, also here on GitHub.
 
-At the moment, the suite contains the following tool(s):
+At the moment, the suite contains just one tool:
 
 *   __BotBug__: BotBug helps you debug your robot over Wifi by automatically configuring 
     robot controller phones for Wifi debugging whenever they connect to your PC using USB.
-    Configure your robot controller phone normally as instructed in the FTC Guide, then take 
+
+    Configure your robot controller phone normally, just as instructed in the FTC Guide, then take 
     the one additional step of also connecting the phone to a Wifi network which is also
     visible to your PC (so: the phone is *both* on Wifi Direct and this other network). Then
-    plug the phone in using USB, acknowledge the one-time "allow USB debugging" prompt if 
-    needed, and BotBug will take care of the rest.
+    plug the phone into your PC using USB, acknowledge the one-time "allow USB debugging" prompt if 
+    needed, and BotBug will take care of the rest. Once BotBug has done its job, you can detach
+    the phone from USB.
 
     We hope in a future version to eliminate the need for the separate Wifi network by 
     connecting from the PC to the robot controller phone over Wifi direct, but that's not
