@@ -15,26 +15,20 @@
     {
         "Entry"
         {
-        "MsmKey" = "8:_379CED761849A1F67388DBCD021A7B22"
-        "OwnerKey" = "8:_C9EE96A481164CD38A6B7249DDAB428B"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_417CA27EB0219A04C8161573CD2600D0"
+        "MsmKey" = "8:_38B5812318DF911B00C0B6077A1D78FC"
         "OwnerKey" = "8:_A86589CDF6A64F5DB8F78029D4AE1664"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_417CA27EB0219A04C8161573CD2600D0"
+        "MsmKey" = "8:_38B5812318DF911B00C0B6077A1D78FC"
         "OwnerKey" = "8:_C9EE96A481164CD38A6B7249DDAB428B"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_417CA27EB0219A04C8161573CD2600D0"
-        "OwnerKey" = "8:_379CED761849A1F67388DBCD021A7B22"
+        "MsmKey" = "8:_38B5812318DF911B00C0B6077A1D78FC"
+        "OwnerKey" = "8:_ADE9D65264837FB206B1EF53569FC9F9"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -63,6 +57,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_ADE9D65264837FB206B1EF53569FC9F9"
+        "OwnerKey" = "8:_C9EE96A481164CD38A6B7249DDAB428B"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_C9EE96A481164CD38A6B7249DDAB428B"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -82,19 +82,19 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_379CED761849A1F67388DBCD021A7B22"
+        "OwnerKey" = "8:_ADE9D65264837FB206B1EF53569FC9F9"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_38B5812318DF911B00C0B6077A1D78FC"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_A86589CDF6A64F5DB8F78029D4AE1664"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_417CA27EB0219A04C8161573CD2600D0"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -314,45 +314,14 @@
         }
         "File"
         {
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_379CED761849A1F67388DBCD021A7B22"
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_38B5812318DF911B00C0B6077A1D78FC"
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:ManagedADB, Version=0.52.5737.25409, Culture=neutral, processorArchitecture=MSIL"
+            "AssemblyAsmDisplayName" = "8:SwerveToolsUtil, Version=0.52.5737.30286, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_379CED761849A1F67388DBCD021A7B22"
-                    {
-                    "Name" = "8:ManagedADB.dll"
-                    "Attributes" = "3:512"
-                    }
-                }
-            "SourcePath" = "8:ManagedADB.dll"
-            "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_91B08F9544EE48C4936C8AB67C41C2D4"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_417CA27EB0219A04C8161573CD2600D0"
-            {
-            "AssemblyRegister" = "3:1"
-            "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:SwerveToolsUtil, Version=0.52.5737.25408, Culture=neutral, processorArchitecture=MSIL"
-                "ScatterAssemblies"
-                {
-                    "_417CA27EB0219A04C8161573CD2600D0"
+                    "_38B5812318DF911B00C0B6077A1D78FC"
                     {
                     "Name" = "8:SwerveToolsUtil.dll"
                     "Attributes" = "3:512"
@@ -434,6 +403,37 @@
             "Register" = "3:1"
             "Exclude" = "11:FALSE"
             "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_ADE9D65264837FB206B1EF53569FC9F9"
+            {
+            "AssemblyRegister" = "3:1"
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:ManagedADB, Version=0.52.5737.30286, Culture=neutral, processorArchitecture=MSIL"
+                "ScatterAssemblies"
+                {
+                    "_ADE9D65264837FB206B1EF53569FC9F9"
+                    {
+                    "Name" = "8:ManagedADB.dll"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:ManagedADB.dll"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_91B08F9544EE48C4936C8AB67C41C2D4"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_E6745D3447954A85BF209B32DBC6D0D0"
@@ -535,14 +535,14 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Swerve Robotics Tools Suite"
         "ProductCode" = "8:{3BF09BCD-D785-437D-9017-108E90EF5221}"
-        "PackageCode" = "8:{675E6B2E-2880-458B-89EB-3D129D131154}"
+        "PackageCode" = "8:{0B803FBC-4DF6-4C70-856A-3F34177449EC}"
         "UpgradeCode" = "8:{5ACBAA86-771B-4194-903F-8E78674A3E50}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:TRUE"
-        "ProductVersion" = "8:0.52"
+        "ProductVersion" = "8:0.53"
         "Manufacturer" = "8:Swerve Robotics"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
@@ -1150,7 +1150,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_A86589CDF6A64F5DB8F78029D4AE1664"
             {
-            "SourcePath" = "8:..\\SwerveToolsTray\\obj\\Debug\\SwerveToolsTray.exe"
+            "SourcePath" = "8:..\\SwerveToolsTray\\obj\\Release\\SwerveToolsTray.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_91B08F9544EE48C4936C8AB67C41C2D4"
@@ -1178,7 +1178,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_C9EE96A481164CD38A6B7249DDAB428B"
             {
-            "SourcePath" = "8:..\\BotBugService\\obj\\Debug\\BotBugService.exe"
+            "SourcePath" = "8:..\\BotBugService\\obj\\Release\\BotBugService.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_91B08F9544EE48C4936C8AB67C41C2D4"
