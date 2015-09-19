@@ -48,8 +48,6 @@ var msidbCustomActionTypeNoImpersonate    = 0x00000800;  // no impersonation; ru
 var msiPath = WScript.Arguments(0);
 var outDir = msiPath.substr(0, msiPath.lastIndexOf("\\") + 1);
 
-var trayLauncherFile    = "SwerveToolsSetupTrayLauncher.dll";
-var trayLauncherPath    = outDir + trayLauncherFile;
 var appLauncherFile     = "SetupAppLauncher.exe";
 var appLauncherPath     = outDir + appLauncherFile;
 var swerveToolsTrayFile = "SwerveToolsTray.exe";
@@ -120,22 +118,11 @@ try {
     // https://msdn.microsoft.com/en-us/library/aa367521(v=vs.85).aspx
     //----------------------------------------------------------------------------------------------------------------------
 
-    // Insert tray launcher dll as a binary blob in the MSI
-    record = installer.CreateRecord(1);
-    record.SetStream(1, trayLauncherPath);
-    view = database.OpenView("INSERT INTO `Binary` (`Name`, `Data`) VALUES ('"+ trayLauncherFile +"', ?)");
-    view.Execute(record);
-
     // Insert app launcher exe as a binary blob in the MSI
     record = installer.CreateRecord(1);
     record.SetStream(1, appLauncherPath);
     view = database.OpenView("INSERT INTO `Binary` (`Name`, `Data`) VALUES ('" + appLauncherFile + "', ?)");
     view.Execute(record);
-
-    // Create a custom action that references tray launcher dll blob
-    type = (msidbCustomActionTypeDll | msidbCustomActionTypeContinue);
-    view = database.OpenView("INSERT INTO `CustomAction` (`Action`, `Type`, `Source`, `Target`) VALUES ('LaunchUsingDll', '" + type + "', '" + trayLauncherFile + "', 'LaunchTray')");
-    view.Execute();
 
     // Create a custom action that references app launcher exe blob
     type = (msidbCustomActionTypeExe | msidbCustomActionTypeContinue);
@@ -143,9 +130,6 @@ try {
     view.Execute();
 
     // Run custom action when the user closes the final dialog
-    view = database.OpenView("INSERT INTO `ControlEvent` (`Dialog_`, `Control_`, `Event`, `Argument`, `Condition`, `Ordering`) VALUES ('FinishedForm', 'CloseButton', 'DoAction', 'LaunchUsingDll', 'NOT Installed', '1')");
-    view.Execute();
-
     view = database.OpenView("INSERT INTO `ControlEvent` (`Dialog_`, `Control_`, `Event`, `Argument`, `Condition`, `Ordering`) VALUES ('FinishedForm', 'CloseButton', 'DoAction', 'LaunchUsingExe', 'NOT Installed', '2')");
     view.Execute();
 
