@@ -235,7 +235,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                 {
                 this.lastTPCIPDevice    = device;
                 this.lastTCPIPEndPoint  = new IPEndPoint(IPAddress.Parse(device.IpAddress), devicePort);
-                NotifyRememberedConnection();
+                UpdateTrayStatus();
                 }
             }
 
@@ -246,9 +246,20 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                 if (this.lastTCPIPEndPoint != null)
                     {
                     this.lastTCPIPEndPoint = null;
-                    NotifyNoRememberedConnections();
+                    UpdateTrayStatus();
                     }
                 }            
+            }
+
+        void UpdateTrayStatus()
+            {
+            lock (this.deviceConnectionLock)
+                {
+                if (this.lastTCPIPEndPoint == null)
+                    NotifyNoRememberedConnections();
+                else
+                    NotifyRememberedConnection();
+                }
             }
        
         bool EnsureUSBConnectedDevicesAreOnTCPIP(string reason)
@@ -464,6 +475,9 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                     case TaggedBlob.TagForgetLastConnection:
                         this.tracer.Trace($"TagForgetLastConnection command received");
                         ForgetLastTCPIPDevice();
+                        break;
+                    case TaggedBlob.TagSwerveToolsTrayStarted:
+                        UpdateTrayStatus();
                         break;
                         }
                     }

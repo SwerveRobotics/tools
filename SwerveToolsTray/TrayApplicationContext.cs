@@ -43,11 +43,21 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
 
             this.threadStarter = new HandshakeThreadStarter("Swerve Tray Notification Thread", this.NotificationThreadLoop);
 
-            Application.ApplicationExit += (object sender, EventArgs e) => this.trayIcon.Visible = false;
+            Application.ApplicationExit += (object sender, EventArgs e) => RemoveIcon();
             this.trayIcon.Visible = true;
 
             this.shutdownMonitor.StartMonitoring();
             StartBotBugNotificationThread();
+
+            // Tell the service that we started
+            try {
+                this.bugBotCommandQueue.InitializeIfNecessary();
+                this.bugBotCommandQueue.Write(new TaggedBlob(TaggedBlob.TagSwerveToolsTrayStarted, new byte[0]), 100);
+                }
+            catch (Exception)
+                {
+                // ignore
+                }
             }
         ~TrayApplicationContext()
             {
@@ -74,10 +84,19 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
                 this.trayIcon.Text = $"{Resources.TrayIconText}: {this.statusText}";
             }
 
+        void RemoveIcon()
+            {
+            // Remove this as robustly as we know how
+            if (this.trayIcon != null)
+                {
+                this.trayIcon.Visible = false;
+                this.trayIcon?.Dispose();
+                }
+            }
+
         void ShutdownApp()
             {
-            this.trayIcon.Visible = false;  // be doubly sure
-            this.trayIcon.Dispose();
+            RemoveIcon();
             ExitThread();
             }
 
