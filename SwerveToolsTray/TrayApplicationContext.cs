@@ -19,11 +19,12 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
         // State
         //----------------------------------------------------------------------------
         
-        NotifyIcon                  trayIcon;
-        SharedMemoryStringQueue     sharedMemory;
-        bool                        disposed;
-        HandshakeThreadStarter      threadStarter;
-        ShutdownMonitor             shutdownMonitor;
+        NotifyIcon                      trayIcon;
+        string                          statusText;
+        SharedTaggedMemoryStringQueue   sharedMemory;
+        bool                            disposed;
+        HandshakeThreadStarter          threadStarter;
+        ShutdownMonitor                 shutdownMonitor;
 
         //----------------------------------------------------------------------------
         // Construction
@@ -33,7 +34,8 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
             {
             this.disposed = false;
             InitializeComponent();
-            this.sharedMemory    = new SharedMemoryStringQueue(false, "BotBug");    // uniquifier name must match that in BotBugService
+            this.statusText      = null;
+            this.sharedMemory    = new SharedTaggedMemoryStringQueue(false, "BotBug");    // uniquifier name must match that in BotBugService
             this.shutdownMonitor = new ShutdownMonitor(Program.TrayUniquifier);
             this.shutdownMonitor.ShutdownEvent += (sender, e) => ShutdownApp();
 
@@ -54,11 +56,19 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
             {
             this.trayIcon = new NotifyIcon();
             this.trayIcon.BalloonTipIcon = ToolTipIcon.Info;
-            this.trayIcon.Text           = Resources.TrayIconText;
-            this.trayIcon.Icon           = Util.Properties.Resources.SwerveLogo;
+            this.trayIcon.Icon = Util.Properties.Resources.SwerveLogo;
+            UpdateIconText();
 
             MenuItem menuItem = new MenuItem(Resources.MenuItemExit, (sender, e) => ShutdownApp());
             this.trayIcon.ContextMenu = new ContextMenu(new MenuItem[] { menuItem });
+            }
+
+        void UpdateIconText()
+            {
+            if (string.IsNullOrEmpty(this.statusText))
+                this.trayIcon.Text = $"{Resources.TrayIconText}";
+            else
+                this.trayIcon.Text = $"{Resources.TrayIconText}: {this.statusText}";
             }
 
         void ShutdownApp()
@@ -140,17 +150,26 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
                         // Get messages from writer. This will block until there's
                         // (probably) messages for us to read
                         Trace(Program.LoggingTag, "waiting for message...");
-                        List<string> messages = this.sharedMemory.Read();
+                        List<TaggedMessage> messages = this.sharedMemory.Read();
                         Trace(Program.LoggingTag, "...messages received");
                         if (messages.Count > 0)
                             {
                             // Separate the messages with newlines.
                             StringBuilder balloonText = new StringBuilder();
-                            foreach (string message in messages)
+                            foreach (TaggedMessage taggedMessage in messages)
                                 {
                                 if (balloonText.Length > 0)
                                     balloonText.Append("\n");
-                                balloonText.Append(message);
+                                if (taggedMessage.Tag == TaggedMessage.TagMessage)
+                                    {
+                                    balloonText.Append(taggedMessage.Message);
+                                    }
+                                else if (taggedMessage.Tag == TaggedMessage.TagStatus)
+                                    {
+                                    // Update the status text
+                                    this.statusText = taggedMessage.Message;
+                                    UpdateIconText();
+                                    }
                                 }
 
                             // Display them to the user

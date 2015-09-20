@@ -124,6 +124,6 @@
     <value>Swerve Robotics BotBug Monitor</value>
   </data>
   <data name="TrayIconText" xml:space="preserve">
-    <value>Swerve Robotics BotBug Monitor</value>
+    <value>Swerve BotBug</value>
   </data>
 </root>

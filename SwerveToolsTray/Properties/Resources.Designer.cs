@@ -79,7 +79,7 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Swerve Robotics BotBug Monitor.
+        ///   Looks up a localized string similar to Swerve BotBug.
         /// </summary>
         internal static string TrayIconText {
             get {

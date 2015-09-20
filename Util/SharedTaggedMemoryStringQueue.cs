@@ -8,13 +8,22 @@ using static Org.SwerveRobotics.Tools.Util.Util;
 
 namespace Org.SwerveRobotics.Tools.Util
     {
-    public class SharedMemoryStringQueue : SharedMemory
+    public class TaggedMessage
+        {
+        public  int     Tag;
+        public  string  Message;
+
+        public const int TagMessage = 1;
+        public const int TagStatus  = 2;
+        }
+
+    public class SharedTaggedMemoryStringQueue : SharedMemory
         {
         //---------------------------------------------------------------------------------------
         // Construction
         //---------------------------------------------------------------------------------------
 
-        public SharedMemoryStringQueue(bool create, string uniquifier) : base(create, 2048, $"StringQueue({uniquifier})")
+        public SharedTaggedMemoryStringQueue(bool create, string uniquifier) : base(create, 2048, $"StringQueue({uniquifier})")
             {
             // Note: we rely on the fact that newly created memory is zeroed.
             // That makes the initial message count zero w/o us doing anything.
@@ -24,8 +33,16 @@ namespace Org.SwerveRobotics.Tools.Util
         // Operations
         //---------------------------------------------------------------------------------------
 
+        TaggedMessage ReadTaggedMessage()
+            {
+            TaggedMessage result = new TaggedMessage();
+            result.Tag     = reader.ReadInt32();
+            result.Message = reader.ReadString();
+            return result;
+            }
+
         /** Append a new message to the queue of messsages */ 
-        public void Write(string message, int msTimeout=-1)
+        public void Write(int tag, string message, int msTimeout=-1)
             {
             if (this.mutex.WaitOneNoExcept(msTimeout)) 
                 {
@@ -37,11 +54,12 @@ namespace Org.SwerveRobotics.Tools.Util
                     // Skip over that many messages
                     for (int i = 0; i < messageCount; i++)
                         {
-                        reader.ReadString();
+                        ReadTaggedMessage();
                         }
                 
                     // Write the next string. 'May hit the buffer end and throw exception, but 
                     // that's ok; we'll just be ignoring this message
+                    writer.Write(tag);
                     writer.Write(message); 
 
                     // Update the message count
@@ -65,9 +83,9 @@ namespace Org.SwerveRobotics.Tools.Util
             }
 
         /** Read all the messages in the queue */
-        public List<string> Read()
+        public List<TaggedMessage> Read()
             {
-            List<string> result = new List<string>();
+            List<TaggedMessage> result = new List<TaggedMessage>();
 
             // Wait until there's (probably) something new
             this.bufferChangedEvent.WaitOne();
@@ -82,7 +100,7 @@ namespace Org.SwerveRobotics.Tools.Util
                     // Read over that many messages
                     for (int i = 0; i < messageCount; i++)
                         {
-                        result.Add(reader.ReadString());
+                        result.Add(ReadTaggedMessage());
                         }
 
                     // Update the message count

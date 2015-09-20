@@ -31,7 +31,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
         List<Guid>              deviceInterfacesOfInterest      = null;
         List<IntPtr>            deviceNotificationHandles       = null;
         AndroidDebugBridge      bridge                          = null;
-        SharedMemoryStringQueue sharedMemUIMessageQueue         = null;
+        SharedTaggedMemoryStringQueue sharedMemUIMessageQueue   = null;
         Device                  lastTCPCIPDevice                = null;
         string                  lastTCPIPIpAddress              = null;
         int                     lastTCPIPPortNumber             = 0;
@@ -47,9 +47,9 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             this.notificationHandle          = notificationHandle;
             this.notificationHandleIsService = notificationHandleIsService;
 
-            this.sharedMemUIMessageQueue = new SharedMemoryStringQueue(true, "BotBug");
+            this.sharedMemUIMessageQueue = new SharedTaggedMemoryStringQueue(true, "BotBug");
             this.sharedMemUIMessageQueue.Initialize();
-            this.sharedMemUIMessageQueue.Write(Resources.StartingMessage);
+            this.sharedMemUIMessageQueue.Write(TaggedMessage.TagMessage, Resources.StartingMessage);
 
             this.deviceInterfacesOfInterest = new List<Guid>();
             this.deviceNotificationHandles  = new List<IntPtr>();
@@ -76,7 +76,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                 if (notFromFinalizer)
                     {
                     // Called from user's code. Can / should cleanup managed objects
-                    this.sharedMemUIMessageQueue?.Write(Resources.StoppingMessage);
+                    this.sharedMemUIMessageQueue?.Write(TaggedMessage.TagMessage, Resources.StoppingMessage);
                     this.sharedMemUIMessageQueue?.Dispose();
                     this.sharedMemUIMessageQueue = null;
                     }
@@ -352,21 +352,21 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             {
             string message = string.Format(Resources.NotifyNotOnNetwork, device.USBSerialNumber??device.SerialNumber);
             this.tracer.Trace($"   {message}");
-            this.sharedMemUIMessageQueue.Write(message, 100);
+            this.sharedMemUIMessageQueue.Write(TaggedMessage.TagMessage, message, 100);
             }
 
         void NotifyConnected(string format, Device device, string ipAddress, int portNumber)
             {
             string message = string.Format(format, device.USBSerialNumber??device.SerialNumber, ipAddress, portNumber);
             this.tracer.Trace($"   {message}");
-            this.sharedMemUIMessageQueue.Write(message, 100);
+            this.sharedMemUIMessageQueue.Write(TaggedMessage.TagMessage, message, 100);
             }
 
         void NotifyReconnected(string format, Device device, string ipAddress, int portNumber)
             {
             string message = string.Format(format, device.USBSerialNumber??device.SerialNumber, ipAddress, portNumber);
             this.tracer.Trace($"   {message}");
-            this.sharedMemUIMessageQueue.Write(message, 100);
+            this.sharedMemUIMessageQueue.Write(TaggedMessage.TagMessage, message, 100);
             }
 
         //-----------------------------------------------------------------------------------------
