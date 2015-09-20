@@ -3,34 +3,29 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Org.SwerveRobotics.Tools.ManagedADB {
-	/// <summary>
-	/// 
-	/// </summary>
-	public class CommandResultReceiver : MultiLineReceiver{
-		/// <summary>
-		/// Processes the new lines.
-		/// </summary>
-		/// <param name="lines">The lines.</param>
-		protected override void ProcessNewLines ( string[] lines ) {
-			var result = new StringBuilder ( );
-			foreach (string line in lines ) {
-				if (string.IsNullOrEmpty ( line ) || line.StartsWith ( "#" ) || line.StartsWith ( "$" ) ) {
-					continue;
-				}
+namespace Org.SwerveRobotics.Tools.ManagedADB
+    {
+    public class CommandResultReceiver : MultiLineReceiver
+        {
+        protected override void ProcessNewLines(string[] lines)
+            {
+            var result = new StringBuilder();
+            foreach (string line in lines)
+                {
+                if (string.IsNullOrEmpty(line) || line.StartsWith("#") || line.StartsWith("$"))
+                    {
+                    continue;
+                    }
 
-				result.AppendLine ( line );
-			}
+                result.AppendLine(line);
+                }
 
-			this.Result = result.ToString ( ).Trim ( );
-		}
+            this.Result = result.ToString().Trim();
+            }
 
-		/// <summary>
-		/// Gets the result.
-		/// </summary>
-		/// <value>
-		/// The result.
-		/// </value>
-		public string Result { get; private set; }
-	}
-}
+        public string Result
+            {
+            get; private set;
+            }
+        }
+    }

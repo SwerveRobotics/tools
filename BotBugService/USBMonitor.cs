@@ -392,7 +392,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                     string ipAddress = this.lastTCPIPEndPoint.Address.ToString();
                     int portNumber = this.lastTCPIPEndPoint.Port;
 
-                    this.tracer.Trace($"   reconnecting to {this.lastTPCIPDevice.USBSerialNumber} on {lastTCPIPEndPoint}");
+                    this.tracer.Trace($"   reconnecting to {this.lastTPCIPDevice.UserIdentifier}:{this.lastTPCIPDevice.USBSerialNumber} on {lastTCPIPEndPoint}");
                     if (AdbHelper.Instance.Connect(AndroidDebugBridge.AdbServerSocketAddress, ipAddress, portNumber))
                         NotifyReconnected(Resources.NotifyReconnected, this.lastTPCIPDevice, ipAddress, portNumber);
                     else
@@ -407,7 +407,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
 
         void NotifyRememberedConnection()
             {
-            string message = string.Format(Resources.LastConnectedToMessage, this.lastTCPIPEndPoint);
+            string message = string.Format(Resources.LastConnectedToMessage, this.lastTPCIPDevice.UserIdentifier);
             this.tracer.Trace($"   notify: {message}");
             this.bugbotMessageQueue.Write(TaggedBlob.TagBugBotStatus, message, 100);
             }
@@ -421,21 +421,21 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
 
         void NotifyNotOnNetwork(Device device)
             {
-            string message = string.Format(Resources.NotifyNotOnNetwork, device.USBSerialNumber??device.SerialNumber);
+            string message = string.Format(Resources.NotifyNotOnNetwork, device.UserIdentifier);
             this.tracer.Trace($"   notify: {message}");
             this.bugbotMessageQueue.Write(TaggedBlob.TagBugBotMessage, message, 100);
             }
 
         void NotifyConnected(string format, Device device, string ipAddress, int portNumber)
             {
-            string message = string.Format(format, device.USBSerialNumber??device.SerialNumber, ipAddress, portNumber);
+            string message = string.Format(format, device.UserIdentifier, ipAddress, portNumber);
             this.tracer.Trace($"   notify: {message}");
             this.bugbotMessageQueue.Write(TaggedBlob.TagBugBotMessage, message, 100);
             }
 
         void NotifyReconnected(string format, Device device, string ipAddress, int portNumber)
             {
-            string message = string.Format(format, device.USBSerialNumber??device.SerialNumber, ipAddress, portNumber);
+            string message = string.Format(format, device.UserIdentifier, ipAddress, portNumber);
             this.tracer.Trace($"   notify: {message}");
             this.bugbotMessageQueue.Write(TaggedBlob.TagBugBotMessage, message, 100);
             }

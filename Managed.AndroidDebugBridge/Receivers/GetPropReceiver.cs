@@ -4,36 +4,23 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Org.SwerveRobotics.Tools.ManagedADB {
-	/// <summary>
-	/// 
-	/// </summary>
-	public sealed class GetPropReceiver : MultiLineReceiver {
-		/// <summary>
-		/// The getprop command
-		/// </summary>
-		public const string GETPROP_COMMAND = "getprop";
-		private const string GETPROP_PATTERN = "^\\[([^]]+)\\]\\:\\s*\\[(.*)\\]$";
+namespace Org.SwerveRobotics.Tools.ManagedADB
+    {
+    public sealed class GetPropReceiver : MultiLineReceiver
+        {
+        public  const string GETPROP_COMMAND = "getprop";
+        private const string GETPROP_PATTERN = "^\\[([^]]+)\\]\\:\\s*\\[(.*)\\]$";
 
-		/// <summary>
-		/// Initializes a new instance of the <see cref="GetPropReceiver"/> class.
-		/// </summary>
-		/// <param name="device">The device.</param>
-		public GetPropReceiver ( Device device ) {
-			this.Device = device;
-		}
+        public GetPropReceiver(Device device)
+            {
+            this.Device = device;
+            }
 
-		/// <summary>
-		/// Gets or sets the device.
-		/// </summary>
-		/// <value>The device.</value>
-		public Device Device { get; set; }
+        public Device Device
+            {
+            get; set;
+            }
 
-
-        /// <summary>
-        /// Processes the new lines.
-        /// </summary>
-        /// <param name="lines">The lines.</param>
         protected override void ProcessNewLines(string[] lines)
             {
             // We receive an array of lines. We're expecting
@@ -55,24 +42,16 @@ namespace Org.SwerveRobotics.Tools.ManagedADB {
 
                     if (label.Length > 0)
                         {
-                        if (Device.Properties.ContainsKey(label))
-                            {
-                            System.Diagnostics.Debugger.Break();
-                            throw new Org.SwerveRobotics.Tools.ManagedADB.Exceptions.AdbException($"property already present:{label}");
-                            }
-                        else
-                            Device.Properties.Add(label, value);
+                        Device.Properties.Add(label, value);
                         }
                     }
                 }
             }
 
-        /// <summary>
-        /// Finishes the receiver
-        /// </summary>
-        protected override void Done ( ) {
-			this.Device.OnBuildInfoChanged ( EventArgs.Empty );
-			base.Done ( );
-		}
-	}
-}
+        protected override void Done()
+            {
+            this.Device.OnBuildInfoChanged(EventArgs.Empty);
+            base.Done();
+            }
+        }
+    }

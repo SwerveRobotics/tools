@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using Org.SwerveRobotics.Tools.ManagedADB.Exceptions;
 using Org.SwerveRobotics.Tools.ManagedADB.IO;
 using Org.SwerveRobotics.Tools.ManagedADB.Logs;
+using Org.SwerveRobotics.Tools.ManagedADB.Receivers;
 
 namespace Org.SwerveRobotics.Tools.ManagedADB
     {
@@ -57,6 +58,9 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
         private DateTime        lastBatteryCheckTime = DateTime.MinValue;
         private string          usbSerialNumber      = null;
 
+        public string                         UserIdentifier => this.WifiDirectName ?? this.USBSerialNumber ?? this.SerialNumber;
+
+        public string                         WifiDirectName => this.Settings.Global.ContainsKey(SettingsReceiver.WIFI_P2P_DEVICE_NAME) ? this.Settings.Global[SettingsReceiver.WIFI_P2P_DEVICE_NAME] : null;
         public string                         SerialNumber { get; }
         public string                         USBSerialNumber { 
                                                     get { return this.GetProperty("ro.boot.serialno") ?? (this.SerialNumberIsUSB ? this.SerialNumber : this.usbSerialNumber); } 
@@ -69,6 +73,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
         public string                         DeviceProperty { get; private set; }
         public Dictionary<string, MountPoint> MountPoints { get; set; }
         public Dictionary<string, string>     Properties { get; }
+        public readonly AllSettings           Settings = new AllSettings();
         public Dictionary<string, string>     EnvironmentVariables { get; }
         public List<IClient>                  Clients { get; }
         public FileSystem                     FileSystem { get; }
@@ -91,6 +96,13 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
         public event EventHandler<EventArgs>  StateChanged;
         public event EventHandler<EventArgs>  BuildInfoChanged;
         public event EventHandler<EventArgs>  ClientListChanged;
+
+        public class AllSettings
+            {
+            public Dictionary<string,string>    System = new Dictionary<string, string>();
+            public Dictionary<string,string>    Secure = new Dictionary<string, string>();
+            public Dictionary<string,string>    Global = new Dictionary<string, string>();
+            }
 
         //-----------------------------------------------------------------------------------------
         // Construction
@@ -119,6 +131,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
             RefreshMountPoints();
             RefreshEnvironmentVariables();
             RefreshProperties();
+            RefreshSettings();
             }
 
         private static DeviceState GetStateFromString(string state)
@@ -282,6 +295,21 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                 try
                     {
                     this.ExecuteShellCommand(GetPropReceiver.GETPROP_COMMAND, new GetPropReceiver(this));
+                    }
+                catch (AdbException aex)
+                    {
+                    Log.w(LOG_TAG, aex);
+                    }
+                }
+            }
+
+        public void RefreshSettings()
+            {
+            if (!this.IsOffline)
+                {
+                try
+                    {
+                    (new SettingsReceiver(this, SettingsReceiver.NAMESPACE.global, SettingsReceiver.WIFI_P2P_DEVICE_NAME)).Execute();
                     }
                 catch (AdbException aex)
                     {

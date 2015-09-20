@@ -141,6 +141,7 @@
     <Compile Include="PackageManager.cs" />
     <Compile Include="Receivers\PackageManagerReceiver.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Receivers\SettingsReceiver.cs" />
     <Compile Include="SyncResult.cs" />
     <Compile Include="SyncService.cs" />
     <Compile Include="Util.cs" />
