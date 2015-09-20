@@ -118,7 +118,6 @@
     <Compile Include="Receivers\GetPropReceiver.cs" />
     <Compile Include="IClient.cs" />
     <Compile Include="IDebugPortProvider.cs" />
-    <Compile Include="IDevice.cs" />
     <Compile Include="Receivers\IListingReceiver.cs" />
     <Compile Include="ILogOutput.cs" />
     <Compile Include="Receivers\InstallReceiver.cs" />

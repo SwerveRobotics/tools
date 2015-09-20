@@ -4,11 +4,11 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
     {
     public class DeviceEventArgs : EventArgs
         {
-        public DeviceEventArgs(IDevice device)
+        public DeviceEventArgs(Device device)
             {
             this.Device = device;
             }
 
-        public IDevice Device { get; private set; }
+        public Device Device { get; private set; }
         }
     }

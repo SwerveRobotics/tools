@@ -21,7 +21,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
         Unknown
         }
 
-    public sealed class Device : IDevice
+    public sealed class Device
         {
         //-----------------------------------------------------------------------------------------
         // State
@@ -123,10 +123,10 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
             this.FileSystem              = new FileSystem(this);
             this.BusyBox                 = new BusyBox(this);
 
-            RetrieveDeviceInfo();
+            RefreshState();
             }
 
-        private void RetrieveDeviceInfo()
+        public void RefreshState()
             {
             RefreshMountPoints();
             RefreshEnvironmentVariables();
@@ -260,7 +260,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                 }
             }
 
-        public void RefreshMountPoints()
+        private void RefreshMountPoints()
             {
             if (!this.IsOffline)
                 {
@@ -268,13 +268,14 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                     {
                     this.ExecuteShellCommand(MountPointReceiver.MOUNT_COMMAND, new MountPointReceiver(this));
                     }
-                catch (AdbException)
+                catch (Exception e)
                     {
+                    Log.w(LOG_TAG, e);
                     }
                 }
             }
 
-        public void RefreshEnvironmentVariables()
+        private void RefreshEnvironmentVariables()
             {
             if (!this.IsOffline)
                 {
@@ -282,13 +283,14 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                     {
                     this.ExecuteShellCommand(EnvironmentVariablesReceiver.ENV_COMMAND, new EnvironmentVariablesReceiver(this));
                     }
-                catch (AdbException)
+                catch (Exception e)
                     {
+                    Log.w(LOG_TAG, e);
                     }
                 }
             }
 
-        public void RefreshProperties()
+        private void RefreshProperties()
             {
             if (!this.IsOffline)
                 {
@@ -296,14 +298,14 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                     {
                     this.ExecuteShellCommand(GetPropReceiver.GETPROP_COMMAND, new GetPropReceiver(this));
                     }
-                catch (AdbException aex)
+                catch (Exception e)
                     {
-                    Log.w(LOG_TAG, aex);
+                    Log.w(LOG_TAG, e);
                     }
                 }
             }
 
-        public void RefreshSettings()
+        private void RefreshSettings()
             {
             if (!this.IsOffline)
                 {
@@ -311,9 +313,9 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                     {
                     (new SettingsReceiver(this, SettingsReceiver.NAMESPACE.global, SettingsReceiver.WIFI_P2P_DEVICE_NAME)).Execute();
                     }
-                catch (AdbException aex)
+                catch (Exception e)
                     {
-                    Log.w(LOG_TAG, aex);
+                    Log.w(LOG_TAG, e);
                     }
                 }
             }

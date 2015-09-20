@@ -40,7 +40,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB {
 		ClientChangeState ChangeState { get; }
 		Socket Channel { get; set; }
 
-		IDevice Device { get; }
+		Device Device { get; }
 		Device DeviceImplementation { get; }
 		int DebuggerListenPort { get; }
 		bool IsDdmAware { get; }

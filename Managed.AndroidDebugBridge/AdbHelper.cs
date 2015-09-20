@@ -73,7 +73,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
          *
          * @return  A Socket.
          */
-        public Socket Open(IPAddress address, IDevice device, int port)
+        public Socket Open(IPAddress address, Device device, int port)
             {
             Socket s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             try
@@ -571,7 +571,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
             return result;
             }
 
-        public RawImage GetFrameBuffer(IPEndPoint adbSockAddr, IDevice device)
+        public RawImage GetFrameBuffer(IPEndPoint adbSockAddr, Device device)
             {
             RawImage imageParams = new RawImage();
             byte[] request = FormAdbRequest("framebuffer:"); //$NON-NLS-1$
@@ -751,7 +751,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
             ExecuteRemoteCommand(endPoint, command, device, rcvr, int.MaxValue);
             }
 
-        public void SetDevice(Socket adbChan, IDevice device)
+        public void SetDevice(Socket adbChan, Device device)
             {
             // if the device is not null, then we first tell adb we're looking to talk to a specific device
             if (device != null)
@@ -892,6 +892,19 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
             return result;
             }
 
+        /** Disconnect from the indicated device */
+        public void Disconnect(IPEndPoint adbServerEP, string hostNameOrAddress, int port)
+            {
+            string addressAndPort = $"{hostNameOrAddress}:{port}";
+            byte[] request = FormAdbRequest($"host:disconnect:{addressAndPort}");
+            using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
+                {
+                socket.Connect(adbServerEP);
+                socket.Blocking = true;
+                Write(socket, request);
+                }
+            }
+
         private Socket ExecuteRawSocketCommand(IPEndPoint address, Device device, string command)
             {
             return ExecuteRawSocketCommand(address, device, FormAdbRequest(command));
@@ -930,7 +943,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
             return adbChan;
             }
 
-        private string HostPrefixFromDevice(IDevice device)
+        private string HostPrefixFromDevice(Device device)
             {
             switch (device.TransportType)
                 {

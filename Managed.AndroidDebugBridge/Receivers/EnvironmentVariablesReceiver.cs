@@ -4,66 +4,60 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Org.SwerveRobotics.Tools.ManagedADB {
-	/// <summary>
-	/// 
-	/// </summary>
-	public sealed class EnvironmentVariablesReceiver : MultiLineReceiver {
-		/// <summary>
-		/// 
-		/// </summary>
-		public const string ENV_COMMAND = "printenv";
-		/// <summary>
-		/// 
-		/// </summary>
-		private const string ENV_PATTERN = @"^([^=\s]+)\s*=\s*(.*)$";
-		/// <summary>
-		/// Initializes a new instance of the <see cref="EnvironmentVariablesReceiver"/> class.
-		/// </summary>
-		/// <param name="device">The device.</param>
-		public EnvironmentVariablesReceiver ( Device device ) {
-			Device = device;
-		}
+namespace Org.SwerveRobotics.Tools.ManagedADB
+    {
+    public sealed class EnvironmentVariablesReceiver : MultiLineReceiver
+        {
+        public const string ENV_COMMAND = "printenv";
+        private const string ENV_PATTERN = @"^([^=\s]+)\s*=\s*(.*)$";
 
-		/// <summary>
-		/// Gets or sets the device.
-		/// </summary>
-		/// <value>The device.</value>
-		public Device Device { get; private set; }
+        public EnvironmentVariablesReceiver(Device device)
+            {
+            Device = device;
+            }
 
-		/// <summary>
-		/// Processes the new lines.
-		/// </summary>
-		/// <param name="lines">The lines.</param>
-		protected override void ProcessNewLines ( string[] lines ) {
-			foreach (string line in lines ) {
-				if (string.IsNullOrEmpty ( line ) || line.StartsWith ( "#" ) ) {
-					continue;
-				}
+        public Device Device
+            {
+            get; private set;
+            }
 
-				Match m = Regex.Match ( line, ENV_PATTERN );
-				if ( m.Success ) {
-                    string label = m.Groups[1].Value.Trim ( );
-                    string value = m.Groups[2].Value.Trim ( );
+        protected override void ProcessNewLines(string[] lines)
+            {
+            this.Device.EnvironmentVariables.Clear();
 
-					if ( label.Length > 0 ) {
-						if ( Device.EnvironmentVariables.ContainsKey ( label ) ) {
-							Device.EnvironmentVariables[label] = value;
-						} else {
-							Device.EnvironmentVariables.Add ( label, value );
-						}
-					}
-				}
+            foreach (string line in lines)
+                {
+                if (string.IsNullOrEmpty(line) || line.StartsWith("#"))
+                    {
+                    continue;
+                    }
 
-			}
-		}
+                Match m = Regex.Match(line, ENV_PATTERN);
+                if (m.Success)
+                    {
+                    string label = m.Groups[1].Value.Trim();
+                    string value = m.Groups[2].Value.Trim();
 
-		/// <summary>
-		/// Finishes the receiver
-		/// </summary>
-		protected override void Done ( ) {
-			this.Device.OnBuildInfoChanged ( EventArgs.Empty );
-			base.Done ( );
-		}
-	}
-}
+                    if (label.Length > 0)
+                        {
+                        if (Device.EnvironmentVariables.ContainsKey(label))
+                            {
+                            Device.EnvironmentVariables[label] = value;
+                            }
+                        else
+                            {
+                            Device.EnvironmentVariables.Add(label, value);
+                            }
+                        }
+                    }
+
+                }
+            }
+
+        protected override void Done()
+            {
+            this.Device.OnBuildInfoChanged(EventArgs.Empty);
+            base.Done();
+            }
+        }
+    }

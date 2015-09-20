@@ -72,7 +72,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB {
 		/// <summary>
 		/// Gets the device.
 		/// </summary>
-		public IDevice Device { get; private set; }
+		public Device Device { get; private set; }
 
 		/// <summary>
 		/// Gets the device implementation.

@@ -394,68 +394,16 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
         // Do what we need to do when we detect a device making its transition to the online state
         private void OnDeviceTransitionToOnline(Device device)
             {
+            try
+                {
+                device.RefreshState();
+                }
+            catch (Exception)
+                {
+                // ignore
+                }
+
             this.bridge?.OnDeviceConnected(new DeviceEventArgs(device));
-            QueryNewDeviceForInfo(device);
-            }
-
-        private void QueryNewDeviceForInfo(Device device)
-            {
-            // TODO: do this in a separate thread.
-            try
-                {
-                // first get the list of properties.
-                if (device.State != DeviceState.Offline && device.State != DeviceState.Unknown)
-                    {
-                    // get environment variables
-                    QueryNewDeviceForEnvironmentVariables(device);
-                    // instead of getting the 3 hard coded ones, we use mount command and get them all...
-                    // if that fails, then it automatically falls back to the hard coded ones.
-                    QueryNewDeviceForMountingPoint(device);
-
-                    // now get the emulator Virtual Device name (if applicable).
-                    if (device.SerialNumberIsEmulator)
-                        {
-                        /*EmulatorConsole console = EmulatorConsole.getConsole ( device );
-						if ( console != null ) {
-							device.AvdName = console.AvdName;
-						}*/
-                        }
-                    }
-                }
-            catch (IOException)
-                {
-                // if we can't get the build info, it doesn't matter too much
-                }
-            }
-
-        private void QueryNewDeviceForEnvironmentVariables(Device device)
-            {
-            try
-                {
-                if (device.State != DeviceState.Offline && device.State != DeviceState.Unknown)
-                    {
-                    device.RefreshEnvironmentVariables();
-                    }
-                }
-            catch (IOException)
-                {
-                // if we can't get the build info, it doesn't matter too much
-                }
-            }
-
-        private void QueryNewDeviceForMountingPoint(Device device)
-            {
-            try
-                {
-                if (device.State != DeviceState.Offline && device.State != DeviceState.Unknown)
-                    {
-                    device.RefreshMountPoints();
-                    }
-                }
-            catch (IOException)
-                {
-                // if we can't get the build info, it doesn't matter too much
-                }
             }
 
         #endregion

@@ -42,13 +42,13 @@ namespace Org.SwerveRobotics.Tools.ManagedADB.Receivers
                 switch (this.ns)
                     {
                 case NAMESPACE.global:
-                    this.device.Settings.Global.Add(this.setting, line);
+                    this.device.Settings.Global[this.setting] = line;
                     break;
                 case NAMESPACE.secure:
-                    this.device.Settings.Secure.Add(this.setting, line);
+                    this.device.Settings.Secure[this.setting] = line;
                     break;
                 case NAMESPACE.system:
-                    this.device.Settings.System.Add(this.setting, line);
+                    this.device.Settings.System[this.setting] = line;
                     break;
                     }
                 }
