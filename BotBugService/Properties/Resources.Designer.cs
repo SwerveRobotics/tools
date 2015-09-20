@@ -61,6 +61,24 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to last connected to {0}.
+        /// </summary>
+        public static string LastConnectedToMessage {
+            get {
+                return ResourceManager.GetString("LastConnectedToMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to no remembered connection.
+        /// </summary>
+        public static string NoLastConnectedToMessage {
+            get {
+                return ResourceManager.GetString("NoLastConnectedToMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Connected to phone {0} on {1}:{2}.
         /// </summary>
         public static string NotifyConnected {

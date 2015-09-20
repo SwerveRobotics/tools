@@ -80,7 +80,7 @@ namespace Org.SwerveRobotics.Tools.Util
                 Stop();
                 this.startedEvent.Reset();
                 this.stopRequested = false;
-                this.thread = new Thread(Run);
+                this.thread = new Thread(ThreadMain);
                 if (this.Name != null)
                     this.thread.Name = this.Name;
                 this.thread.Start();
@@ -91,6 +91,7 @@ namespace Org.SwerveRobotics.Tools.Util
 
         public bool IsStarted { get { lock (this) { return this.started; } } }
 
+        /** Requests a stop, but does not wait around for it to complete */
         public void RequestStop()
             {
             lock (this)
@@ -124,7 +125,8 @@ namespace Org.SwerveRobotics.Tools.Util
                 }
             }
 
-        private void Run()
+        // The root of the thread that we start
+        private void ThreadMain()
             {
             try {
                 this.runnable(this);
@@ -135,11 +137,13 @@ namespace Org.SwerveRobotics.Tools.Util
                 }
             }
 
-        public void Handshake()
+        // Called by the thread to indicate that it has started and is up and functional
+        public void DoHandshake()
             {
             this.startedEvent.Set();
             }
 
+        // Wait until the thread dies (of natural causes)
         public void Join()
             {
             Thread thread;

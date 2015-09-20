@@ -31,29 +31,29 @@ namespace Org.SwerveRobotics.Tools.Util
             }
         void Adjust(int delta)
             {
-            this.mutex.WaitOne();
+            this.Mutex.WaitOne();
             try {
-                this.memoryViewStream.Seek(0, System.IO.SeekOrigin.Begin);
-                int count = this.reader.ReadInt32(); 
+                this.MemoryViewStream.Seek(0, System.IO.SeekOrigin.Begin);
+                int count = this.Reader.ReadInt32(); 
 
-                this.memoryViewStream.Seek(0, System.IO.SeekOrigin.Begin);
-                this.writer.Write(count + delta);
+                this.MemoryViewStream.Seek(0, System.IO.SeekOrigin.Begin);
+                this.Writer.Write(count + delta);
                 }
             finally
                 {
-                this.mutex.ReleaseMutex();
+                this.Mutex.ReleaseMutex();
                 }
             }
         public int Read()
             {
-            this.mutex.WaitOne();
+            this.Mutex.WaitOne();
             try {
-                this.memoryViewStream.Seek(0, System.IO.SeekOrigin.Begin);
-                return this.reader.ReadInt32(); 
+                this.MemoryViewStream.Seek(0, System.IO.SeekOrigin.Begin);
+                return this.Reader.ReadInt32(); 
                 }
             finally
                 {
-                this.mutex.ReleaseMutex();
+                this.Mutex.ReleaseMutex();
                 }
             }
         }

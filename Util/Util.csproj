@@ -45,7 +45,7 @@
     <Compile Include="SharedMemory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SharedMemoryCounter.cs" />
-    <Compile Include="SharedTaggedMemoryStringQueue.cs" />
+    <Compile Include="SharedMemTaggedBlobQueue.cs" />
     <Compile Include="ShutdownMonitor.cs" />
     <Compile Include="SingleInstance.cs" />
     <Compile Include="HandshakeThreadStarter.cs" />

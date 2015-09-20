@@ -865,7 +865,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
             }
 
         /** Asks the local ADB server to connect to the indicated device over IP */
-        public bool Connect(IPEndPoint adbSockAddr, string hostNameOrAddress, int port)
+        public bool Connect(IPEndPoint adbServerEP, string hostNameOrAddress, int port)
         // Returns success/fail
             {
             bool result = false;
@@ -874,7 +874,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
             byte[] request = FormAdbRequest($"host:connect:{addressAndPort}");
             using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
                 {
-                socket.Connect(adbSockAddr);
+                socket.Connect(adbServerEP);
                 socket.Blocking = true;
                 Write(socket, request);
 

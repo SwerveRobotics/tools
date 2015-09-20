@@ -120,8 +120,11 @@
   <data name="MenuItemExit" xml:space="preserve">
     <value>E&amp;xit</value>
   </data>
+  <data name="MenuItemForgetLastConnection" xml:space="preserve">
+    <value>&amp;Forget connection</value>
+  </data>
   <data name="TrayIconBalloonTipTitle" xml:space="preserve">
-    <value>Swerve Robotics BotBug Monitor</value>
+    <value>Swerve BotBug Monitor</value>
   </data>
   <data name="TrayIconText" xml:space="preserve">
     <value>Swerve BotBug</value>

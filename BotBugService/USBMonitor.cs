@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Threading;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
 using Org.SwerveRobotics.Tools.ManagedADB;
 using Org.SwerveRobotics.Tools.Util;
 using static Org.SwerveRobotics.Tools.BotBug.Service.WIN32;
@@ -17,6 +18,8 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
         //-----------------------------------------------------------------------------------------
         // State
         //-----------------------------------------------------------------------------------------
+
+        const int           devicePort  = 5555;        // the port number we always use to connect to devices
 
         bool                disposed    = false;
         IDeviceEvents       eventRaiser = null;
@@ -31,10 +34,11 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
         List<Guid>              deviceInterfacesOfInterest      = null;
         List<IntPtr>            deviceNotificationHandles       = null;
         AndroidDebugBridge      bridge                          = null;
-        SharedTaggedMemoryStringQueue sharedMemUIMessageQueue   = null;
-        Device                  lastTCPCIPDevice                = null;
-        string                  lastTCPIPIpAddress              = null;
-        int                     lastTCPIPPortNumber             = 0;
+        SharedMemTaggedBlobQueue bugbotMessageQueue             = null;
+        SharedMemTaggedBlobQueue bugBotCommandQueue             = null;
+        HandshakeThreadStarter   commandQueueStarter            = null;
+        Device                  lastTPCIPDevice                 = null;
+        IPEndPoint              lastTCPIPEndPoint               = null;
 
         //-----------------------------------------------------------------------------------------
         // Construction
@@ -47,9 +51,15 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             this.notificationHandle          = notificationHandle;
             this.notificationHandleIsService = notificationHandleIsService;
 
-            this.sharedMemUIMessageQueue = new SharedTaggedMemoryStringQueue(true, "BotBug");
-            this.sharedMemUIMessageQueue.Initialize();
-            this.sharedMemUIMessageQueue.Write(TaggedMessage.TagMessage, Resources.StartingMessage);
+            this.bugbotMessageQueue = new SharedMemTaggedBlobQueue(true, TaggedBlob.BugBotMessageQueueUniquifier);
+            this.bugbotMessageQueue.InitializeIfNecessary();
+            this.bugBotCommandQueue = new SharedMemTaggedBlobQueue(true, TaggedBlob.BugBotCommandQueueUniquifier);
+            this.bugBotCommandQueue.InitializeIfNecessary();
+
+            this.commandQueueStarter = new HandshakeThreadStarter("Command Q Listener", CommandQueueListenerThread);
+
+            NotifyNoRememberedConnections();
+            this.bugbotMessageQueue.Write(TaggedBlob.TagBugBotMessage, Resources.StartingMessage);
 
             this.deviceInterfacesOfInterest = new List<Guid>();
             this.deviceNotificationHandles  = new List<IntPtr>();
@@ -75,13 +85,11 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                 this.disposed = true;
                 if (notFromFinalizer)
                     {
-                    // Called from user's code. Can / should cleanup managed objects
-                    this.sharedMemUIMessageQueue?.Write(TaggedMessage.TagMessage, Resources.StoppingMessage);
-                    this.sharedMemUIMessageQueue?.Dispose();
-                    this.sharedMemUIMessageQueue = null;
+                    this.bugbotMessageQueue?.Write(TaggedBlob.TagBugBotMessage, Resources.StoppingMessage);
                     }
-
-                // Called from finalizers (and user code). Avoid referencing other objects
+                this.bugbotMessageQueue?.Dispose();     this.bugbotMessageQueue = null;
+                this.bugBotCommandQueue?.Dispose();     this.bugBotCommandQueue = null;
+                this.commandQueueStarter?.Dispose();    this.commandQueueStarter = null;
                 this.ReleaseDeviceNotificationHandles();
                 }
             }
@@ -169,7 +177,9 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                     }
 
                 this.IgnoreADBExceptionsDuring(() => EnsureUSBConnectedDevicesAreOnTCPIP("BotBug start"));
-                
+
+                this.StartCommandQueueListener();
+
                 this.started = true;
                 }
             catch (Exception)
@@ -184,6 +194,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             {
             this.started = false;
 
+            this.StopCommandQueueListener();
             this.ReleaseDeviceNotificationHandles();
 
             this.eventRaiser.DeviceArrived        -= OnDeviceArrived;
@@ -217,7 +228,29 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             {
             return true;
             }
-        
+
+        void RememberLastTCPIPDevice(Device device)
+            {
+            lock (this.deviceConnectionLock)
+                {
+                this.lastTPCIPDevice    = device;
+                this.lastTCPIPEndPoint  = new IPEndPoint(IPAddress.Parse(device.IpAddress), devicePort);
+                NotifyRememberedConnection();
+                }
+            }
+
+        void ForgetLastTCPIPDevice()
+            {
+            lock (this.deviceConnectionLock)
+                {
+                if (this.lastTCPIPEndPoint != null)
+                    {
+                    this.lastTCPIPEndPoint = null;
+                    NotifyNoRememberedConnections();
+                    }
+                }            
+            }
+       
         bool EnsureUSBConnectedDevicesAreOnTCPIP(string reason)
         // Iterate over all the extant Android devices (that ADB knows about) and make sure that each
         // one of them is listening on TCPIP. This method is idempotent, so you can call it as often
@@ -264,7 +297,8 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                         }
                     }
 
-                // Crosspolinate USB serial numbers. This will be useful for reconnecting to the last device, for example
+                // Crosspolinate USB serial numbers. This might be useful for reconnecting to the last device, for example.
+                // That said, most (all?) Devices can report their own serial numbers now, so this is less useful.
                 foreach (KeyValuePair<string, List<Device>> pair in mpIpAddressDevice)
                     {
                     string serialUSB = null;
@@ -283,6 +317,8 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                     }
 
                 // Iterate again over that list, ensuring that any that are not listening start to do so
+                Device potentialLastDevice = null;
+                bool connected = false;
                 foreach (Device device in devicesConnectedToAdbServer)
                     {
                     // Connect him if we can
@@ -291,11 +327,21 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                         // The device doesn't have an IP address or wifi is off, Adb server won't be able to connect
                         NotifyNotOnNetwork(device);
                         }
-                    else if (!ipAddressesAlreadyConnectedToAdbServer.Contains(device.IpAddress))
+                    else if (ipAddressesAlreadyConnectedToAdbServer.Contains(device.IpAddress))
+                        {
+                        // He is already connected, but we might want to rember him as 'last connected'
+                        potentialLastDevice = potentialLastDevice ?? device;
+                        }
+                    else
                         {
                         // He's not already connected, connect him
-                        TcpipAndConnect(device);
+                        if (TcpipAndConnect(device))
+                            connected = true;
                         }
+                    }
+                if (!connected && potentialLastDevice != null)
+                    {
+                    RememberLastTCPIPDevice(potentialLastDevice);
                     }
 
                this.tracer.Trace($"^-----EnsureAdbDevicesAreOnTCPIP({reason})-----^"); 
@@ -304,15 +350,15 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             return result;
             }
 
-        void TcpipAndConnect(Device device)
+        bool TcpipAndConnect(Device device)
             {
+            bool result = false;
             string ipAddress = device.IpAddress;
 
             // Restart the device listening on a port of interest. We don't know if he got there,
             // as we get no response from the command issued.
             this.tracer.Trace($"   restarting {device.SerialNumber} in TCPIP mode at {ipAddress}");
-            int portNumber = 5555;
-            AdbHelper.Instance.TcpIp(AndroidDebugBridge.AdbServerSocketAddress, device, portNumber);
+            AdbHelper.Instance.TcpIp(AndroidDebugBridge.AdbServerSocketAddress, device, devicePort);
                     
             // Give it a chance to restart. The actual time used here is a total guess, but
             // it does seem to work. Mostly (?).
@@ -320,53 +366,108 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
 
             // Connect to the TCPIP version of that device
             this.tracer.Trace($"   connecting to restarted {ipAddress} device");
-            if (AdbHelper.Instance.Connect(AndroidDebugBridge.AdbServerSocketAddress, ipAddress, portNumber))
+            if (AdbHelper.Instance.Connect(AndroidDebugBridge.AdbServerSocketAddress, ipAddress, devicePort))
                 {
-                NotifyConnected(Resources.NotifyConnected, device, ipAddress, portNumber);
+                NotifyConnected(Resources.NotifyConnected, device, ipAddress, devicePort);
 
                 // Remember to whom we last connected for later ADB Server restarts
-                this.lastTCPCIPDevice    = device;
-                this.lastTCPIPIpAddress  = ipAddress;
-                this.lastTCPIPPortNumber = portNumber;
+                RememberLastTCPIPDevice(device);
+                result = true;
                 }
             else
                 {
-                this.tracer.Trace($"   failed to connect to {ipAddress}:{portNumber}");
-                NotifyConnected(Resources.NotifyConnectedFail, device, ipAddress, portNumber);
+                this.tracer.Trace($"   failed to connect to {ipAddress}:{devicePort}");
+                NotifyConnected(Resources.NotifyConnectedFail, device, ipAddress, devicePort);
                 }
+
+            return result;
             }
 
         void ReconnectToLastTCPIPDevice()
             {
-            string ipAddress  = this.lastTCPIPIpAddress;
-            int    portNumber = this.lastTCPIPPortNumber;
+            lock (this.deviceConnectionLock)
+                {
+                if (this.lastTCPIPEndPoint != null)
+                    {
+                    string ipAddress = this.lastTCPIPEndPoint.Address.ToString();
+                    int portNumber = this.lastTCPIPEndPoint.Port;
 
-            this.tracer.Trace($"   reconnecting to {this.lastTCPCIPDevice.USBSerialNumber} on {ipAddress}:{portNumber}");
-            if (AdbHelper.Instance.Connect(AndroidDebugBridge.AdbServerSocketAddress, ipAddress, portNumber))
-                NotifyReconnected(Resources.NotifyReconnected, this.lastTCPCIPDevice, ipAddress, portNumber);
-            else
-                NotifyReconnected(Resources.NotifyReconnectedFail, this.lastTCPCIPDevice, ipAddress, portNumber);
+                    this.tracer.Trace($"   reconnecting to {this.lastTPCIPDevice.USBSerialNumber} on {lastTCPIPEndPoint}");
+                    if (AdbHelper.Instance.Connect(AndroidDebugBridge.AdbServerSocketAddress, ipAddress, portNumber))
+                        NotifyReconnected(Resources.NotifyReconnected, this.lastTPCIPDevice, ipAddress, portNumber);
+                    else
+                        NotifyReconnected(Resources.NotifyReconnectedFail, this.lastTPCIPDevice, ipAddress, portNumber);
+                    }
+                }
+            }
+
+        //-----------------------------------------------------------------------------------------
+        // Communicating with user mode
+        //-----------------------------------------------------------------------------------------
+
+        void NotifyRememberedConnection()
+            {
+            string message = string.Format(Resources.LastConnectedToMessage, this.lastTCPIPEndPoint);
+            this.tracer.Trace($"   notify: {message}");
+            this.bugbotMessageQueue.Write(TaggedBlob.TagBugBotStatus, message, 100);
+            }
+
+        void NotifyNoRememberedConnections()
+            {
+            string message = string.Format(Resources.NoLastConnectedToMessage);
+            this.tracer.Trace($"   notify: {message}");
+            this.bugbotMessageQueue.Write(TaggedBlob.TagBugBotStatus, message, 100);
             }
 
         void NotifyNotOnNetwork(Device device)
             {
             string message = string.Format(Resources.NotifyNotOnNetwork, device.USBSerialNumber??device.SerialNumber);
-            this.tracer.Trace($"   {message}");
-            this.sharedMemUIMessageQueue.Write(TaggedMessage.TagMessage, message, 100);
+            this.tracer.Trace($"   notify: {message}");
+            this.bugbotMessageQueue.Write(TaggedBlob.TagBugBotMessage, message, 100);
             }
 
         void NotifyConnected(string format, Device device, string ipAddress, int portNumber)
             {
             string message = string.Format(format, device.USBSerialNumber??device.SerialNumber, ipAddress, portNumber);
-            this.tracer.Trace($"   {message}");
-            this.sharedMemUIMessageQueue.Write(TaggedMessage.TagMessage, message, 100);
+            this.tracer.Trace($"   notify: {message}");
+            this.bugbotMessageQueue.Write(TaggedBlob.TagBugBotMessage, message, 100);
             }
 
         void NotifyReconnected(string format, Device device, string ipAddress, int portNumber)
             {
             string message = string.Format(format, device.USBSerialNumber??device.SerialNumber, ipAddress, portNumber);
-            this.tracer.Trace($"   {message}");
-            this.sharedMemUIMessageQueue.Write(TaggedMessage.TagMessage, message, 100);
+            this.tracer.Trace($"   notify: {message}");
+            this.bugbotMessageQueue.Write(TaggedBlob.TagBugBotMessage, message, 100);
+            }
+
+        void StartCommandQueueListener()
+            {
+            this.commandQueueStarter.Start();
+            }
+
+        void StopCommandQueueListener()
+            {
+            this.commandQueueStarter.Stop();
+            }
+
+        void CommandQueueListenerThread(HandshakeThreadStarter starter)
+            {
+            starter.DoHandshake();
+
+            while (!starter.StopRequested)
+                {
+                List<TaggedBlob> blobs = this.bugBotCommandQueue.Read();
+                foreach (TaggedBlob blob in blobs)
+                    {
+                    switch (blob.Tag)
+                        {
+                    case TaggedBlob.TagForgetLastConnection:
+                        this.tracer.Trace($"TagForgetLastConnection command received");
+                        ForgetLastTCPIPDevice();
+                        break;
+                        }
+                    }
+                }
             }
 
         //-----------------------------------------------------------------------------------------

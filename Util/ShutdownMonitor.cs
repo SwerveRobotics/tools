@@ -94,7 +94,7 @@ namespace Org.SwerveRobotics.Tools.Util
 
         void ShutdownMonitorThread(HandshakeThreadStarter starter)
             {
-            starter.Handshake();
+            starter.DoHandshake();
             while (!starter.StopRequested)
                 {
                 try {

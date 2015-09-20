@@ -21,7 +21,8 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
         
         NotifyIcon                      trayIcon;
         string                          statusText;
-        SharedTaggedMemoryStringQueue   sharedMemory;
+        SharedMemTaggedBlobQueue        bugBotMessageQueue;
+        SharedMemTaggedBlobQueue        bugBotCommandQueue;
         bool                            disposed;
         HandshakeThreadStarter          threadStarter;
         ShutdownMonitor                 shutdownMonitor;
@@ -34,9 +35,10 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
             {
             this.disposed = false;
             InitializeComponent();
-            this.statusText      = null;
-            this.sharedMemory    = new SharedTaggedMemoryStringQueue(false, "BotBug");    // uniquifier name must match that in BotBugService
-            this.shutdownMonitor = new ShutdownMonitor(Program.TrayUniquifier);
+            this.statusText             = null;
+            this.bugBotMessageQueue     = new SharedMemTaggedBlobQueue(false, TaggedBlob.BugBotMessageQueueUniquifier);
+            this.bugBotCommandQueue     = new SharedMemTaggedBlobQueue(false, TaggedBlob.BugBotCommandQueueUniquifier);
+            this.shutdownMonitor        = new ShutdownMonitor(Program.TrayUniquifier);
             this.shutdownMonitor.ShutdownEvent += (sender, e) => ShutdownApp();
 
             this.threadStarter = new HandshakeThreadStarter("Swerve Tray Notification Thread", this.NotificationThreadLoop);
@@ -59,8 +61,9 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
             this.trayIcon.Icon = Util.Properties.Resources.SwerveLogo;
             UpdateIconText();
 
-            MenuItem menuItem = new MenuItem(Resources.MenuItemExit, (sender, e) => ShutdownApp());
-            this.trayIcon.ContextMenu = new ContextMenu(new MenuItem[] { menuItem });
+            MenuItem menuItemExit   = new MenuItem(Resources.MenuItemExit, (sender, e) => ShutdownApp());
+            MenuItem menuItemForget = new MenuItem(Resources.MenuItemForgetLastConnection, (sender, e) => ForgetLastConnection());
+            this.trayIcon.ContextMenu = new ContextMenu(new MenuItem[] { menuItemForget, menuItemExit });
             }
 
         void UpdateIconText()
@@ -74,7 +77,24 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
         void ShutdownApp()
             {
             this.trayIcon.Visible = false;  // be doubly sure
+            this.trayIcon.Dispose();
             ExitThread();
+            }
+
+        void ForgetLastConnection()
+            {
+            // Tell the server to forget about the last connected device
+            try {
+                Trace(Program.LoggingTag, "sending forget last connection...");
+                this.bugBotCommandQueue.InitializeIfNecessary();
+                this.bugBotCommandQueue.Write(new TaggedBlob(TaggedBlob.TagForgetLastConnection, new byte[0]), 1000);
+                Trace(Program.LoggingTag, "...forget last connection sent");
+                }
+            catch (Exception)
+                {
+                // ignore, likely caused by service not yet started
+                Trace(Program.LoggingTag, "...service not yet started");
+                }
             }
 
         void IDisposable.Dispose()
@@ -95,9 +115,10 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
                     this.shutdownMonitor?.StopMonitoring();
                     }
                 // Called from finalizers (and user code). Avoid referencing other objects.
-                this.trayIcon?.Dispose();      this.trayIcon = null;
-                this.sharedMemory?.Dispose();  this.sharedMemory = null;
-                this.threadStarter?.Dispose(); this.threadStarter = null;
+                this.trayIcon?.Dispose();           this.trayIcon = null;
+                this.bugBotMessageQueue?.Dispose(); this.bugBotMessageQueue = null;
+                this.bugBotCommandQueue?.Dispose(); this.bugBotCommandQueue = null;
+                this.threadStarter?.Dispose();      this.threadStarter = null;
                 }
             base.Dispose(notFinalizer);
             }
@@ -121,14 +142,14 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
             Trace(Program.LoggingTag, "===== NotificationThreadLoop start ... ");
             try {
                 // Interlock with StartNotificationThread
-                starter.Handshake();
+                starter.DoHandshake();
 
                 // Spin, waiting for kernel to make the section for us
                 for (bool thrown = true; !starter.StopRequested && thrown; )
                     {
                     try {
                         thrown = false;
-                        this.sharedMemory.Initialize();
+                        this.bugBotMessageQueue.InitializeIfNecessary();
                         }
                     catch (FileNotFoundException)
                         {
@@ -150,30 +171,32 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
                         // Get messages from writer. This will block until there's
                         // (probably) messages for us to read
                         Trace(Program.LoggingTag, "waiting for message...");
-                        List<TaggedMessage> messages = this.sharedMemory.Read();
+                        List<TaggedBlob> messages = this.bugBotMessageQueue.Read();
                         Trace(Program.LoggingTag, "...messages received");
                         if (messages.Count > 0)
                             {
                             // Separate the messages with newlines.
                             StringBuilder balloonText = new StringBuilder();
-                            foreach (TaggedMessage taggedMessage in messages)
+                            foreach (TaggedBlob blob in messages)
                                 {
-                                if (balloonText.Length > 0)
-                                    balloonText.Append("\n");
-                                if (taggedMessage.Tag == TaggedMessage.TagMessage)
+                                switch (blob.Tag)
                                     {
-                                    balloonText.Append(taggedMessage.Message);
-                                    }
-                                else if (taggedMessage.Tag == TaggedMessage.TagStatus)
-                                    {
+                                case TaggedBlob.TagBugBotMessage:
+                                    if (balloonText.Length > 0)
+                                        balloonText.Append("\n");
+                                    balloonText.Append(blob.Message);
+                                    break;
+                                case TaggedBlob.TagBugBotStatus:
                                     // Update the status text
-                                    this.statusText = taggedMessage.Message;
+                                    this.statusText = blob.Message;
                                     UpdateIconText();
+                                    break;
                                     }
                                 }
 
                             // Display them to the user
-                            ShowBalloon(balloonText.ToString());
+                            if (balloonText.Length > 0)
+                                ShowBalloon(balloonText.ToString());
                             }
                         }
                     catch (ThreadInterruptedException)
