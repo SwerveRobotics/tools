@@ -109,11 +109,13 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
             }
 
         /**
-         * Get ourselves a socket to our ADB server, restarting it as needed.
+         * Try, only once, to get a socket to the ADB server. If we can't connect, then
+         * (perhaps) restart the server.
          *
-         * @return  true if we opened a new socket
+         * @return  true if we opened a *new* socket
          */
         bool OpenSocketIfNecessary(HandshakeThreadStarter starter)
+        // RULE: We NEVER create a new socket if a stop has been requested
             {
             bool result = false;
             this.AcquireSocketLock();
@@ -134,10 +136,10 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                             this.serverRestarts++;
 
                             if (starter.StopRequested) return result;
-                            this.bridge.KillServer();
+                            this.bridge.KillServer();               // takes seconds
 
                             if (starter.StopRequested) return result;
-                            this.bridge.EnsureServerStarted();
+                            this.bridge.EnsureServerStarted();      // takes seconds
 
                             if (starter.StopRequested) return result;
                             }
@@ -191,11 +193,15 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
             }
 
         void DeviceTrackingThread(HandshakeThreadStarter starter)
+        // RULE: Once a stop is requested, we NEVER create a new socket.
+        // NOTE: With that rule in place, we probably could now get by w/o doing a handshake. 
+        //       The issue was that our (old) code here was racing with StopDeviceTrackign(), the
+        //       former creating a socket and the latter closing it to wake us up. If that happened
+        //       in the wrong order, we would never wake up.
             {
             Log.d(loggingTag, "::: DeviceTrackingThread started :::");
 
             // Right here we know that Start() hasn't yet returned. Do the interlock and let it return.
-            // BUG: this isn't quite right: StopTracking needs synchronized access to our socket
             starter.DoHandshake();
 
             // Loop until asked to stop. Do that even in the face of failures and exceptions
@@ -205,7 +211,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                     {
                     if (OpenSocketIfNecessary(starter))
                         {
-                        // Ask the ADB server to give us device notifications
+                        // Opened a new socket. Ask the ADB server to give us device notifications
                         this.IsTrackingDevices = RequestDeviceNotifications();
                         }
 
