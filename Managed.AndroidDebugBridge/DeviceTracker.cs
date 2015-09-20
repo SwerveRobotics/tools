@@ -394,15 +394,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
         // Do what we need to do when we detect a device making its transition to the online state
         private void OnDeviceTransitionToOnline(Device device)
             {
-            try
-                {
-                device.RefreshState();
-                }
-            catch (Exception)
-                {
-                // ignore
-                }
-
+            device.RefreshState();
             this.bridge?.OnDeviceConnected(new DeviceEventArgs(device));
             }
 

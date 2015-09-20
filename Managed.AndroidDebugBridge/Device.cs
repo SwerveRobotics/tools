@@ -126,7 +126,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
             RefreshState();
             }
 
-        public void RefreshState()
+        public void RefreshState() // does not throw
             {
             RefreshMountPoints();
             RefreshEnvironmentVariables();
