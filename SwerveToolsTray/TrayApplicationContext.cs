@@ -81,7 +81,7 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
             if (string.IsNullOrEmpty(this.statusText))
                 this.trayIcon.Text = $"{Resources.TrayIconText}";
             else
-                this.trayIcon.Text = $"{Resources.TrayIconText}: {this.statusText}";
+                this.trayIcon.Text = $"{Resources.TrayIconText}: {this.statusText}".SafeSubstring(0,63);    // text has 63 char limit
             }
 
         void RemoveIcon()
