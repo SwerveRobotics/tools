@@ -78,10 +78,17 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
 
         void UpdateIconText()
             {
+            string title = $"{Resources.TrayIconText}";
+
             if (string.IsNullOrEmpty(this.statusText))
-                this.trayIcon.Text = $"{Resources.TrayIconText}";
+                this.trayIcon.Text = title;
             else
-                this.trayIcon.Text = $"{Resources.TrayIconText}: {this.statusText}".SafeSubstring(0,63);    // text has 63 char limit
+                {
+                int cchMax      = 63;                // text has 63 char limit
+                int cchOverhead = title.Length + 1;  // +1 for newline
+                int cchStatus   = cchMax - cchOverhead;
+                this.trayIcon.Text = $"{title}\n{this.statusText.SafeSubstring(0, cchStatus)}"; 
+                }
             }
 
         void RemoveIcon()
