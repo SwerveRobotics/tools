@@ -95,8 +95,11 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                 {
                 Log.d(loggingTag, "requesting device tracking stop...");
 
-                // Set the flag for he gets around to lookign
+                // Tell the thread we want it to stop. Take the socket lock
+                // to synchronize with OpenSocketIfNecessary.
+                this.AcquireSocketLock();
                 this.threadStarter.RequestStop();
+                this.ReleaseSocketLock();
                 
                 // Close the socket to get him out of Receive() if he's there
                 this.CloseSocket(ref socketTrackDevices);
@@ -169,15 +172,29 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
             return result;
             }
 
-        /**
-         * Close the socket, which may be null. If asked to, take the socket lock while doing so.
-         */
+        private Socket ConnectToServer()
+        // Note: does NOT throw on error; returns null instead
+            {
+            Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            try
+                {
+                socket.Connect(AndroidDebugBridge.AdbServerSocketAddress);
+                socket.NoDelay = true;
+                }
+            catch (Exception)
+                {
+                this.CloseSocket(ref socket, false);
+                }
+            return socket;
+            }
+
+        /** Close the socket, which may be null. If asked to, take the socket lock while doing so. */
         void CloseSocket(ref Socket socket, bool takeLock=true)
             {
             try {
-                socket?.Close();
                 try {
                     if (takeLock) this.AcquireSocketLock();
+                    socket?.Close();
                     socket = null;
                     }
                 finally
@@ -414,22 +431,6 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
             {
             AdbHelper.Instance.Read(socket, data);
             return data.GetString(AdbHelper.DEFAULT_ENCODING);
-            }
-
-        private Socket ConnectToServer()
-        // Note: does NOT throw on error; returns null instead
-            {
-            Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            try
-                {
-                socket.Connect(AndroidDebugBridge.AdbServerSocketAddress);
-                socket.NoDelay = true;
-                }
-            catch (Exception)
-                {
-                this.CloseSocket(ref socket, false);
-                }
-            return socket;
             }
         }
     }
