@@ -98,8 +98,13 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                 // Tell the thread we want it to stop. Take the socket lock
                 // to synchronize with OpenSocketIfNecessary.
                 this.AcquireSocketLock();
-                this.threadStarter.RequestStop();
-                this.ReleaseSocketLock();
+                try {
+                    this.threadStarter.RequestStop();
+                    }
+                finally
+                    {
+                    this.ReleaseSocketLock();
+                    }
                 
                 // Close the socket to get him out of Receive() if he's there
                 this.CloseSocket(ref socketTrackDevices);
