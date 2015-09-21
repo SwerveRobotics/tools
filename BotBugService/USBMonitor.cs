@@ -9,6 +9,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Threading;
 using Org.SwerveRobotics.Tools.ManagedADB;
 using Org.SwerveRobotics.Tools.Util;
@@ -348,7 +349,10 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                         }
                     foreach (Device device in pair.Value)
                         {
-                        device.USBSerialNumber = serialUSB;
+                        if (device.USBSerialNumber == null)
+                            device.USBSerialNumber = serialUSB;
+                        else
+                            Debug.Assert(device.SerialNumber == serialUSB);
                         }
                     }
 

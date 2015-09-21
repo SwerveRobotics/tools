@@ -39,6 +39,64 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
         private         Version       localAdbExeVersion;
         public          DeviceTracker deviceTracker;
 
+        //---------------------------------------------------------------------------------------
+        // Construction
+        //---------------------------------------------------------------------------------------
+
+        /**
+         * Instantiates a new bridge, using a particular ADB executable.
+         * 
+         * @exception   FileNotFoundException   thrown if the indicated path does not currently exist.
+         *
+         * @param   pathToAdbExe    The path to adb executable.
+         */
+        public AndroidDebugBridge(string pathToAdbExe)
+            {
+            if (!File.Exists(pathToAdbExe))
+                {
+                ConsoleTraceError(pathToAdbExe);
+                throw new FileNotFoundException("unable to locate adb in the specified location");
+                }
+
+            this.pathToAdbExe       = pathToAdbExe;
+            this.localAdbExeVersion = CheckLocalAdbExeVersion(this.pathToAdbExe);
+            }
+
+        public AndroidDebugBridge() : this(AdbPath)
+            {
+            }
+
+        // throw on failure
+        public static AndroidDebugBridge Create(string pathToAdbExe)
+            {
+            AndroidDebugBridge result = new AndroidDebugBridge(pathToAdbExe);
+            result.StartTracking();
+            return result;
+            }
+
+        // throw on failure
+        public static AndroidDebugBridge Create()
+            {
+            return Create(AdbPath);
+            }
+
+        static AndroidDebugBridge()
+        // static/class initialiation
+            {
+            try
+                {
+                AdbServerHostAddress     = IPAddress.Loopback;
+                AdbServerSocketAddress   = new IPEndPoint(AdbServerHostAddress, AdbServerPort);
+                }
+            catch (ArgumentOutOfRangeException)
+                {
+                }
+            }
+
+        //---------------------------------------------------------------------------------------
+        // Locating ADB
+        //---------------------------------------------------------------------------------------
+
         /**
          * Returns the full pathname of the ADB executable.
          *
@@ -120,59 +178,6 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
         [DllImport("advapi32.dll", CharSet = CharSet.Unicode, EntryPoint = "RegOpenKeyExW", SetLastError = true)]
         private static extern int RegOpenKeyExW(IntPtr hKey, string subKey, uint options, int sam, out IntPtr phkResult);
 
-        //---------------------------------------------------------------------------------------
-        // Construction
-        //---------------------------------------------------------------------------------------
-
-        /**
-         * Instantiates a new bridge, using a particular ADB executable.
-         * 
-         * @exception   FileNotFoundException   thrown if the indicated path does not currently exist.
-         *
-         * @param   pathToAdbExe    The path to adb executable.
-         */
-        public AndroidDebugBridge(string pathToAdbExe)
-            {
-            if (!File.Exists(pathToAdbExe))
-                {
-                ConsoleTraceError(pathToAdbExe);
-                throw new FileNotFoundException("unable to locate adb in the specified location");
-                }
-
-            this.pathToAdbExe       = pathToAdbExe;
-            this.localAdbExeVersion = CheckLocalAdbExeVersion(this.pathToAdbExe);
-            }
-
-        public AndroidDebugBridge() : this(AdbPath)
-            {
-            }
-
-        // throw on failure
-        public static AndroidDebugBridge Create(string pathToAdbExe)
-            {
-            AndroidDebugBridge result = new AndroidDebugBridge(pathToAdbExe);
-            result.StartTracking();
-            return result;
-            }
-
-        // throw on failure
-        public static AndroidDebugBridge Create()
-            {
-            return Create(AdbPath);
-            }
-
-        static AndroidDebugBridge()
-        // static/class initialiation
-            {
-            try
-                {
-                AdbServerHostAddress     = IPAddress.Loopback;
-                AdbServerSocketAddress   = new IPEndPoint(AdbServerHostAddress, AdbServerPort);
-                }
-            catch (ArgumentOutOfRangeException)
-                {
-                }
-            }
 
         //---------------------------------------------------------------------------------------
         // Initialization
