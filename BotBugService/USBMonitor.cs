@@ -1,18 +1,24 @@
-﻿using System;
+﻿//
+// USBMonitor.cs
+//
+// Monitors devices coming and going over USB, both with system notifications and 
+// with the help of ADB.
+//
+// Probably can be integrated into BotBugService itself.
+
+using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using System.ComponentModel;
 using System.Threading;
-using System.Diagnostics;
-using System.IO;
-using System.Net;
 using Org.SwerveRobotics.Tools.ManagedADB;
 using Org.SwerveRobotics.Tools.Util;
-using static Org.SwerveRobotics.Tools.BotBug.Service.WIN32;
 using Org.SwerveRobotics.Tools.BotBug.Service.Properties;
+using static Org.SwerveRobotics.Tools.BotBug.Service.WIN32;
 
 namespace Org.SwerveRobotics.Tools.BotBug.Service
     {
+    // What we remember about the device we last connected to, and will
+    // use for later reconnection on ADB restart
     public class TCPIPReconnectionState
         {
         public string       IpAddress;
@@ -34,21 +40,21 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
         // State
         //-----------------------------------------------------------------------------------------
 
-        const int           adbdPort  = 5555;        // the port number we always use to connect to devices
+        const int                adbdPort  = 5555;        // the port number we always use to connect to devices
 
-        bool                disposed    = false;
-        IDeviceEvents       eventRaiser = null;
-        ITracer             tracer      = null;
-        bool                started     = false;
-        IntPtr              notificationHandle;
-        bool                notificationHandleIsService;
+        bool                     disposed    = false;
+        IDeviceEvents            eventRaiser = null;
+        ITracer                  tracer      = null;
+        bool                     started     = false;
+        IntPtr                   notificationHandle;
+        bool                     notificationHandleIsService;
 
-        readonly object         deviceConnectionLock            = new object();
-        readonly object         deviceListLock                  = new object();
+        readonly object          deviceConnectionLock           = new object();
+        readonly object          deviceListLock                 = new object();
 
-        List<Guid>              deviceInterfacesOfInterest      = null;
-        List<IntPtr>            deviceNotificationHandles       = null;
-        AndroidDebugBridge      bridge                          = null;
+        List<Guid>               deviceInterfacesOfInterest     = null;
+        List<IntPtr>             deviceNotificationHandles      = null;
+        AndroidDebugBridge       bridge                         = null;
         SharedMemTaggedBlobQueue bugbotMessageQueue             = null;
         SharedMemTaggedBlobQueue bugBotCommandQueue             = null;
         HandshakeThreadStarter   commandQueueStarter            = null;
@@ -113,6 +119,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
         // Device notification management
         //-----------------------------------------------------------------------------------------
 
+        // Add the indicated interface GUID as one of the interfaces for which we reeive OS notifications
         public void AddDeviceInterfaceOfInterest(Guid guid)
             {
             lock (this.deviceListLock)
@@ -126,6 +133,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                 }
             }
 
+        // Ask the OS to give us notifications for USB devices with the indicated interface
         void GetUSBDeviceNotificationsFor(Guid guidDevInterface)
             {
             lock (this.deviceListLock)
@@ -139,7 +147,8 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                 this.deviceNotificationHandles.Add(hDeviceNotify);
                 }
             }
-
+        
+        // Undo the work of GetUSBDeviceNotificationsFor
         void ReleaseDeviceNotificationHandles()
             {
             lock (this.deviceListLock)
@@ -152,6 +161,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                 }
             }
 
+        // Start the monitor running
         public void Start()
             {
             try
@@ -205,6 +215,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
 
             }
 
+        // Stop the monitor running. This is idempotent
         public void Stop()
             {
             this.started = false;
@@ -220,7 +231,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             }
 
         //-----------------------------------------------------------------------------------------
-        // ADB
+        // ADB integration
         //-----------------------------------------------------------------------------------------
         
         void IgnoreADBExceptionsDuring(Action action)
@@ -239,7 +250,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
 
         bool IsADBIOException(Exception e)
         // We don't have a full enumeration of all exceptions that ADB may ACTUALLY throw, 
-        // so we are conservative
+        // so we are conservative and just say that all exceptions are potentially from that communication
             {
             return true;
             }
