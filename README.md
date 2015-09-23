@@ -16,17 +16,16 @@ At the moment, the suite contains just one tool:
     needed, and BotBug will take care of the rest. Once BotBug has done its job, you can detach
     the phone from USB.
 
-    We hope in a future version to eliminate the need for the separate Wifi network by 
-    connecting from the PC to the robot controller phone over Wifi direct, but that's not
-    there right now.
+    BotBug automatically starts after install and restarts when your computer boots. It is 
+    always running in the background, but can be temporarily disarmed by using the menu on 
+    the Swerve icon in the notification area.
 
     Sorry, BotBug only runs on Windows (v7 or greater), and we don't have the knowledge 
     or resources ourselves to port it to other platforms, though we would support anyone
     who might choose to undertake such a port.
 
 To install the Swerve Robotics Tools Suite, download a release from here on GitHub (look at
-the top of this page just above the thick green line), then run the downloaded file. BotBug
-is always on and ready whenever your computer is powered; to turn it off, please uninstall.
+the top of this page just above the thick green line), then run the downloaded file.
 
 We hope you find these tools to be useful. We'd love to hear what you think, and we will respond to
 questions or issues you have as promptly as we are able.
