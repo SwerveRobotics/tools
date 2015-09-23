@@ -9,12 +9,18 @@ At the moment, the suite contains just one tool:
 *   __BotBug__: BotBug helps you debug your robot over Wifi by automatically configuring 
     robot controller phones for Wifi debugging whenever they connect to your PC using USB.
 
-    To setup Wifi debugging, configure your robot controller phone normally, just as instructed in the FTC Guide, then take 
-    the one additional step of also connecting the phone to a Wifi network which is 
-    visible to your PC (so: the phone is *both* on Wifi Direct and this other network). Then
-    plug in the phone using USB, acknowledge the one-time "allow USB debugging" prompt if 
-    needed, and BotBug will take care of the rest. Once BotBug has done its job, you can detach
-    the phone from USB.
+    Wifi debugging is especially useful for FTC robots, as it supports live Android Studio 
+    debugging and downloading of updates to a team's software even while the robot is in 
+    its game configuration, connected to its sensors and motor and servo controllers. Configuring 
+    Wifi debugging by hand is straightforward but tedious, and must be done (at least) each time
+    a phone boots or Android Studio restarts.
+
+    To setup Wifi debugging with BotBug, simply configure your robot controller phone normally, 
+    just as instructed in the FTC Guide, then take the one additional step of also connecting 
+    the phone to a Wifi network which is visible to your PC (so: the phone is *both* on Wifi 
+    Direct and this other network). Then plug in the phone using USB, acknowledge the one-time 
+    "allow USB debugging" prompt if needed, and BotBug will take care of the rest. Once 
+    BotBug has done its job, you can detach the phone from USB.
 
     BotBug automatically starts after install and restarts when your computer boots. It is 
     always running in the background, but can be temporarily disarmed by using the menu on 
