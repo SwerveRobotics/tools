@@ -124,25 +124,31 @@
     <value>no remembered connection</value>
   </data>
   <data name="NotifyArmed" xml:space="preserve">
-    <value>BotBug is monitoring USB connections</value>
+    <value>BotBug is monitoring connections</value>
   </data>
   <data name="NotifyConnected" xml:space="preserve">
-    <value>Connected to phone {0} on {1}:{2}</value>
+    <value>Connected to phone {0} at {1}</value>
   </data>
   <data name="NotifyConnectedFail" xml:space="preserve">
-    <value>Failed to connected to phone {0} on {1}:{2}</value>
+    <value>Failed to connected to phone {0} at {1}</value>
   </data>
   <data name="NotifyDisarmed" xml:space="preserve">
-    <value>BotBut is not monitoring USB connections</value>
+    <value>BotBut is not monitoring connections</value>
   </data>
-  <data name="NotifyNotOnNetwork" xml:space="preserve">
-    <value>Phone {0} is not on WIFI</value>
+  <data name="NotifyNoIPAddress" xml:space="preserve">
+    <value>Phone {0} has no IP address</value>
+  </data>
+  <data name="NotifyNotPingable" xml:space="preserve">
+    <value>Phone {0} at {1} cannot be reached on the network from this computer</value>
   </data>
   <data name="NotifyReconnected" xml:space="preserve">
-    <value>Reconnected to phone {0} on {1}:{2}</value>
+    <value>Reconnected to phone {0} at {1}</value>
   </data>
   <data name="NotifyReconnectedFail" xml:space="preserve">
-    <value>Failed to reconnect to phone {0} on {1}:{2}</value>
+    <value>Failed to reconnect to phone {0} at {1}</value>
+  </data>
+  <data name="NotifyWifiOff" xml:space="preserve">
+    <value>Phone {0} at {1} has WIFI turned off</value>
   </data>
   <data name="StartingMessage" xml:space="preserve">
     <value>Swerve Tools BotBug has started</value>

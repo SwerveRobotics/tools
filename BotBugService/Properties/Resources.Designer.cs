@@ -79,7 +79,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to BotBug is monitoring USB connections.
+        ///   Looks up a localized string similar to BotBug is monitoring connections.
         /// </summary>
         public static string NotifyArmed {
             get {
@@ -88,7 +88,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Connected to phone {0} on {1}:{2}.
+        ///   Looks up a localized string similar to Connected to phone {0} at {1}.
         /// </summary>
         public static string NotifyConnected {
             get {
@@ -97,7 +97,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to connected to phone {0} on {1}:{2}.
+        ///   Looks up a localized string similar to Failed to connected to phone {0} at {1}.
         /// </summary>
         public static string NotifyConnectedFail {
             get {
@@ -106,7 +106,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to BotBut is not monitoring USB connections.
+        ///   Looks up a localized string similar to BotBut is not monitoring connections.
         /// </summary>
         public static string NotifyDisarmed {
             get {
@@ -115,16 +115,25 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Phone {0} is not on WIFI.
+        ///   Looks up a localized string similar to Phone {0} has no IP address.
         /// </summary>
-        public static string NotifyNotOnNetwork {
+        public static string NotifyNoIPAddress {
             get {
-                return ResourceManager.GetString("NotifyNotOnNetwork", resourceCulture);
+                return ResourceManager.GetString("NotifyNoIPAddress", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Reconnected to phone {0} on {1}:{2}.
+        ///   Looks up a localized string similar to Phone {0} at {1} cannot be reached on the network from this computer.
+        /// </summary>
+        public static string NotifyNotPingable {
+            get {
+                return ResourceManager.GetString("NotifyNotPingable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reconnected to phone {0} at {1}.
         /// </summary>
         public static string NotifyReconnected {
             get {
@@ -133,11 +142,20 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to reconnect to phone {0} on {1}:{2}.
+        ///   Looks up a localized string similar to Failed to reconnect to phone {0} at {1}.
         /// </summary>
         public static string NotifyReconnectedFail {
             get {
                 return ResourceManager.GetString("NotifyReconnectedFail", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Phone {0} at {1} has WIFI turned off.
+        /// </summary>
+        public static string NotifyWifiOff {
+            get {
+                return ResourceManager.GetString("NotifyWifiOff", resourceCulture);
             }
         }
         

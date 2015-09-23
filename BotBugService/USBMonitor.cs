@@ -10,6 +10,8 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Net;
+using System.Net.NetworkInformation;
 using System.Threading;
 using Org.SwerveRobotics.Tools.ManagedADB;
 using Org.SwerveRobotics.Tools.Util;
@@ -62,6 +64,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
         TCPIPReconnectionState   lastTPCIPConnected             = null;
         TCPIPReconnectionState   reconnectionToVerify           = null;
         bool                     armed                          = true;
+        readonly int             msPingTimeout                  = 500;
 
         //-----------------------------------------------------------------------------------------
         // Construction
@@ -367,10 +370,13 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                 foreach (Device device in devicesConnectedToAdbServer)
                     {
                     // Connect him if we can
-                    if (device.IpAddress == null || !device.WifiIsOn)
+                    if (device.IpAddress == null)
                         {
-                        // The device doesn't have an IP address or wifi is off, Adb server won't be able to connect
-                        NotifyNotOnNetwork(device);
+                        NotifyNoIpAddress(device);
+                        }
+                    else if (!device.WifiIsOn)
+                        {
+                        NotifyWifiOff(device);
                         }
                     else if (ipAddressesAlreadyConnectedToAdbServer.Contains(device.IpAddress))
                         {
@@ -396,7 +402,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                                     // We reconnected to him, but he's the wrong guy. Disconnect.
                                     this.tracer.Trace($"   verify reconnected: fail: {this.reconnectionToVerify.IpAddress}: got: {device.USBSerialNumber} expected: {this.reconnectionToVerify.USBSerialNumber}; disconnecting");
                                     AdbHelper.Instance.Disconnect(AndroidDebugBridge.AdbServerSocketAddress, device.IpAddress, adbdPort);
-                                    NotifyReconnected(Resources.NotifyReconnectedFail, device.UserIdentifier, device.IpAddress, adbdPort);
+                                    NotifyReconnected(Resources.NotifyReconnectedFail, device.UserIdentifier, device.IpAddress);
                                     
                                     // If we're still reconnecting to the same guy, stop that
                                     if (this.lastTPCIPConnected != null && this.lastTPCIPConnected.IpAddress == this.reconnectionToVerify.IpAddress)
@@ -416,9 +422,20 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                         }
                     else
                         {
-                        // He's not already connected, connect him
-                        if (SendTcpipCommandAndConnect(device))
-                            connectedAny = true;
+                        // He's not already connected on an IP network. But can we reach him?
+                        Ping        ping    = new Ping();
+                        IPAddress   address = IPAddress.Parse(device.IpAddress);
+                        PingReply   reply   = ping.Send(address, msPingTimeout);
+                        if (reply?.Status == IPStatus.Success)
+                            {
+                            // Connect to him
+                            if (SendTcpipCommandAndConnect(device))
+                                {
+                                connectedAny = true;
+                                }
+                            }
+                        else
+                            NotifyNotPingable(device);
                         }
                     }
 
@@ -453,7 +470,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             this.tracer.Trace($"   connecting to restarted {ipAddress} device");
             if (AdbHelper.Instance.Connect(AndroidDebugBridge.AdbServerSocketAddress, ipAddress, adbdPort))
                 {
-                NotifyConnected(Resources.NotifyConnected, device, ipAddress, adbdPort);
+                NotifyConnected(Resources.NotifyConnected, device, ipAddress);
 
                 // Remember to whom we last connected for later ADB Server restarts
                 RememberLastTCPIPDevice(device);
@@ -462,7 +479,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             else
                 {
                 this.tracer.Trace($"   failed to connect to {ipAddress}:{adbdPort}");
-                NotifyConnected(Resources.NotifyConnectedFail, device, ipAddress, adbdPort);
+                NotifyConnected(Resources.NotifyConnectedFail, device, ipAddress);
                 }
 
             return result;
@@ -482,12 +499,12 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                     if (AdbHelper.Instance.Connect(AndroidDebugBridge.AdbServerSocketAddress, ipAddress, portNumber))
                         {
                         // Ok, we connected. But is it the same guy? We'll have to check later
-                        NotifyReconnected(Resources.NotifyReconnected, this.lastTPCIPConnected.UserIdentifier, ipAddress, portNumber);
+                        NotifyReconnected(Resources.NotifyReconnected, this.lastTPCIPConnected.UserIdentifier, ipAddress);
                         this.reconnectionToVerify = this.lastTPCIPConnected;
                         }
                     else
                         {
-                        NotifyReconnected(Resources.NotifyReconnectedFail, this.lastTPCIPConnected.UserIdentifier, ipAddress, portNumber);
+                        NotifyReconnected(Resources.NotifyReconnectedFail, this.lastTPCIPConnected.UserIdentifier, ipAddress);
                         }
                     }
                 }
@@ -505,17 +522,25 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             {
             UpdateStatus(string.Format(Resources.NoLastConnectedToMessage));
             }
-        void NotifyNotOnNetwork(Device device)
+        void NotifyNoIpAddress(Device device)
             {
-            NotifyMessage(string.Format(Resources.NotifyNotOnNetwork, device.UserIdentifier));
+            NotifyMessage(string.Format(Resources.NotifyNoIPAddress, device.UserIdentifier, device.IpAddress));
             }
-        void NotifyConnected(string format, Device device, string ipAddress, int portNumber)
+        void NotifyWifiOff(Device device)
             {
-            NotifyMessage(string.Format(format, device.UserIdentifier, ipAddress, portNumber));
+            NotifyMessage(string.Format(Resources.NotifyWifiOff, device.UserIdentifier, device.IpAddress));
             }
-        void NotifyReconnected(string format, string identifier, string ipAddress, int portNumber)
+        void NotifyNotPingable(Device device)
             {
-            NotifyMessage(string.Format(format, identifier, ipAddress, portNumber));
+            NotifyMessage(string.Format(Resources.NotifyNotPingable, device.UserIdentifier, device.IpAddress));
+            }
+        void NotifyConnected(string format, Device device, string ipAddress)
+            {
+            NotifyMessage(string.Format(format, device.UserIdentifier, ipAddress));
+            }
+        void NotifyReconnected(string format, string identifier, string ipAddress)
+            {
+            NotifyMessage(string.Format(format, identifier, ipAddress));
             }
         void NotifyArmed()
             {
