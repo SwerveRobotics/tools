@@ -61,6 +61,24 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &amp;Arm BotBug Service.
+        /// </summary>
+        internal static string MenuItemArm {
+            get {
+                return ResourceManager.GetString("MenuItemArm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &amp;Disarm BogBug Service.
+        /// </summary>
+        internal static string MenuItemDisarm {
+            get {
+                return ResourceManager.GetString("MenuItemDisarm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to E&amp;xit.
         /// </summary>
         internal static string MenuItemExit {
@@ -70,7 +88,7 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &amp;Forget connection.
+        ///   Looks up a localized string similar to &amp;Forget last connection.
         /// </summary>
         internal static string MenuItemForgetLastConnection {
             get {

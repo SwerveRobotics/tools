@@ -79,6 +79,15 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to BotBug is monitoring USB connections.
+        /// </summary>
+        public static string NotifyArmed {
+            get {
+                return ResourceManager.GetString("NotifyArmed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Connected to phone {0} on {1}:{2}.
         /// </summary>
         public static string NotifyConnected {
@@ -93,6 +102,15 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service.Properties {
         public static string NotifyConnectedFail {
             get {
                 return ResourceManager.GetString("NotifyConnectedFail", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to BotBut is not monitoring USB connections.
+        /// </summary>
+        public static string NotifyDisarmed {
+            get {
+                return ResourceManager.GetString("NotifyDisarmed", resourceCulture);
             }
         }
         
@@ -138,6 +156,24 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service.Properties {
         public static string StoppingMessage {
             get {
                 return ResourceManager.GetString("StoppingMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to armed.
+        /// </summary>
+        public static string WordArmed {
+            get {
+                return ResourceManager.GetString("WordArmed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to disarmed.
+        /// </summary>
+        public static string WordDisarmed {
+            get {
+                return ResourceManager.GetString("WordDisarmed", resourceCulture);
             }
         }
     }

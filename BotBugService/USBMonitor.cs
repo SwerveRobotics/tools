@@ -61,6 +61,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
         HandshakeThreadStarter   commandQueueStarter            = null;
         TCPIPReconnectionState   lastTPCIPConnected             = null;
         TCPIPReconnectionState   reconnectionToVerify           = null;
+        bool                     armed                          = true;
 
         //-----------------------------------------------------------------------------------------
         // Construction
@@ -80,7 +81,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
 
             this.commandQueueStarter = new HandshakeThreadStarter("Command Q Listener", CommandQueueListenerThread);
 
-            NotifyNoRememberedConnections();
+            UpdateStatusNoRememberedConnections();
             this.bugbotMessageQueue.Write(TaggedBlob.TagBugBotMessage, Resources.StartingMessage);
 
             this.deviceInterfacesOfInterest = new List<Guid>();
@@ -181,12 +182,12 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                         lock (this.deviceConnectionLock)
                             {
                             // Ensure any USB-connected devices are on TCPIP
-                            bool anyDevices = EnsureUSBConnectedDevicesAreOnTCPIP("ADB server started notification");
+                            bool? anyDevices = EnsureUSBConnectedDevicesAreOnTCPIP("ADB server started notification");
 
                             // If the server isn't in fact connected to ANYONE (maybe the server stopped
                             // while no USB device was connected; closing Android Studio stops the server)
                             // then try to connect it to the last TCPIP device we used
-                            if (!anyDevices)
+                            if (anyDevices.HasValue && !anyDevices.Value)
                                 {
                                 ReconnectToLastTCPIPDevice();
                                 }
@@ -282,18 +283,22 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             lock (this.deviceConnectionLock)
                 {
                 if (this.lastTPCIPConnected == null)
-                    NotifyNoRememberedConnections();
+                    UpdateStatusNoRememberedConnections();
                 else
-                    NotifyRememberedConnection();
+                    UpdateStatusRememberedConnection();
                 }
             }
        
-        bool EnsureUSBConnectedDevicesAreOnTCPIP(string reason)
+        bool? EnsureUSBConnectedDevicesAreOnTCPIP(string reason)
         // Iterate over all the extant Android devices (that ADB knows about) and make sure that each
         // one of them is listening on TCPIP. This method is idempotent, so you can call it as often
         // and as frequently as you like. Answer as to whether there were any devices known about by
         // the ADB server.
             {
+            // Don't actually do anything if the user has asked us not to
+            if (!this.armed)
+                return null;
+
             bool result = false;
 
             // We synchronize for paranoid reasons: we're not SURE we can be be called on
@@ -492,39 +497,45 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
         // Communicating with user mode
         //-----------------------------------------------------------------------------------------
 
-        void NotifyRememberedConnection()
+        void UpdateStatusRememberedConnection()
             {
-            string message = string.Format(Resources.LastConnectedToMessage, this.lastTPCIPConnected.UserIdentifier);
-            this.tracer.Trace($"   notify: {message}");
-            this.bugbotMessageQueue.Write(TaggedBlob.TagBugBotStatus, message, 100);
+            UpdateStatus(string.Format(Resources.LastConnectedToMessage, this.lastTPCIPConnected.UserIdentifier));
             }
-
-        void NotifyNoRememberedConnections()
+        void UpdateStatusNoRememberedConnections()
             {
-            string message = string.Format(Resources.NoLastConnectedToMessage);
-            this.tracer.Trace($"   notify: {message}");
-            this.bugbotMessageQueue.Write(TaggedBlob.TagBugBotStatus, message, 100);
+            UpdateStatus(string.Format(Resources.NoLastConnectedToMessage));
             }
-
         void NotifyNotOnNetwork(Device device)
             {
-            string message = string.Format(Resources.NotifyNotOnNetwork, device.UserIdentifier);
-            this.tracer.Trace($"   notify: {message}");
-            this.bugbotMessageQueue.Write(TaggedBlob.TagBugBotMessage, message, 100);
+            NotifyMessage(string.Format(Resources.NotifyNotOnNetwork, device.UserIdentifier));
             }
-
         void NotifyConnected(string format, Device device, string ipAddress, int portNumber)
             {
-            string message = string.Format(format, device.UserIdentifier, ipAddress, portNumber);
+            NotifyMessage(string.Format(format, device.UserIdentifier, ipAddress, portNumber));
+            }
+        void NotifyReconnected(string format, string identifier, string ipAddress, int portNumber)
+            {
+            NotifyMessage(string.Format(format, identifier, ipAddress, portNumber));
+            }
+        void NotifyArmed()
+            {
+            NotifyMessage(Resources.NotifyArmed);
+            }
+        void NotifyDisarmed()
+            {
+            NotifyMessage(Resources.NotifyDisarmed);
+            }
+
+        void NotifyMessage(string message)
+            {
             this.tracer.Trace($"   notify: {message}");
             this.bugbotMessageQueue.Write(TaggedBlob.TagBugBotMessage, message, 100);
             }
-
-        void NotifyReconnected(string format, string identifier, string ipAddress, int portNumber)
+        void UpdateStatus(string message)
             {
-            string message = string.Format(format, identifier, ipAddress, portNumber);
-            this.tracer.Trace($"   notify: {message}");
-            this.bugbotMessageQueue.Write(TaggedBlob.TagBugBotMessage, message, 100);
+            message = $"({(this.armed ? Resources.WordArmed : Resources.WordDisarmed)})\n{message}";
+            this.tracer.Trace($"   status: {message}");
+            this.bugbotMessageQueue.Write(TaggedBlob.TagBugBotStatus, message, 100);
             }
 
         void StartCommandQueueListener()
@@ -553,6 +564,16 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                         ForgetLastTCPIPDevice();
                         break;
                     case TaggedBlob.TagSwerveToolsTrayStarted:
+                        UpdateTrayStatus();
+                        break;
+                    case TaggedBlob.TagDisarmService:
+                        this.armed = false;
+                        NotifyDisarmed();
+                        UpdateTrayStatus();
+                        break;
+                    case TaggedBlob.TagArmService:
+                        this.armed = true;
+                        NotifyArmed();
                         UpdateTrayStatus();
                         break;
                         }

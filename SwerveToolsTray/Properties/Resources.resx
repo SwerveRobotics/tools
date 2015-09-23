@@ -117,11 +117,17 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="MenuItemArm" xml:space="preserve">
+    <value>&amp;Arm BotBug Service</value>
+  </data>
+  <data name="MenuItemDisarm" xml:space="preserve">
+    <value>&amp;Disarm BogBug Service</value>
+  </data>
   <data name="MenuItemExit" xml:space="preserve">
     <value>E&amp;xit</value>
   </data>
   <data name="MenuItemForgetLastConnection" xml:space="preserve">
-    <value>&amp;Forget connection</value>
+    <value>&amp;Forget last connection</value>
   </data>
   <data name="TrayIconBalloonTipTitle" xml:space="preserve">
     <value>Swerve BotBug Monitor</value>

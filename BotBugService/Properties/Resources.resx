@@ -123,11 +123,17 @@
   <data name="NoLastConnectedToMessage" xml:space="preserve">
     <value>no remembered connection</value>
   </data>
+  <data name="NotifyArmed" xml:space="preserve">
+    <value>BotBug is monitoring USB connections</value>
+  </data>
   <data name="NotifyConnected" xml:space="preserve">
     <value>Connected to phone {0} on {1}:{2}</value>
   </data>
   <data name="NotifyConnectedFail" xml:space="preserve">
     <value>Failed to connected to phone {0} on {1}:{2}</value>
+  </data>
+  <data name="NotifyDisarmed" xml:space="preserve">
+    <value>BotBut is not monitoring USB connections</value>
   </data>
   <data name="NotifyNotOnNetwork" xml:space="preserve">
     <value>Phone {0} is not on WIFI</value>
@@ -143,5 +149,11 @@
   </data>
   <data name="StoppingMessage" xml:space="preserve">
     <value>Swerve Tools BotBug is stopping</value>
+  </data>
+  <data name="WordArmed" xml:space="preserve">
+    <value>armed</value>
+  </data>
+  <data name="WordDisarmed" xml:space="preserve">
+    <value>disarmed</value>
   </data>
 </root>

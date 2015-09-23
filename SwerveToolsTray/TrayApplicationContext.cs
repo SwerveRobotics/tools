@@ -71,9 +71,13 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
             this.trayIcon.Icon = Util.Properties.Resources.SwerveLogo;
             UpdateIconText();
 
-            MenuItem menuItemExit   = new MenuItem(Resources.MenuItemExit, (sender, e) => ShutdownApp());
-            MenuItem menuItemForget = new MenuItem(Resources.MenuItemForgetLastConnection, (sender, e) => ForgetLastConnection());
-            this.trayIcon.ContextMenu = new ContextMenu(new MenuItem[] { menuItemForget, menuItemExit });
+            this.trayIcon.ContextMenu = new ContextMenu(new MenuItem[]
+                {
+                new MenuItem(Resources.MenuItemArm,                  (sender, e) => Arm(true)),
+                new MenuItem(Resources.MenuItemDisarm,               (sender, e) => Arm(false)),
+                new MenuItem(Resources.MenuItemForgetLastConnection, (sender, e) => ForgetLastConnection()),
+                new MenuItem(Resources.MenuItemExit,                 (sender, e) => ShutdownApp())
+                });
             }
 
         void UpdateIconText()
@@ -87,7 +91,7 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
                 int cchMax      = 63;                // text has 63 char limit
                 int cchOverhead = title.Length + 1;  // +1 for newline
                 int cchStatus   = cchMax - cchOverhead;
-                this.trayIcon.Text = $"{title}\n{this.statusText.SafeSubstring(0, cchStatus)}"; 
+                this.trayIcon.Text = $"{title} {this.statusText.SafeSubstring(0, cchStatus)}"; 
                 }
             }
 
@@ -115,6 +119,22 @@ namespace Org.SwerveRobotics.Tools.SwerveToolsTray
                 this.bugBotCommandQueue.InitializeIfNecessary();
                 this.bugBotCommandQueue.Write(new TaggedBlob(TaggedBlob.TagForgetLastConnection, new byte[0]), 1000);
                 Trace(Program.LoggingTag, "...forget last connection sent");
+                }
+            catch (Exception)
+                {
+                // ignore, likely caused by service not yet started
+                Trace(Program.LoggingTag, "...service not yet started");
+                }
+            }
+
+        void Arm(bool enabled)
+            {
+            // Arm or disarm the service
+            try {
+                Trace(Program.LoggingTag, $"sending enable({enabled})...");
+                this.bugBotCommandQueue.InitializeIfNecessary();
+                this.bugBotCommandQueue.Write(new TaggedBlob(enabled ? TaggedBlob.TagArmService : TaggedBlob.TagDisarmService, new byte[0]), 1000);
+                Trace(Program.LoggingTag, "...enabled sent");
                 }
             catch (Exception)
                 {

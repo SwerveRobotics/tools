@@ -18,6 +18,8 @@ namespace Org.SwerveRobotics.Tools.Util
         public const int TagBugBotStatus         = 2;
         public const int TagForgetLastConnection = 3;
         public const int TagSwerveToolsTrayStarted = 4;
+        public const int TagArmService        = 5;
+        public const int TagDisarmService       = 6;
 
         public const string BugBotMessageQueueUniquifier = "BugBotMessageQueue";
         public const string BugBotCommandQueueUniquifier = "BogBotCommandQueue";
