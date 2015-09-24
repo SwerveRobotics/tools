@@ -318,7 +318,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:SwerveToolsUtil, Version=0.54.5742.18519, Culture=neutral, processorArchitecture=MSIL"
+            "AssemblyAsmDisplayName" = "8:SwerveToolsUtil, Version=0.60.5743.41169, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
                     "_38B5812318DF911B00C0B6077A1D78FC"
@@ -409,7 +409,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:ManagedADB, Version=0.54.5742.18519, Culture=neutral, processorArchitecture=MSIL"
+            "AssemblyAsmDisplayName" = "8:ManagedADB, Version=0.60.5743.41169, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
                     "_ADE9D65264837FB206B1EF53569FC9F9"
@@ -535,14 +535,14 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Swerve Robotics Tools Suite"
         "ProductCode" = "8:{3BF09BCD-D785-437D-9017-108E90EF5221}"
-        "PackageCode" = "8:{777DA52D-98FE-4825-9463-3DA4CFE9A0B7}"
+        "PackageCode" = "8:{76578501-75B3-4C66-8A3F-4D6B2ADCC073}"
         "UpgradeCode" = "8:{5ACBAA86-771B-4194-903F-8E78674A3E50}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:TRUE"
-        "ProductVersion" = "8:0.60"
+        "ProductVersion" = "8:0.61"
         "Manufacturer" = "8:Swerve Robotics"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
@@ -1150,7 +1150,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_A86589CDF6A64F5DB8F78029D4AE1664"
             {
-            "SourcePath" = "8:..\\SwerveToolsTray\\obj\\Release\\SwerveToolsTray.exe"
+            "SourcePath" = "8:..\\SwerveToolsTray\\obj\\Debug\\SwerveToolsTray.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_91B08F9544EE48C4936C8AB67C41C2D4"
@@ -1178,7 +1178,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_C9EE96A481164CD38A6B7249DDAB428B"
             {
-            "SourcePath" = "8:..\\BotBugService\\obj\\Release\\BotBugService.exe"
+            "SourcePath" = "8:..\\BotBugService\\obj\\Debug\\BotBugService.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_91B08F9544EE48C4936C8AB67C41C2D4"
