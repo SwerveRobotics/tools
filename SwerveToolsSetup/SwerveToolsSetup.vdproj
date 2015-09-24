@@ -1150,7 +1150,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_A86589CDF6A64F5DB8F78029D4AE1664"
             {
-            "SourcePath" = "8:..\\SwerveToolsTray\\obj\\Debug\\SwerveToolsTray.exe"
+            "SourcePath" = "8:..\\SwerveToolsTray\\obj\\Release\\SwerveToolsTray.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_91B08F9544EE48C4936C8AB67C41C2D4"
@@ -1178,7 +1178,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_C9EE96A481164CD38A6B7249DDAB428B"
             {
-            "SourcePath" = "8:..\\BotBugService\\obj\\Debug\\BotBugService.exe"
+            "SourcePath" = "8:..\\BotBugService\\obj\\Release\\BotBugService.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_91B08F9544EE48C4936C8AB67C41C2D4"
