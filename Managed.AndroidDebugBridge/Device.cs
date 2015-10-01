@@ -81,8 +81,8 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
         public bool                           SerialNumberIsUSB         => !this.SerialNumberIsEmulator && !this.SerialNumberIsTCPIP;
         public bool                           SerialNumberIsEmulator    => this.SerialNumber.IsMatch(RE_EMULATOR_SN);
         public bool                           SerialNumberIsTCPIP       => this.SerialNumber.IsMatch(RE_IPADDR_SN);
-        public string                         IpAddress                 => this.GetProperty("dhcp.wlan0.ipaddress");
-        public bool                           WifiIsOn                  => this.GetProperty("init.svc.dhcpcd_wlan0")=="running";
+        public string                         WlanIpAddress             => this.GetProperty("dhcp.wlan0.ipaddress");
+        public bool                           WlanIsRunning             => this.GetProperty("init.svc.dhcpcd_wlan0")=="running";
         public DeviceState                    State             { get; internal set; }
         public bool                           IsOnline           => this.State == DeviceState.Online;
         public bool                           IsOffline          => this.State == DeviceState.Offline;
@@ -123,10 +123,10 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
             this.FileSystem              = new FileSystem(this);
             this.BusyBox                 = new BusyBox(this);
 
-            RefreshState();
+            RefreshFromDevice();
             }
 
-        public void RefreshState() // does not throw
+        public void RefreshFromDevice() // does not throw
             {
             RefreshMountPoints();
             RefreshEnvironmentVariables();

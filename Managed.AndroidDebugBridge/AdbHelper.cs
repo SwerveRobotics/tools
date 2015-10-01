@@ -82,7 +82,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                 s.Blocking = true;
                 s.NoDelay = false;
 
-                SetDevice(s, device);
+                SetDevice(s, device?.SerialNumber);
 
                 byte[] req = CreateAdbForwardRequest(null, port);
                 Write(s, req);
@@ -198,7 +198,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                 socket.NoDelay = true;
 
                 // if the device is not -1, then we first tell adb we're looking to talk to a specific device
-                SetDevice(socket, device);
+                SetDevice(socket, device?.SerialNumber);
 
                 byte[] req = CreateJdwpForwardRequest(pid);
 
@@ -586,7 +586,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
 
                 // if the device is not -1, then we first tell adb we're looking to talk
                 // to a specific device
-                SetDevice(adbChan, device);
+                SetDevice(adbChan, device?.SerialNumber);
                 Write(adbChan, request);
 
                 AdbResponse resp = ReadAdbResponse(adbChan);
@@ -751,12 +751,12 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
             ExecuteRemoteCommand(endPoint, command, device, rcvr, int.MaxValue);
             }
 
-        public void SetDevice(Socket adbChan, Device device)
+        public void SetDevice(Socket adbChan, string serialNumber)
             {
             // if the device is not null, then we first tell adb we're looking to talk to a specific device
-            if (device != null)
+            if (serialNumber != null)
                 {
-                string msg = "host:transport:" + device.SerialNumber;
+                string msg = "host:transport:" + serialNumber;
                 byte[] device_query = FormAdbRequest(msg);
 
                 Write(adbChan, device_query);
@@ -766,11 +766,11 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                     {
                     if (equalsIgnoreCase("device not found", resp.Message))
                         {
-                        throw new DeviceNotFoundException(device.SerialNumber);
+                        throw new DeviceNotFoundException(serialNumber);
                         }
                     else
                         {
-                        throw new AdbException("device (" + device + ") request rejected: " + resp.Message);
+                        throw new AdbException("device (" + serialNumber + ") request rejected: " + resp.Message);
                         }
                     }
                 }
@@ -846,11 +846,12 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
 
         /** Asks the device to have it's ADBD daemon listen on the indicated TCPI address     
           * No error or return is given, as we don't know how to obtain same reliably.
+          * Throws on failure
           */
-        public void TcpIp(IPEndPoint adbSockAddr, Device device, int port)
+        public void TcpIp(IPEndPoint adbSockAddr, string serialNumber, int port)
             {
             byte[] request = FormAdbRequest($"tcpip:{port}");
-            using (Socket socket = ExecuteRawSocketCommand(adbSockAddr, device, request))
+            using (Socket socket = ExecuteRawSocketCommand(adbSockAddr, serialNumber, request))
                 {
                 // Listen for the positive response. We 
                 string response = ReadLine(socket);
@@ -917,28 +918,30 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
 
         private Socket ExecuteRawSocketCommand(IPEndPoint address, byte[] command)
             {
-            return ExecuteRawSocketCommand(address, null, command);
+            return ExecuteRawSocketCommand(address, (Device)null, command);
             }
 
-        // throws on socket issues
         private Socket ExecuteRawSocketCommand(IPEndPoint address, Device device, byte[] command)
             {
             if (device != null && !device.IsOnline)
                 throw new AdbException("Device is offline");
 
+            return ExecuteRawSocketCommand(address, device?.SerialNumber, command);
+            }
+
+        // throws on socket issues
+        private Socket ExecuteRawSocketCommand(IPEndPoint address, string serialNumber, byte[] command)
+            {
             Socket adbChan = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             adbChan.Connect(address);
             adbChan.Blocking = true;
-            if (device != null)
-                {
-                SetDevice(adbChan, device);
-                }
+            SetDevice(adbChan, serialNumber);
             Write(adbChan, command);
 
             AdbResponse resp = ReadAdbResponse(adbChan);
             if (!resp.IOSuccess || !resp.Okay)
                 {
-                throw new AdbException("Device rejected command: {0}".With(resp.Message));
+                throw new AdbException($"Device {serialNumber} rejected command: {resp.Message}");
                 }
             return adbChan;
             }

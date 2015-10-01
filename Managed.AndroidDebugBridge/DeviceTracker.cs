@@ -332,10 +332,10 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
          */
         private void UpdateDevices(List<Device> newCurrentDevices)
             {
-            Log.d(loggingTag, "---- ADB reports current devices -----");
-            foreach (Device device in newCurrentDevices)
-                Log.d(loggingTag, $"   device:{device.SerialNumber}");
-            Log.d(loggingTag, "----       end report            -----");
+            //Log.d(loggingTag, "---- ADB reports current devices -----");
+            //foreach (Device device in newCurrentDevices)
+            //    Log.d(loggingTag, $"   device:{device.SerialNumber}");
+            //Log.d(loggingTag, "----       end report            -----");
 
             lock (this.Devices)
                 {
@@ -416,7 +416,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
         // Do what we need to do when we detect a device making its transition to the online state
         private void OnDeviceTransitionToOnline(Device device)
             {
-            device.RefreshState();
+            device.RefreshFromDevice();
             this.bridge?.OnDeviceConnected(new DeviceEventArgs(device));
             }
 

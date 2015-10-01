@@ -293,7 +293,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB {
                 Channel.Blocking = true;
 
                 // target a specific device
-                AdbHelper.Instance.SetDevice(Channel, Device);
+                AdbHelper.Instance.SetDevice(Channel, Device?.SerialNumber);
 
                 byte[] request = AdbHelper.Instance.FormAdbRequest("sync:");
                 AdbHelper.Instance.Write(Channel, request, -1, DdmPreferences.Timeout);

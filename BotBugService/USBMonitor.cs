@@ -7,6 +7,7 @@
 // Probably can be integrated into BotBugService itself.
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -20,23 +21,6 @@ using static Org.SwerveRobotics.Tools.BotBug.Service.WIN32;
 
 namespace Org.SwerveRobotics.Tools.BotBug.Service
     {
-    // What we remember about the device we last connected to, and will
-    // use for later reconnection on ADB restart
-    public class TCPIPReconnectionState
-        {
-        public string       IpAddress;
-        public string       USBSerialNumber;
-        public string       UserIdentifier;
-
-        public TCPIPReconnectionState(Device device)
-            {
-            this.IpAddress       = device.IpAddress;
-            this.USBSerialNumber = device.USBSerialNumber;
-            this.UserIdentifier  = device.UserIdentifier;
-            }
-        }
-
-
     public class USBMonitor : IDisposable
         {
         //-----------------------------------------------------------------------------------------
@@ -61,8 +45,10 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
         SharedMemTaggedBlobQueue bugbotMessageQueue             = null;
         SharedMemTaggedBlobQueue bugBotCommandQueue             = null;
         HandshakeThreadStarter   commandQueueStarter            = null;
-        TCPIPReconnectionState   lastTPCIPConnected             = null;
-        TCPIPReconnectionState   reconnectionToVerify           = null;
+
+        AndroidDeviceDatabase    androidDeviceDatabase          = null;
+        AndroidDevice            lastTPCIPConnected             = null;
+        AndroidDevice            reconnectionToVerify           = null;
         bool                     armed                          = true;
         readonly int             msPingTimeout                  = 500;
 
@@ -83,6 +69,8 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             this.bugBotCommandQueue.InitializeIfNecessary();
 
             this.commandQueueStarter = new HandshakeThreadStarter("Command Q Listener", CommandQueueListenerThread);
+
+            this.androidDeviceDatabase = new AndroidDeviceDatabase();
 
             UpdateStatusNoRememberedConnections();
             this.bugbotMessageQueue.Write(TaggedBlob.TagBugBotMessage, Resources.StartingMessage);
@@ -176,7 +164,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                 this.bridge = AndroidDebugBridge.Create();
                 this.bridge.DeviceConnected += (sender, e) =>
                     {
-                    this.IgnoreADBExceptionsDuring(() => EnsureUSBConnectedDevicesAreOnTCPIP("ADB device connected notification"));
+                    this.IgnoreADBExceptionsDuring(() => EnsureUSBConnectedDevicesAreOnTCPIP("ADB device connected"));
                     };
                 this.bridge.ServerStartedOrReconnected += (sender, e) =>
                     {
@@ -185,7 +173,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                         lock (this.deviceConnectionLock)
                             {
                             // Ensure any USB-connected devices are on TCPIP
-                            bool? anyDevices = EnsureUSBConnectedDevicesAreOnTCPIP("ADB server started notification");
+                            bool? anyDevices = EnsureUSBConnectedDevicesAreOnTCPIP("ADB server started");
 
                             // If the server isn't in fact connected to ANYONE (maybe the server stopped
                             // while no USB device was connected; closing Android Studio stops the server)
@@ -260,11 +248,11 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             return true;
             }
 
-        void RememberLastTCPIPDevice(Device device)
+        void RememberLastTCPIPDevice(AndroidDevice device)
             {
             lock (this.deviceConnectionLock)
                 {
-                this.lastTPCIPConnected = new TCPIPReconnectionState(device);
+                this.lastTPCIPConnected = device;
                 UpdateTrayStatus();
                 }
             }
@@ -302,7 +290,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             if (!this.armed)
                 return null;
 
-            bool result = false;
+            bool serverKnowsAboutAnyDevices = false;
 
             // We synchronize for paranoid reasons: we're not SURE we can be be called on
             // a whole range of threads, possibly simultaneously, but why take the chance?
@@ -310,107 +298,61 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                 {
                 this.tracer.Trace($"v-----EnsureAdbDevicesAreOnTCPIP({reason})-----v");
 
-                // Keep track of which devices are already listening as we want them to be
-                HashSet<string> ipAddressesAlreadyConnectedToAdbServer = new HashSet<string>(); 
-                Dictionary<string,List<Device>> mpIpAddressDevice = new Dictionary<string, List<Device>>();
-
-                // Get ourselves the list of extant devices
+                // Get ourselves the list of devices that ADB currently knows about
                 List<Device> devicesConnectedToAdbServer = AdbHelper.Instance.GetDevices(AndroidDebugBridge.AdbServerSocketAddress);
+                this.androidDeviceDatabase.UpdateFromDevicesConnectedToAdbServer(devicesConnectedToAdbServer);
 
-                // Iterate over that list, finding out who is already listening
+                // Do a bit of tracing
                 foreach (Device device in devicesConnectedToAdbServer)
                     {
-                    // Yes, the server knows about devices
-                    result = true;
-                    this.tracer.Trace($"   serialNumber:{device.SerialNumber} ipAddress:{device.IpAddress} wifi:{(device.WifiIsOn?"on":"off")}");
-
-                    // If the device doesn't have an IP address, we can't do anything
-                    if (device.IpAddress != null)
-                        {
-                        // Keep track of multiple endpoints of the same device
-                        List<Device> devices;
-                        if (mpIpAddressDevice.TryGetValue(device.IpAddress, out devices))
-                            devices.Add(device);
-                        else
-                            mpIpAddressDevice[device.IpAddress] = new List<Device> { device };
-
-                        // Is this guy already listening as we want him to?
-                        if (device.SerialNumberIsTCPIP)
-                            {
-                            ipAddressesAlreadyConnectedToAdbServer.Add(device.IpAddress);
-                            }
-                        }
+                    this.tracer.Trace($"   usb:{device.USBSerialNumber} ipAddress:{device.WlanIpAddress} wifi:{(device.WlanIsRunning?"on":"off")} serial:{device.SerialNumber}");
+                    }
+                this.tracer.Trace($"---------------------------------");
+                foreach (AndroidDevice device in this.androidDeviceDatabase.ConnectedDevices)
+                    {
+                    this.tracer.Trace($"   usb:{device.USBSerialNumber} ipAddress:{device.WlanIpAddress} wifi:{(device.WlanIsRunning?"on":"off")} connected:{device.IsADBConnectedOnTcpip}");
                     }
 
-                // Crosspolinate USB serial numbers. This might be useful for reconnecting to the last device, for example.
-                // That said, most (all?) Devices can report their own serial numbers now, so this is less useful.
-                foreach (KeyValuePair<string, List<Device>> pair in mpIpAddressDevice)
+                // Iterate over what's currently connected to ADB
+                // 
+                AndroidDevice potentialLastDevice = null;
+                bool          connectedAny        = false;
+                foreach (AndroidDevice device in this.androidDeviceDatabase.ConnectedDevices)
                     {
-                    string serialUSB = null;
-                    foreach (Device device in pair.Value)
-                        {
-                        if (device.USBSerialNumber != null)
-                            {
-                            serialUSB = device.USBSerialNumber;
-                            break;
-                            }
-                        }
-                    foreach (Device device in pair.Value)
-                        {
-                        if (device.USBSerialNumber == null)
-                            device.USBSerialNumber = serialUSB;
-                        else
-                            Debug.Assert(device.SerialNumber == serialUSB);
-                        }
-                    }
+                    // Yes, the server knows about some devices
+                    serverKnowsAboutAnyDevices = true;
 
-                // Iterate again over that list, ensuring that any that are not listening on TCPIP start to do so
-                Device potentialLastDevice = null;
-                bool connectedAny = false;
-                foreach (Device device in devicesConnectedToAdbServer)
-                    {
-                    // Connect him if we can
-                    if (device.IpAddress == null)
+                    if (device.IsADBConnectedOnTcpip)
                         {
-                        NotifyNoIpAddress(device);
-                        }
-                    else if (!device.WifiIsOn)
-                        {
-                        NotifyWifiOff(device);
-                        }
-                    else if (ipAddressesAlreadyConnectedToAdbServer.Contains(device.IpAddress))
-                        {
-                        // He's already connected
-                        
-                        // He's probably fine. Remember him as a potential later reconnection
+                        // ADB has a TCPIP connection for him
+                        // 
                         potentialLastDevice = potentialLastDevice ?? device;
 
-                        // Are there any reconnections to verify
                         if (this.reconnectionToVerify != null)
                             {
                             // Is this the address we reconnected on?
-                            if (this.reconnectionToVerify.IpAddress == device.IpAddress)
+                            if (this.reconnectionToVerify.WlanIpAddress == device.WlanIpAddress)
                                 {
                                 // Did we reconnect to the same device?
                                 if (this.reconnectionToVerify.USBSerialNumber == device.USBSerialNumber)
                                     {
                                     // All is well
-                                    this.tracer.Trace($"   verify reconnected: all good: {this.reconnectionToVerify.IpAddress} is still {device.USBSerialNumber}");
+                                    this.tracer.Trace($"   verify reconnected: all good: {this.reconnectionToVerify.WlanIpAddress} is still {device.USBSerialNumber}");
                                     }
                                 else
                                     {
                                     // We reconnected to him, but he's the wrong guy. Disconnect.
-                                    this.tracer.Trace($"   verify reconnected: fail: {this.reconnectionToVerify.IpAddress}: got: {device.USBSerialNumber} expected: {this.reconnectionToVerify.USBSerialNumber}; disconnecting");
-                                    AdbHelper.Instance.Disconnect(AndroidDebugBridge.AdbServerSocketAddress, device.IpAddress, adbdPort);
-                                    NotifyReconnected(Resources.NotifyReconnectedFail, device.UserIdentifier, device.IpAddress);
+                                    this.tracer.Trace($"   verify reconnected: fail: {this.reconnectionToVerify.WlanIpAddress}: got: {device.USBSerialNumber} expected: {this.reconnectionToVerify.USBSerialNumber}; disconnecting");
+                                    AdbHelper.Instance.Disconnect(AndroidDebugBridge.AdbServerSocketAddress, device.WlanIpAddress, adbdPort);
+                                    NotifyReconnected(Resources.NotifyReconnectedFail, device.UserIdentifier, device.WlanIpAddress);
                                     
-                                    // If we're still reconnecting to the same guy, stop that
-                                    if (this.lastTPCIPConnected != null && this.lastTPCIPConnected.IpAddress == this.reconnectionToVerify.IpAddress)
+                                    // If we're *still* porentially reconnecting to that same guy, stop that
+                                    if (this.lastTPCIPConnected != null && this.lastTPCIPConnected.USBSerialNumber == this.reconnectionToVerify.USBSerialNumber)
                                         {
                                         ForgetLastTCPIPDevice();
                                         }
 
-                                    // He's no longer a potential later reconnection
+                                    // And he's no longer a potential *later* reconnection
                                     if (potentialLastDevice == device)
                                         potentialLastDevice = null;                                    
                                     }
@@ -422,20 +364,33 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                         }
                     else
                         {
-                        // He's not already connected on an IP network. But can we reach him?
-                        Ping        ping    = new Ping();
-                        IPAddress   address = IPAddress.Parse(device.IpAddress);
-                        PingReply   reply   = ping.Send(address, msPingTimeout);
-                        if (reply?.Status == IPStatus.Success)
+                        // ADB doesn't already have a TCPIP connection for him. We'll try to make one if we can.
+                        //
+                        if (string.IsNullOrEmpty(device.WlanIpAddress))
                             {
-                            // Connect to him
-                            if (SendTcpipCommandAndConnect(device))
-                                {
-                                connectedAny = true;
-                                }
+                            NotifyNoIpAddress(device);
+                            }
+                        else if (!device.WlanIsRunning)
+                            {
+                            NotifyWifiNotRunning(device);    
                             }
                         else
-                            NotifyNotPingable(device);
+                            {
+                            // He's not already connected on an IP network. But can we reach him?
+                            Ping        ping    = new Ping();
+                            IPAddress   address = IPAddress.Parse(device.WlanIpAddress);
+                            PingReply   reply   = ping.Send(address, msPingTimeout);
+                            if (reply?.Status == IPStatus.Success)
+                                {
+                                // Connect to him
+                                if (SendTcpipCommandAndConnect(device))
+                                    {
+                                    connectedAny = true;
+                                    }
+                                }
+                            else
+                                NotifyNotPingable(device);
+                            }
                         }
                     }
 
@@ -449,34 +404,46 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                this.tracer.Trace($"^-----EnsureAdbDevicesAreOnTCPIP({reason})-----^"); 
                }
 
-            return result;
+            return serverKnowsAboutAnyDevices;
             }
 
-        bool SendTcpipCommandAndConnect(Device device)
+        bool SendTcpipCommandAndConnect(AndroidDevice device)
             {
             bool result = false;
-            string ipAddress = device.IpAddress;
+            string ipAddress = device.WlanIpAddress;
 
-            // Restart the device listening on a port of interest. We don't know if he got there,
-            // as we get no response from the command issued.
-            this.tracer.Trace($"   restarting {device.SerialNumber} in TCPIP mode at {ipAddress}");
-            AdbHelper.Instance.TcpIp(AndroidDebugBridge.AdbServerSocketAddress, device, adbdPort);
-                    
-            // Give it a chance to restart. The actual time used here is a total guess, but
-            // it does seem to work. Mostly (?).
-            Thread.Sleep(1000);
-
-            // Connect to the TCPIP version of that device
-            this.tracer.Trace($"   connecting to restarted {ipAddress} device");
-            if (AdbHelper.Instance.Connect(AndroidDebugBridge.AdbServerSocketAddress, ipAddress, adbdPort))
-                {
-                NotifyConnected(Resources.NotifyConnected, device, ipAddress);
-
-                // Remember to whom we last connected for later ADB Server restarts
-                RememberLastTCPIPDevice(device);
-                result = true;
+            bool tcpipIssuedOk = true;
+            try {
+                // Restart the device listening on a port of interest. We don't know if he got there,
+                // as we get no response from the command issued.
+                this.tracer.Trace($"   restarting {device.USBSerialNumber} adbd in TCPIP at {ipAddress}");
+                AdbHelper.Instance.TcpIp(AndroidDebugBridge.AdbServerSocketAddress, device.USBSerialNumber, adbdPort);
                 }
-            else
+            catch (Exception)
+                {
+                this.tracer.Trace($"   restart of {device.USBSerialNumber} adbd failed");
+                tcpipIssuedOk = false;
+                }
+                    
+            if (tcpipIssuedOk)
+                {
+                // Give it a chance to restart. The actual time used here is a total guess, but
+                // it does seem to work. Mostly (?).
+                Thread.Sleep(1000);
+
+                // Connect to the TCPIP version of that device
+                this.tracer.Trace($"   connecting to restarted {ipAddress} device");
+                if (AdbHelper.Instance.Connect(AndroidDebugBridge.AdbServerSocketAddress, ipAddress, adbdPort))
+                    {
+                    NotifyConnected(Resources.NotifyConnected, device, ipAddress);
+
+                    // Remember to whom we last connected for later ADB Server restarts
+                    RememberLastTCPIPDevice(device);
+                    result = true;
+                    }
+                }
+            
+            if (!result)
                 {
                 this.tracer.Trace($"   failed to connect to {ipAddress}:{adbdPort}");
                 NotifyConnected(Resources.NotifyConnectedFail, device, ipAddress);
@@ -492,15 +459,18 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                 {
                 if (this.lastTPCIPConnected != null)
                     {
-                    string ipAddress = this.lastTPCIPConnected.IpAddress;
+                    string ipAddress = this.lastTPCIPConnected.WlanIpAddress;
                     int portNumber   = adbdPort;
 
-                    this.tracer.Trace($"   reconnecting to {this.lastTPCIPConnected.UserIdentifier}:{this.lastTPCIPConnected.USBSerialNumber} on {this.lastTPCIPConnected.IpAddress}");
+                    this.tracer.Trace($"   reconnecting to {this.lastTPCIPConnected.UserIdentifier}:{this.lastTPCIPConnected.USBSerialNumber} on {this.lastTPCIPConnected.WlanIpAddress}");
                     if (AdbHelper.Instance.Connect(AndroidDebugBridge.AdbServerSocketAddress, ipAddress, portNumber))
                         {
-                        // Ok, we connected. But is it the same guy? We'll have to check later
+                        // Ok, we connected. But is it the same guy? We'll have to check later. We
+                        // snarf away a copy of the device so we'll be able to compare it's current 
+                        // state to what we find later; if we didn't copy, then this state could be
+                        // tarnished by the 'update to latest connected devices' step.
                         NotifyReconnected(Resources.NotifyReconnected, this.lastTPCIPConnected.UserIdentifier, ipAddress);
-                        this.reconnectionToVerify = this.lastTPCIPConnected;
+                        this.reconnectionToVerify = this.lastTPCIPConnected.DisconnectedCopy();
                         }
                     else
                         {
@@ -522,19 +492,19 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             {
             UpdateStatus(string.Format(Resources.NoLastConnectedToMessage));
             }
-        void NotifyNoIpAddress(Device device)
+        void NotifyNoIpAddress(AndroidDevice device)
             {
-            NotifyMessage(string.Format(Resources.NotifyNoIPAddress, device.UserIdentifier, device.IpAddress));
+            NotifyMessage(string.Format(Resources.NotifyNoIPAddress, device.UserIdentifier, device.WlanIpAddress));
             }
-        void NotifyWifiOff(Device device)
+        void NotifyWifiNotRunning(AndroidDevice device)
             {
-            NotifyMessage(string.Format(Resources.NotifyWifiOff, device.UserIdentifier, device.IpAddress));
+            NotifyMessage(string.Format(Resources.NotifyWifiOff, device.UserIdentifier, device.WlanIpAddress));
             }
-        void NotifyNotPingable(Device device)
+        void NotifyNotPingable(AndroidDevice device)
             {
-            NotifyMessage(string.Format(Resources.NotifyNotPingable, device.UserIdentifier, device.IpAddress));
+            NotifyMessage(string.Format(Resources.NotifyNotPingable, device.UserIdentifier, device.WlanIpAddress));
             }
-        void NotifyConnected(string format, Device device, string ipAddress)
+        void NotifyConnected(string format, AndroidDevice device, string ipAddress)
             {
             NotifyMessage(string.Format(format, device.UserIdentifier, ipAddress));
             }
