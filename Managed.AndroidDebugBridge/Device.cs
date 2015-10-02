@@ -42,7 +42,8 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
         [Obsolete("Use PROP_BUILD_API_LEVEL")] public const string PROP_BUILD_VERSION_NUMBER = PROP_BUILD_API_LEVEL;
 
         private const string RE_EMULATOR_SN             = @"emulator-(\d+)";
-        private const string RE_IPADDR_SN               = "[0-9]{1,3}\\.*[0-9]{1,3}\\.*[0-9]{1,3}\\.*[0-9]{1,3}:[0-9]{1,5}"; // A regular expression that matches an IP address
+        public const string RegExIpAddr                 = "[0-9]{1,3}\\.*[0-9]{1,3}\\.*[0-9]{1,3}\\.*[0-9]{1,3}";
+        public const string RegExIpAddrPort             = "[0-9]{1,3}\\.*[0-9]{1,3}\\.*[0-9]{1,3}\\.*[0-9]{1,3}:[0-9]{1,5}"; // A regular expression that matches an IP address and port
 
         private const string RE_DEVICELIST_INFO         = @"^([a-z0-9_-]+(?:\s?[\.a-z0-9_-]+)?(?:\:\d{1,})?)\s+(device|offline|unknown|bootloader|recovery|download)(?:\s+product:([\S]+)\s+model\:([\S]+)\s+device\:([\S]+))?$";
         
@@ -80,7 +81,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
         public BusyBox                        BusyBox { get; }
         public bool                           SerialNumberIsUSB         => !this.SerialNumberIsEmulator && !this.SerialNumberIsTCPIP;
         public bool                           SerialNumberIsEmulator    => this.SerialNumber.IsMatch(RE_EMULATOR_SN);
-        public bool                           SerialNumberIsTCPIP       => this.SerialNumber.IsMatch(RE_IPADDR_SN);
+        public bool                           SerialNumberIsTCPIP       => this.SerialNumber.IsMatch(RegExIpAddrPort);
         public string                         WlanIpAddress             => this.GetProperty("dhcp.wlan0.ipaddress");
         public bool                           WlanIsRunning             => this.GetProperty("init.svc.dhcpcd_wlan0")=="running";
         public DeviceState                    State             { get; internal set; }
@@ -162,7 +163,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
             }
 
 
-        public static Device CreateFromAdbData(string deviceData)
+        public static Device CreateFromAdbData(string deviceData)   // throws
             {
             Regex re = new Regex(RE_DEVICELIST_INFO, RegexOptions.Compiled | RegexOptions.IgnoreCase);
             Match m = re.Match(deviceData);
@@ -377,12 +378,12 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
 
         public void ExecuteShellCommand(string command, IShellOutputReceiver receiver, params object[] commandArgs)
             {
-            AdbHelper.Instance.ExecuteRemoteCommand(AndroidDebugBridge.AdbServerSocketAddress, string.Format(command, commandArgs), this, receiver);
+            AdbHelper.Instance.ExecuteRemoteCommand(AndroidDebugBridge.AdbServerSocketAddress, string.Format(command, commandArgs), this.SerialNumber, receiver);
             }
 
         public void ExecuteShellCommand(string command, IShellOutputReceiver receiver, int timeout, params object[] commandArgs)
             {
-            AdbHelper.Instance.ExecuteRemoteCommand(AndroidDebugBridge.AdbServerSocketAddress, string.Format(command, commandArgs), this, receiver);
+            AdbHelper.Instance.ExecuteRemoteCommand(AndroidDebugBridge.AdbServerSocketAddress, string.Format(command, commandArgs), this.SerialNumber, receiver);
             }
 
         public void ExecuteRootShellCommand(string command, IShellOutputReceiver receiver, int timeout)

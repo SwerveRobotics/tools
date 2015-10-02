@@ -9,7 +9,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
         {
         protected override void ProcessNewLines(string[] lines)
             {
-            var result = new StringBuilder();
+            StringBuilder result = new StringBuilder();
             foreach (string line in lines)
                 {
                 if (string.IsNullOrEmpty(line) || line.StartsWith("#") || line.StartsWith("$"))

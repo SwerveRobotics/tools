@@ -13,6 +13,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Text.RegularExpressions;
 using System.Threading;
 using Org.SwerveRobotics.Tools.ManagedADB;
 using Org.SwerveRobotics.Tools.Util;
@@ -369,7 +370,10 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                         // ADB doesn't already have a TCPIP connection for him. We'll try to make one if we can.
                         //
                         // Can we reach him over WifiDirect?
-                        if (!wifiDirectAddrInUse && IsPingable(AndroidDevice.WifiDirectIPAddress) && SendTcpipCommandAndConnect(device, AndroidDevice.WifiDirectIPAddress))
+                        if (!wifiDirectAddrInUse 
+                                && IsPingable(AndroidDevice.WifiDirectIPAddress) 
+                                && (IsWifiDirectGroupOwner(device) ?? false)
+                                && SendTcpipCommandAndConnect(device, AndroidDevice.WifiDirectIPAddress))
                             {
                             this.tracer.Trace($"connected to {device.UserIdentifier} over WifiDirect!");
                             wifiDirectAddrInUse = true;
@@ -419,6 +423,32 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             Ping        ping    = new Ping();
             PingReply   reply   = ping.Send(address, msPingTimeout);
             return (reply?.Status == IPStatus.Success);
+            }
+
+        bool? IsWifiDirectGroupOwner(AndroidDevice device)
+        // Is this guy the group owner of a Wifi Direct Group?
+            {
+            try {
+                // Example response:
+                //  p2p0: ip 192.168.49.1 mask 255.255.255.0 flags [up broadcast running multicast]
+                CommandResultReceiver rcvr = new CommandResultReceiver();
+                AdbHelper.Instance.ExecuteRemoteCommand(AndroidDebugBridge.AdbServerSocketAddress, "ifconfig p2p0", device.SerialNumbers[0], rcvr);
+                string regex=$"p2p0: ip ({Device.RegExIpAddr}) mask {Device.RegExIpAddr} flags \\[([a-zA-Z ]*)\\]";
+                Match match = Regex.Match(rcvr.Result, regex, RegexOptions.Compiled|RegexOptions.IgnoreCase|RegexOptions.Singleline);
+                if (match.Success && match.Groups[1].Value==AndroidDevice.WifiDirectIPAddress.ToString())
+                    {
+                    string[] splits = match.Groups[2].Value.ToLowerInvariant().Split(' ');
+                    if (splits.Contains("up"))
+                        {
+                        return true;
+                        }
+                    }
+                }
+            catch (Exception)
+                {
+                return null;
+                }
+            return false;
             }
 
         bool SendTcpipCommandAndConnect(AndroidDevice device, IPAddress ipAddress)

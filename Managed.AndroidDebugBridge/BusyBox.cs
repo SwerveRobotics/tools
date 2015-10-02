@@ -131,7 +131,7 @@ namespace Org.SwerveRobotics.Tools.ManagedADB {
 			command.ThrowIfNullOrWhiteSpace ( "command" );
 			var cmd = string.Format ( "{0} {1}", BUSYBOX_COMMAND, string.Format ( command, commandArgs ) );
 			Log.d ( "executing: {0}", cmd );
-			AdbHelper.Instance.ExecuteRemoteCommand ( AndroidDebugBridge.AdbServerSocketAddress, cmd, this.Device, receiver );
+			AdbHelper.Instance.ExecuteRemoteCommand ( AndroidDebugBridge.AdbServerSocketAddress, cmd, this.Device.SerialNumber, receiver );
 		}
 
 		/// <summary>

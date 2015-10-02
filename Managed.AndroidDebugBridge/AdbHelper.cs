@@ -120,40 +120,6 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                 }
             }
 
-        [Obsolete("This is not yet functional")]
-        public void Backup(IPEndPoint address)
-        // https://github.com/android/platform_system_core/blob/master/adb/backup_service.c
-            {
-            byte[] request = FormAdbRequest("backup:all");
-            using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
-                {
-                socket.Connect(address);
-                socket.Blocking = true;
-                Write(socket, request);
-                AdbResponse resp = ReadAdbResponse(socket);
-                if (!resp.IOSuccess || !resp.Okay)
-                    {
-                    Log.e(LOGGING_TAG, "Got timeout or unhappy response from ADB req: " + resp.Message);
-                    socket.Close();
-                    return;
-                    }
-
-                byte[] data = new byte[6000];
-                int count = -1;
-                while (count != 0)
-                    {
-                    count = socket.Receive(data);
-                    Console.Write("received: {0}", count);
-                    }
-                }
-            }
-
-        [Obsolete("This is not yet functional")]
-        public void Restore()
-            {
-            throw new NotImplementedException();
-            }
-
         /** Returns the  version number of the currently running ADB server */
         public int GetAdbServerVersion(IPEndPoint address)
             {
@@ -650,12 +616,28 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
 
         public void ExecuteRemoteRootCommand(IPEndPoint endPoint, string command, Device device, IShellOutputReceiver rcvr, int maxTimeToOutputResponse)
             {
-            ExecuteRemoteCommand(endPoint, $"su -c \"{command}\"", device, rcvr);
+            ExecuteRemoteCommand(endPoint, $"su -c \"{command}\"", device.SerialNumber, rcvr);
             }
 
-        public void ExecuteRemoteCommand(IPEndPoint endPoint, string command, Device device, IShellOutputReceiver rcvr, int maxTimeToOutputResponse)
+        /**
+         * Executes a command X as 'adb shell X' and routes the output back to the output receiver
+         *
+         * @exception   OperationCanceledException          Thrown when an Operation Canceled error condition occurs.
+         * @exception   FileNotFoundException               Thrown when the requested file is not present.
+         * @exception   UnknownOptionException              Thrown when an Unknown Option error condition occurs.
+         * @exception   CommandAbortingException            Thrown when a Command Aborting error condition occurs.
+         * @exception   PermissionDeniedException           Thrown when a Permission Denied error condition occurs.
+         * @exception   ShellCommandUnresponsiveException   Thrown when a Shell Command Unresponsive error condition occurs.
+         *
+         * @param   endPoint                The end point.
+         * @param   command                 The command.
+         * @param   device                  The device.
+         * @param   rcvr                    The receiver.
+         * @param   maxTimeToOutputResponse The maximum time to output response.
+         */
+        public void ExecuteRemoteCommand(IPEndPoint endPoint, string command, string serialNumber, IShellOutputReceiver rcvr, int maxTimeToOutputResponse = int.MaxValue)
             {
-            using (Socket socket = ExecuteRawSocketCommand(endPoint, device, "shell:{0}".With(command)))
+            using (Socket socket = ExecuteRawSocketCommand(endPoint, serialNumber, "shell:{0}".With(command)))
                 {
                 socket.ReceiveTimeout = maxTimeToOutputResponse;
                 socket.SendTimeout = maxTimeToOutputResponse;
@@ -676,8 +658,8 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                         if (count == 0)
                             {
                             // we're at the end, we flush the output
-                            rcvr.Flush();
-                            Log.v(LOGGING_TAG, "execute '" + command + "' on '" + device + "' : EOF hit. Read: " + count);
+                            rcvr?.Flush();
+                            Log.v(LOGGING_TAG, "execute '" + command + "' on '" + serialNumber + "' : EOF hit. Read: " + count);
                             }
                         else
                             {
@@ -744,11 +726,6 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                     rcvr.Flush();
                     }
                 }
-            }
-
-        public void ExecuteRemoteCommand(IPEndPoint endPoint, string command, Device device, IShellOutputReceiver rcvr)
-            {
-            ExecuteRemoteCommand(endPoint, command, device, rcvr, int.MaxValue);
             }
 
         public void SetDevice(Socket adbChan, string serialNumber)
@@ -906,28 +883,18 @@ namespace Org.SwerveRobotics.Tools.ManagedADB
                 }
             }
 
-        private Socket ExecuteRawSocketCommand(IPEndPoint address, Device device, string command)
-            {
-            return ExecuteRawSocketCommand(address, device, FormAdbRequest(command));
-            }
-
-        private Socket ExecuteRawSocketCommand(IPEndPoint address, string command)
-            {
-            return ExecuteRawSocketCommand(address, FormAdbRequest(command));
-            }
-
-        private Socket ExecuteRawSocketCommand(IPEndPoint address, byte[] command)
-            {
-            return ExecuteRawSocketCommand(address, (Device)null, command);
-            }
+        private Socket ExecuteRawSocketCommand(IPEndPoint address,                      string command) => ExecuteRawSocketCommand(address, FormAdbRequest(command));
+        private Socket ExecuteRawSocketCommand(IPEndPoint address,                      byte[] command) => ExecuteRawSocketCommand(address, (Device)null, command);
+        private Socket ExecuteRawSocketCommand(IPEndPoint address, Device device,       string command) => ExecuteRawSocketCommand(address, device, FormAdbRequest(command));
+        private Socket ExecuteRawSocketCommand(IPEndPoint address, string serialNumber, string command) => ExecuteRawSocketCommand(address, serialNumber, FormAdbRequest(command));
 
         private Socket ExecuteRawSocketCommand(IPEndPoint address, Device device, byte[] command)
             {
             if (device != null && !device.IsOnline)
                 throw new AdbException("Device is offline");
-
             return ExecuteRawSocketCommand(address, device?.SerialNumber, command);
             }
+
 
         // throws on socket issues
         private Socket ExecuteRawSocketCommand(IPEndPoint address, string serialNumber, byte[] command)

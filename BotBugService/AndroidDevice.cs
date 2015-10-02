@@ -23,6 +23,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
         public bool         WlanIsRunning           = false;
         public string       IPAddressLastConnected  = null;       // where we last connected him at
 
+        public List<string>     SerialNumbers           = new List<string>();       // current serial numbers we have for this guy and by which he is known in ADB
         public bool             IsConnected             = false;                    // does ADB currently know about this guy?
         public bool             IsAdbConnectedOnTcpip   => AdbEndpoints.Count > 0;  // is the TPCIP endpoint of this device currently in ADB server's device list?
         public List<IPEndPoint> AdbEndpoints            = new List<IPEndPoint>();   // if IsADBConnectedOnTcpip, then this is where
@@ -91,6 +92,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                 ad.IsConnected     = false;
                 ad.IsTCPIPOnLine   = false;
                 ad.AdbEndpoints    = new List<IPEndPoint>();
+                ad.SerialNumbers   = new List<string>();
                 }
 
             foreach (Device device in devices)
@@ -100,6 +102,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                 ad.WifiDirectName     = device.WifiDirectName;
                 ad.WlanIpAddress      = device.WlanIpAddress;
                 ad.WlanIsRunning      = device.WlanIsRunning;
+                ad.SerialNumbers.Add(device.SerialNumber);
 
                 if (device.SerialNumberIsTCPIP)
                     {
