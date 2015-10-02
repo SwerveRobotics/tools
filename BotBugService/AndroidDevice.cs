@@ -12,17 +12,23 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
         // State
         //-----------------------------------------------------------------------------------------
 
+        // The address at which robot controllers connect over Wifi Direct is fixed as the
+        // controllers are always the group owner / access point in that case and Android
+        // uses a fixed IP address for that role.
+        public static readonly IPAddress WifiDirectIPAddress = IPAddress.Parse("192.168.49.1");
+
         public string       USBSerialNumber         = null;
         public string       WifiDirectName          = null;
         public string       WlanIpAddress           = null;       // the IP address, if any, of the wlan0 address of this fellow
         public bool         WlanIsRunning           = false;
+        public string       IPAddressLastConnected  = null;       // where we last connected him at
 
-        public bool         IsConnected             = false;      // does ADB currently know about this guy?
-        public bool         IsADBConnectedOnTcpip   = false;      // is the TPCIP endpoint of this device currently in ADB server's device list?
-        public IPEndPoint   ConnectedEndpoint       = null;       // if IsADBConnectedOnTcpip, then this is where
-        public bool         IsTCPIPOnLine           = false;      // if IsADBConnectedOnTcpip, then is it currently online?
+        public bool             IsConnected             = false;                    // does ADB currently know about this guy?
+        public bool             IsAdbConnectedOnTcpip   => AdbEndpoints.Count > 0;  // is the TPCIP endpoint of this device currently in ADB server's device list?
+        public List<IPEndPoint> AdbEndpoints            = new List<IPEndPoint>();   // if IsADBConnectedOnTcpip, then this is where
+        public bool             IsTCPIPOnLine           = false;                    // if IsADBConnectedOnTcpip, then is it currently online?
 
-        public string       UserIdentifier          => this.WifiDirectName ?? this.USBSerialNumber;
+        public string           UserIdentifier          => this.WifiDirectName ?? this.USBSerialNumber;
 
         private AndroidDeviceDatabase database;
 
@@ -82,9 +88,9 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             {
             foreach (AndroidDevice ad in this.mpUsbToDevice.Values)
                 {
-                ad.IsConnected        = false;
-                ad.IsADBConnectedOnTcpip = false;
-                ad.IsTCPIPOnLine      = false;
+                ad.IsConnected     = false;
+                ad.IsTCPIPOnLine   = false;
+                ad.AdbEndpoints    = new List<IPEndPoint>();
                 }
 
             foreach (Device device in devices)
@@ -98,12 +104,13 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                 if (device.SerialNumberIsTCPIP)
                     {
                     string[] pieces = device.SerialNumber.Split(':');
-                    ad.ConnectedEndpoint     = new IPEndPoint(IPAddress.Parse(pieces[0]), Int32.Parse(pieces[1]));
-                    ad.IsADBConnectedOnTcpip = true;
-                    ad.IsTCPIPOnLine         = device.IsOnline;
+                    ad.AdbEndpoints.Add(new IPEndPoint(IPAddress.Parse(pieces[0]), int.Parse(pieces[1])));
+                    ad.IsTCPIPOnLine = device.IsOnline;
                     }
                 }
             }
+
+        public bool IsWifiDirectIPAddressConnected => this.mpUsbToDevice.Values.SelectMany(device => device.AdbEndpoints).Any(ep => ep.Address.Equals(AndroidDevice.WifiDirectIPAddress));
 
         public IEnumerable<AndroidDevice> ConnectedDevices => this.mpUsbToDevice.Values.Where(ad => ad.IsConnected);
         }

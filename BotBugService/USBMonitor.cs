@@ -248,10 +248,11 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             return true;
             }
 
-        void RememberLastTCPIPDevice(AndroidDevice device)
+        void RememberLastTCPIPDevice(AndroidDevice device, string ipAddress)
             {
             lock (this.deviceConnectionLock)
                 {
+                device.IPAddressLastConnected = ipAddress;
                 this.lastTPCIPConnected = device;
                 UpdateTrayStatus();
                 }
@@ -310,21 +311,22 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                 this.tracer.Trace($"---------------------------------");
                 foreach (AndroidDevice device in this.androidDeviceDatabase.ConnectedDevices)
                     {
-                    this.tracer.Trace($"   usb:{device.USBSerialNumber} ipAddress:{device.WlanIpAddress} wifi:{(device.WlanIsRunning?"on":"off")} connected:{device.IsADBConnectedOnTcpip}");
+                    this.tracer.Trace($"   usb:{device.USBSerialNumber} ipAddress:{device.WlanIpAddress} wifi:{(device.WlanIsRunning?"on":"off")} connected:{device.IsAdbConnectedOnTcpip}");
                     }
 
                 // Iterate over what's currently connected to ADB
                 // 
                 AndroidDevice potentialLastDevice = null;
                 bool          connectedAny        = false;
+                bool          wifiDirectAddrInUse = this.androidDeviceDatabase.IsWifiDirectIPAddressConnected;
                 foreach (AndroidDevice device in this.androidDeviceDatabase.ConnectedDevices)
                     {
                     // Yes, the server knows about some devices
                     serverKnowsAboutAnyDevices = true;
 
-                    if (device.IsADBConnectedOnTcpip)
+                    if (device.IsAdbConnectedOnTcpip)
                         {
-                        // ADB has a TCPIP connection for him
+                        // ADB has a TCPIP connection for him; we're not going to add one
                         // 
                         potentialLastDevice = potentialLastDevice ?? device;
 
@@ -366,7 +368,13 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                         {
                         // ADB doesn't already have a TCPIP connection for him. We'll try to make one if we can.
                         //
-                        if (string.IsNullOrEmpty(device.WlanIpAddress))
+                        // Can we reach him over WifiDirect?
+                        if (!wifiDirectAddrInUse && IsPingable(AndroidDevice.WifiDirectIPAddress) && SendTcpipCommandAndConnect(device, AndroidDevice.WifiDirectIPAddress))
+                            {
+                            wifiDirectAddrInUse = true;
+                            connectedAny = true;
+                            }
+                        else if (string.IsNullOrEmpty(device.WlanIpAddress))
                             {
                             NotifyNoIpAddress(device);
                             }
@@ -377,13 +385,10 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                         else
                             {
                             // He's not already connected on an IP network. But can we reach him?
-                            Ping        ping    = new Ping();
-                            IPAddress   address = IPAddress.Parse(device.WlanIpAddress);
-                            PingReply   reply   = ping.Send(address, msPingTimeout);
-                            if (reply?.Status == IPStatus.Success)
+                            if (IsPingable(device.WlanIpAddress))
                                 {
                                 // Connect to him
-                                if (SendTcpipCommandAndConnect(device))
+                                if (SendTcpipCommandAndConnect(device, device.WlanIpAddress))
                                     {
                                     connectedAny = true;
                                     }
@@ -398,7 +403,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                 // connected to as a potential reconnection target for later
                 if (!connectedAny && potentialLastDevice != null)
                     {
-                    RememberLastTCPIPDevice(potentialLastDevice);
+                    RememberLastTCPIPDevice(potentialLastDevice, potentialLastDevice.IPAddressLastConnected ?? potentialLastDevice.WlanIpAddress);
                     }
 
                this.tracer.Trace($"^-----EnsureAdbDevicesAreOnTCPIP({reason})-----^"); 
@@ -407,10 +412,22 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             return serverKnowsAboutAnyDevices;
             }
 
-        bool SendTcpipCommandAndConnect(AndroidDevice device)
+        bool IsPingable(string ipAddress) => IsPingable(IPAddress.Parse(ipAddress));
+        bool IsPingable(IPAddress address)
+            {
+            Ping        ping    = new Ping();
+            PingReply   reply   = ping.Send(address, msPingTimeout);
+            return (reply?.Status == IPStatus.Success);
+            }
+
+        bool SendTcpipCommandAndConnect(AndroidDevice device, IPAddress ipAddress)
+            {
+            return SendTcpipCommandAndConnect(device, ipAddress.ToString());
+            }
+
+        bool SendTcpipCommandAndConnect(AndroidDevice device, string ipAddress)
             {
             bool result = false;
-            string ipAddress = device.WlanIpAddress;
 
             bool tcpipIssuedOk = true;
             try {
@@ -438,7 +455,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                     NotifyConnected(Resources.NotifyConnected, device, ipAddress);
 
                     // Remember to whom we last connected for later ADB Server restarts
-                    RememberLastTCPIPDevice(device);
+                    RememberLastTCPIPDevice(device, ipAddress);
                     result = true;
                     }
                 }
@@ -447,6 +464,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                 {
                 this.tracer.Trace($"   failed to connect to {ipAddress}:{adbdPort}");
                 NotifyConnected(Resources.NotifyConnectedFail, device, ipAddress);
+                device.IPAddressLastConnected = null;
                 }
 
             return result;
@@ -459,10 +477,10 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                 {
                 if (this.lastTPCIPConnected != null)
                     {
-                    string ipAddress = this.lastTPCIPConnected.WlanIpAddress;
+                    string ipAddress = this.lastTPCIPConnected.IPAddressLastConnected ?? this.lastTPCIPConnected.WlanIpAddress;
                     int portNumber   = adbdPort;
 
-                    this.tracer.Trace($"   reconnecting to {this.lastTPCIPConnected.UserIdentifier}:{this.lastTPCIPConnected.USBSerialNumber} on {this.lastTPCIPConnected.WlanIpAddress}");
+                    this.tracer.Trace($"   reconnecting to {this.lastTPCIPConnected.UserIdentifier}:{this.lastTPCIPConnected.USBSerialNumber} on {ipAddress}");
                     if (AdbHelper.Instance.Connect(AndroidDebugBridge.AdbServerSocketAddress, ipAddress, portNumber))
                         {
                         // Ok, we connected. But is it the same guy? We'll have to check later. We
@@ -471,10 +489,12 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                         // tarnished by the 'update to latest connected devices' step.
                         NotifyReconnected(Resources.NotifyReconnected, this.lastTPCIPConnected.UserIdentifier, ipAddress);
                         this.reconnectionToVerify = this.lastTPCIPConnected.DisconnectedCopy();
+                        this.lastTPCIPConnected.IPAddressLastConnected = ipAddress;
                         }
                     else
                         {
                         NotifyReconnected(Resources.NotifyReconnectedFail, this.lastTPCIPConnected.UserIdentifier, ipAddress);
+                        this.lastTPCIPConnected.IPAddressLastConnected = null;
                         }
                     }
                 }
