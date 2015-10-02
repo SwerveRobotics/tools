@@ -371,6 +371,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                         // Can we reach him over WifiDirect?
                         if (!wifiDirectAddrInUse && IsPingable(AndroidDevice.WifiDirectIPAddress) && SendTcpipCommandAndConnect(device, AndroidDevice.WifiDirectIPAddress))
                             {
+                            this.tracer.Trace($"connected to {device.UserIdentifier} over WifiDirect!");
                             wifiDirectAddrInUse = true;
                             connectedAny = true;
                             }
@@ -452,7 +453,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
                 this.tracer.Trace($"   connecting to restarted {ipAddress} device");
                 if (AdbHelper.Instance.Connect(AndroidDebugBridge.AdbServerSocketAddress, ipAddress, adbdPort))
                     {
-                    NotifyConnected(Resources.NotifyConnected, device, ipAddress);
+                    NotifyConnected(device, ipAddress);
 
                     // Remember to whom we last connected for later ADB Server restarts
                     RememberLastTCPIPDevice(device, ipAddress);
@@ -463,7 +464,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             if (!result)
                 {
                 this.tracer.Trace($"   failed to connect to {ipAddress}:{adbdPort}");
-                NotifyConnected(Resources.NotifyConnectedFail, device, ipAddress);
+                NotifyDisconnected(device, ipAddress);
                 device.IPAddressLastConnected = null;
                 }
 
@@ -524,7 +525,17 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
             {
             NotifyMessage(string.Format(Resources.NotifyNotPingable, device.UserIdentifier, device.WlanIpAddress));
             }
-        void NotifyConnected(string format, AndroidDevice device, string ipAddress)
+        void NotifyConnected(AndroidDevice device, string ipAddress)
+            {
+            string format = ipAddress==AndroidDevice.WifiDirectIPAddress.ToString() ? Resources.NotifyConnectedWifiDirect : Resources.NotifyConnected;
+            NotifyConnectedMessage(format, device, ipAddress);
+            }
+        void NotifyDisconnected(AndroidDevice device, string ipAddress)
+            {
+            string format = Resources.NotifyConnectedFail;
+            NotifyConnectedMessage(format, device, ipAddress);
+            }
+        void NotifyConnectedMessage(string format, AndroidDevice device, string ipAddress)
             {
             NotifyMessage(string.Format(format, device.UserIdentifier, ipAddress));
             }

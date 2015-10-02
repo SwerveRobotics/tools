@@ -132,6 +132,9 @@
   <data name="NotifyConnectedFail" xml:space="preserve">
     <value>Failed to connected to phone {0} at {1}</value>
   </data>
+  <data name="NotifyConnectedWifiDirect" xml:space="preserve">
+    <value>Connected to phone {0} at {1} over Wifi Direct</value>
+  </data>
   <data name="NotifyDisarmed" xml:space="preserve">
     <value>BotBut is not monitoring connections</value>
   </data>

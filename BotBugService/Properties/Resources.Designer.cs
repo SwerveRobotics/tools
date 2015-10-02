@@ -106,6 +106,15 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Connected to phone {0} at {1} over Wifi Direct.
+        /// </summary>
+        public static string NotifyConnectedWifiDirect {
+            get {
+                return ResourceManager.GetString("NotifyConnectedWifiDirect", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to BotBut is not monitoring connections.
         /// </summary>
         public static string NotifyDisarmed {
