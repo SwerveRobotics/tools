@@ -13,12 +13,31 @@ At the moment, the suite contains just one tool:
     debugging and downloading of updates of a team's software even while the robot is in 
     its game configuration, connected to its sensors and motor and servo controllers. Configuring 
     Wifi debugging by hand can be straightforward but tedious, and its several command-line steps
-     must be done (at least) each time a phone boots or Android Studio restarts.
+    must be done (at least) each time a phone boots or Android Studio restarts.
 
-    To setup Wifi debugging with BotBug, simply configure your robot controller phone normally, 
-    just as instructed in the FTC Guide, then take the one additional step of also connecting 
-    the phone to a Wifi network which is visible to your PC (so: the phone is *both* on Wifi 
-    Direct and this other network). Then plug in the phone using USB, acknowledge the one-time 
+    There are two approaches to connecting to your robot controller over Wifi. The preferred 
+    approach is to use the same Wifi Direct network that the driver station uses to talk to the
+    controller. The second approach is to connect to the robot controller over an administered
+    Wifi network (one with a regular access point) which is also visible to your PC (so, in this 
+    second case, the robot controller is *both* on Wifi Direct and this other network).
+
+    The private Wifi Direct network hosted by your robot controller will appear to your PC as
+    a wireless network whose name/SSID is of the form 'Direct-TwoRandomCharacters-*YourRobotName*',
+    for example: 'DIRECT-S6-1234-RC'. (this network might not be visible when the FTC 
+    Robot Controller application is not running on the phone). You can connect to it from 
+    your PC like you can connect to any other wireless network so long as you know the password. 
+    One way to learn the password is to write your code using the [Swerve Library](https://github.com/SwerveRobotics/ftc_app) 
+    in which case the password will be displayed on the robot controller screen (it has also been
+    mentioned that a future release from FTC HQ may also display the password on the robot 
+    controller screen). A second way is to look for the string 'PassPhrase' in the Android 
+    Studio LogCat output from the robot controller.
+
+    If you're not going to connect over the Wifi Direct network, configure your robot controller 
+    phone normally, just as instructed in the FTC Guide, then just take the one additional 
+    step of also connecting the phone to a regular Wifi network, one which is visible to your PC. 
+    
+    Once your PC and your robot controller are connected on a common wireless netwrok, just
+    plug your phone into your PC using USB, acknowledge the one-time 
     "allow USB debugging" prompt if needed, and BotBug will take care of the rest. Once 
     BotBug has done its job, you can detach the phone from USB.
 
