@@ -28,7 +28,7 @@ SOFTWARE.
 
 ----------------------------------------------------------------------------
 
-The [Managed ADB Library](https://github.com/camalot/madb), whose use here
+The Managed ADB Library, from https://github.com/camalot/madb and whose use here
 comprises the contents of the 'Managed.AndroidDebugBridge' and the MadBee.Console 
 folders herein, is licensed thusly.
 
