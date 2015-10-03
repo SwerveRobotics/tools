@@ -18,8 +18,7 @@ At the moment, the suite contains just one tool:
     There are two approaches to connecting to your robot controller over Wifi. The preferred 
     approach is to use the same Wifi Direct network that the driver station uses to talk to the
     controller. The second approach is to connect to the robot controller over an administered
-    Wifi network (one with a regular access point) which is also visible to your PC (so, in this 
-    second case, the robot controller is *both* on Wifi Direct and this other network).
+    Wifi network (one with a regular access point) which is also visible to your PC.
 
     The private Wifi Direct network hosted by your robot controller will appear to your PC as
     a wireless network whose name/SSID is of the form 'Direct-TwoRandomCharacters-*YourRobotName*',
@@ -34,9 +33,10 @@ At the moment, the suite contains just one tool:
 
     If you're not going to connect over the Wifi Direct network, configure your robot controller 
     phone normally, just as instructed in the FTC Guide, then just take the one additional 
-    step of also connecting the phone to a regular Wifi network, one which is visible to your PC. 
+    step of also connecting the phone to a regular Wifi network, one which is visible to your PC 
+    (so, in this second case, the robot controller is *both* on Wifi Direct and this other network).
     
-    Once your PC and your robot controller are connected on a common wireless netwrok, just
+    Once your PC and your robot controller are connected on a common wireless network, just
     plug your phone into your PC using USB, acknowledge the one-time 
     "allow USB debugging" prompt if needed, and BotBug will take care of the rest. Once 
     BotBug has done its job, you can detach the phone from USB.
