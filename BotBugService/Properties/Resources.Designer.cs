@@ -115,7 +115,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to BotBut is not monitoring connections.
+        ///   Looks up a localized string similar to BotBug is not monitoring connections.
         /// </summary>
         public static string NotifyDisarmed {
             get {

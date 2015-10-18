@@ -136,7 +136,7 @@
     <value>Connected to phone {0} at {1} over Wifi Direct</value>
   </data>
   <data name="NotifyDisarmed" xml:space="preserve">
-    <value>BotBut is not monitoring connections</value>
+    <value>BotBug is not monitoring connections</value>
   </data>
   <data name="NotifyNoIPAddress" xml:space="preserve">
     <value>Phone {0} has no IP address</value>
