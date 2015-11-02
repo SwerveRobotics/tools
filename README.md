@@ -30,12 +30,8 @@ At the moment, the suite contains just one tool:
     a wireless network whose name/SSID is of the form 'DIRECT-TwoRandomCharacters-*YourRobotName*',
     for example: 'DIRECT-S6-1234-RC'. (this network might not be visible when the FTC 
     Robot Controller application is not running on the phone). You can connect to it from 
-    your PC like you can connect to any other wireless network so long as you know the password. 
-    One way to learn the password is to write your code using the [Swerve Library](https://github.com/SwerveRobotics/ftc_app) 
-    in which case the password will be displayed on the robot controller screen (it has also been
-    mentioned that a future release from FTC HQ may also display the password on the robot 
-    controller screen). A second way is to look for the string 'PassPhrase' in the Android 
-    Studio LogCat output from the robot controller.
+    your PC like you can connect to any other wireless network so long as you know the password.
+    The password to the wireless network can be found in the 'About' dialog of the robot controller app.
 
     You can of course connect over Wifi Direct to your robot controller using your usual wireless
     network adapter in your laptop or desktop. However, it's often useful to have your PC connect 
