@@ -71,7 +71,7 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
         // Operations
         //-----------------------------------------------------------------------------------------
 
-        public AndroidDevice FromUSB(string usbSerialNumber)
+        public AndroidDevice FromUSBSerialNumber(string usbSerialNumber)
             {
             if (string.IsNullOrEmpty(usbSerialNumber))
                 throw new System.ArgumentException($"'{nameof(usbSerialNumber)}' cannot be null or empty");
@@ -97,18 +97,30 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
 
             foreach (Device device in devices)
                 {
-                AndroidDevice ad = FromUSB(device.USBSerialNumber);
-                ad.IsConnected        = true;
-                ad.WifiDirectName     = device.WifiDirectName;
-                ad.WlanIpAddress      = device.WlanIpAddress;
-                ad.WlanIsRunning      = device.WlanIsRunning;
-                ad.SerialNumbers.Add(device.SerialNumber);
-
-                if (device.SerialNumberIsTCPIP)
+                if (!string.IsNullOrEmpty(device.USBSerialNumber))
                     {
-                    string[] pieces = device.SerialNumber.Split(':');
-                    ad.AdbEndpoints.Add(new IPEndPoint(IPAddress.Parse(pieces[0]), int.Parse(pieces[1])));
-                    ad.IsTCPIPOnLine = device.IsOnline;
+                    AndroidDevice ad = FromUSBSerialNumber(device.USBSerialNumber);
+                    ad.IsConnected        = true;
+                    ad.WifiDirectName     = device.WifiDirectName;
+                    ad.WlanIpAddress      = device.WlanIpAddress;
+                    ad.WlanIsRunning      = device.WlanIsRunning;
+                    ad.SerialNumbers.Add(device.SerialNumber);
+
+                    if (device.SerialNumberIsTCPIP)
+                        {
+                        string[] pieces = device.SerialNumber.Split(':');
+                        ad.AdbEndpoints.Add(new IPEndPoint(IPAddress.Parse(pieces[0]), int.Parse(pieces[1])));
+                        ad.IsTCPIPOnLine = device.IsOnline;
+                        }
+                    }
+                else
+                    {
+                    // We're hitting this occasionally, but we don't exactly know why. It seems like 
+                    // the Win32 notifications might be racing with the ADB server notifications: this 
+                    // only showed up on Bob's new super-duper-fast desktop. 
+                    //
+                    // We really ought to track down what's happening. But for now, we'll just disable
+                    // the USB-notification path, which was always redundant, anyway.
                     }
                 }
             }

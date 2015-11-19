@@ -641,13 +641,28 @@ namespace Org.SwerveRobotics.Tools.BotBug.Service
         // Win32 Events
         //-----------------------------------------------------------------------------------------
 
+        /*
+        On Bob's super-duper-fast new desktop, we occasionally see faults like this:
+        
+        CommandFailed: System.ArgumentException: 'usbSerialNumber' cannot be null or empty
+           at Org.SwerveRobotics.Tools.BotBug.Service.AndroidDeviceDatabase.FromUSB(String usbSerialNumber) in E:\ftc\tools\BotBugService\AndroidDevice.cs:line 77
+           at Org.SwerveRobotics.Tools.BotBug.Service.AndroidDeviceDatabase.UpdateFromDevicesConnectedToAdbServer(List`1 devices) in E:\ftc\tools\BotBugService\AndroidDevice.cs:line 98
+           at Org.SwerveRobotics.Tools.BotBug.Service.USBMonitor.EnsureUSBConnectedDevicesAreOnTCPIP(String reason) in E:\ftc\tools\BotBugService\USBMonitor.cs:line 308
+           at Org.SwerveRobotics.Tools.BotBug.Service.USBMonitor.OnDeviceArrived(Object sender, DeviceEventArgs args) in E:\ftc\tools\BotBugService\USBMonitor.cs:line 650
+           at Org.SwerveRobotics.Tools.BotBug.Service.BotBugService.RaiseDeviceEvent(EventHandler`1 evt, DEV_BROADCAST_HDR* pHeader) in E:\ftc\tools\BotBugService\BotBugService.cs:line 148
+           at Org.SwerveRobotics.Tools.BotBug.Service.BotBugService.OnDeviceEvent(Int32 eventType, DEV_BROADCAST_HDR* ...
+
+        We hypothesize that the speed of the new machine has uncovered some latent race with the ADB 
+        server. For the moment, we just disable this redundant notification pathway until we have time
+        to actually track down the root of the problem.
+        */
         unsafe void OnDeviceArrived(object sender, DeviceEventArgs args)
             {
             if (args.pHeader->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
                 {
                 DEV_BROADCAST_DEVICEINTERFACE_W* pintf = (DEV_BROADCAST_DEVICEINTERFACE_W*)args.pHeader;
-                Trace("added", pintf);
-                EnsureUSBConnectedDevicesAreOnTCPIP("OnDeviceArrived");
+                Trace("added (ignored)", pintf);
+                // EnsureUSBConnectedDevicesAreOnTCPIP("OnDeviceArrived");
                 }
             }
 

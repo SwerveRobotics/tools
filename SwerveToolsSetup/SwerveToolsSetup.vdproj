@@ -15,30 +15,6 @@
     {
         "Entry"
         {
-        "MsmKey" = "8:_379CED761849A1F67388DBCD021A7B22"
-        "OwnerKey" = "8:_C9EE96A481164CD38A6B7249DDAB428B"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_417CA27EB0219A04C8161573CD2600D0"
-        "OwnerKey" = "8:_A86589CDF6A64F5DB8F78029D4AE1664"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_417CA27EB0219A04C8161573CD2600D0"
-        "OwnerKey" = "8:_C9EE96A481164CD38A6B7249DDAB428B"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_417CA27EB0219A04C8161573CD2600D0"
-        "OwnerKey" = "8:_379CED761849A1F67388DBCD021A7B22"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_51666840AFA6463184C2E1952DA271EC"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -82,19 +58,7 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_379CED761849A1F67388DBCD021A7B22"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_A86589CDF6A64F5DB8F78029D4AE1664"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_417CA27EB0219A04C8161573CD2600D0"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -314,68 +278,6 @@
         }
         "File"
         {
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_379CED761849A1F67388DBCD021A7B22"
-            {
-            "AssemblyRegister" = "3:1"
-            "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:ManagedADB, Version=0.61.5752.39306, Culture=neutral, processorArchitecture=MSIL"
-                "ScatterAssemblies"
-                {
-                    "_379CED761849A1F67388DBCD021A7B22"
-                    {
-                    "Name" = "8:ManagedADB.dll"
-                    "Attributes" = "3:512"
-                    }
-                }
-            "SourcePath" = "8:ManagedADB.dll"
-            "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_91B08F9544EE48C4936C8AB67C41C2D4"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_417CA27EB0219A04C8161573CD2600D0"
-            {
-            "AssemblyRegister" = "3:1"
-            "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:SwerveToolsUtil, Version=0.61.5752.39306, Culture=neutral, processorArchitecture=MSIL"
-                "ScatterAssemblies"
-                {
-                    "_417CA27EB0219A04C8161573CD2600D0"
-                    {
-                    "Name" = "8:SwerveToolsUtil.dll"
-                    "Attributes" = "3:512"
-                    }
-                }
-            "SourcePath" = "8:SwerveToolsUtil.dll"
-            "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_91B08F9544EE48C4936C8AB67C41C2D4"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_51666840AFA6463184C2E1952DA271EC"
             {
             "SourcePath" = "8:..\\bin\\release\\AdbWinUsbApi.dll"
@@ -542,7 +444,7 @@
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:TRUE"
-        "ProductVersion" = "8:1.0.0"
+        "ProductVersion" = "8:1.0.1"
         "Manufacturer" = "8:Swerve Robotics"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
